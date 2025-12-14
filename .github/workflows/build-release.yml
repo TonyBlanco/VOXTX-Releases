@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: FlutterIPTV-Windows-x64.zip
+          path: flutteriptv-Windows-x64.zip
           retention-days: 5
 
   # ============================================
@@ -95,16 +95,16 @@ jobs:
       - name: Rename APKs for Mobile
         run: |
           mkdir -p dist/android-mobile
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android-mobile/FlutterIPTV-Android-Mobile-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android-mobile/FlutterIPTV-Android-Mobile-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android-mobile/FlutterIPTV-Android-Mobile-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android-mobile/flutteriptv-Android-Mobile-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android-mobile/flutteriptv-Android-Mobile-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android-mobile/flutteriptv-Android-Mobile-x86_64.apk
       
       - name: Build Universal APK
         run: flutter build apk --release
       
       - name: Copy Universal APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk dist/android-mobile/FlutterIPTV-Android-Mobile-universal.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/android-mobile/flutteriptv-Android-Mobile-universal.apk
       
       - name: Upload Android Mobile Artifacts
         uses: actions/upload-artifact@v4
@@ -149,16 +149,16 @@ jobs:
       - name: Rename APKs for TV
         run: |
           mkdir -p dist/android-tv
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android-tv/FlutterIPTV-AndroidTV-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android-tv/FlutterIPTV-AndroidTV-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android-tv/FlutterIPTV-AndroidTV-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/android-tv/flutteriptv-AndroidTV-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/android-tv/flutteriptv-AndroidTV-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/android-tv/flutteriptv-AndroidTV-x86_64.apk
       
       - name: Build Universal TV APK
         run: flutter build apk --release --dart-define=IS_TV=true
       
       - name: Copy Universal TV APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk dist/android-tv/FlutterIPTV-AndroidTV-universal.apk
+          cp build/app/outputs/flutter-apk/app-release.apk dist/android-tv/flutteriptv-AndroidTV-universal.apk
       
       - name: Upload Android TV Artifacts
         uses: actions/upload-artifact@v4
@@ -214,30 +214,30 @@ jobs:
         id: release_notes
         run: |
           cat << 'EOF' > release_notes.md
-          ## 📺 FlutterIPTV ${{ steps.version.outputs.VERSION }}
+          ## 📺 flutteriptv ${{ steps.version.outputs.VERSION }}
           
           ### 📥 Downloads
           
           #### Windows
           | File | Description |
           |------|-------------|
-          | `FlutterIPTV-Windows-x64.zip` | Windows 64-bit portable application |
+          | `flutteriptv-Windows-x64.zip` | Windows 64-bit portable application |
           
           #### Android Mobile
           | File | Description |
           |------|-------------|
-          | `FlutterIPTV-Android-Mobile-arm64-v8a.apk` | 64-bit ARM devices (recommended for most modern phones) |
-          | `FlutterIPTV-Android-Mobile-armeabi-v7a.apk` | 32-bit ARM devices (older phones) |
-          | `FlutterIPTV-Android-Mobile-x86_64.apk` | x86_64 emulators |
-          | `FlutterIPTV-Android-Mobile-universal.apk` | Universal (larger file, works on all devices) |
+          | `flutteriptv-Android-Mobile-arm64-v8a.apk` | 64-bit ARM devices (recommended for most modern phones) |
+          | `flutteriptv-Android-Mobile-armeabi-v7a.apk` | 32-bit ARM devices (older phones) |
+          | `flutteriptv-Android-Mobile-x86_64.apk` | x86_64 emulators |
+          | `flutteriptv-Android-Mobile-universal.apk` | Universal (larger file, works on all devices) |
           
           #### Android TV
           | File | Description |
           |------|-------------|
-          | `FlutterIPTV-AndroidTV-arm64-v8a.apk` | 64-bit ARM TV devices (Fire TV Stick 4K, Shield TV, etc.) |
-          | `FlutterIPTV-AndroidTV-armeabi-v7a.apk` | 32-bit ARM TV devices (older Fire TV) |
-          | `FlutterIPTV-AndroidTV-x86_64.apk` | x86_64 TV emulators |
-          | `FlutterIPTV-AndroidTV-universal.apk` | Universal TV (larger file, works on all TV devices) |
+          | `flutteriptv-AndroidTV-arm64-v8a.apk` | 64-bit ARM TV devices (Fire TV Stick 4K, Shield TV, etc.) |
+          | `flutteriptv-AndroidTV-armeabi-v7a.apk` | 32-bit ARM TV devices (older Fire TV) |
+          | `flutteriptv-AndroidTV-x86_64.apk` | x86_64 TV emulators |
+          | `flutteriptv-AndroidTV-universal.apk` | Universal TV (larger file, works on all TV devices) |
           
           ### ✨ Features
           - M3U/M3U8 playlist support
@@ -249,7 +249,7 @@ jobs:
           ### 📋 Installation
           
           **Windows:**
-          1. Download and extract `FlutterIPTV-Windows-x64.zip`
+          1. Download and extract `flutteriptv-Windows-x64.zip`
           2. Run `flutter_iptv.exe`
           
           **Android Mobile:**
@@ -271,19 +271,19 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
-          name: FlutterIPTV ${{ steps.version.outputs.VERSION }}
+          name: flutteriptv ${{ steps.version.outputs.VERSION }}
           body_path: release_notes.md
           draft: false
           prerelease: false
           files: |
-            release-assets/FlutterIPTV-Windows-x64.zip
-            release-assets/android-mobile/FlutterIPTV-Android-Mobile-arm64-v8a.apk
-            release-assets/android-mobile/FlutterIPTV-Android-Mobile-armeabi-v7a.apk
-            release-assets/android-mobile/FlutterIPTV-Android-Mobile-x86_64.apk
-            release-assets/android-mobile/FlutterIPTV-Android-Mobile-universal.apk
-            release-assets/android-tv/FlutterIPTV-AndroidTV-arm64-v8a.apk
-            release-assets/android-tv/FlutterIPTV-AndroidTV-armeabi-v7a.apk
-            release-assets/android-tv/FlutterIPTV-AndroidTV-x86_64.apk
-            release-assets/android-tv/FlutterIPTV-AndroidTV-universal.apk
+            release-assets/flutteriptv-Windows-x64.zip
+            release-assets/android-mobile/flutteriptv-Android-Mobile-arm64-v8a.apk
+            release-assets/android-mobile/flutteriptv-Android-Mobile-armeabi-v7a.apk
+            release-assets/android-mobile/flutteriptv-Android-Mobile-x86_64.apk
+            release-assets/android-mobile/flutteriptv-Android-Mobile-universal.apk
+            release-assets/android-tv/flutteriptv-AndroidTV-arm64-v8a.apk
+            release-assets/android-tv/flutteriptv-AndroidTV-armeabi-v7a.apk
+            release-assets/android-tv/flutteriptv-AndroidTV-x86_64.apk
+            release-assets/android-tv/flutteriptv-AndroidTV-universal.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
