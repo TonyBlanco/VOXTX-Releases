@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/tv_focusable.dart';
@@ -168,18 +169,9 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               ),
               const SizedBox(width: 12),
               TVFocusable(
-                onSelect: () {
-                  // TODO: Implement file picker
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('File picker not implemented yet'),
-                    ),
-                  );
-                },
+                onSelect: () => _pickFile(provider),
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement file picker
-                  },
+                  onPressed: () => _pickFile(provider),
                   icon: const Icon(Icons.folder_open_rounded, size: 20),
                   label: const Text('From File'),
                   style: OutlinedButton.styleFrom(
@@ -584,5 +576,46 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         );
       },
     );
+  }
+
+  Future<void> _pickFile(PlaylistProvider provider) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['m3u', 'm3u8'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        if (!mounted) return;
+
+        final filePath = result.files.single.path!;
+        final fileName =
+            result.files.single.name.replaceAll(RegExp(r'\.m3u8?'), '');
+
+        try {
+          await provider.addPlaylistFromFile(fileName, filePath);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Playlist imported successfully')),
+            );
+            _nameController.clear();
+            _urlController.clear();
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: $e')),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking file: $e')),
+        );
+      }
+    }
   }
 }

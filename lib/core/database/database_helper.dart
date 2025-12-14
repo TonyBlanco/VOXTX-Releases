@@ -12,11 +12,9 @@ class DatabaseHelper {
   Future<void> initialize() async {
     if (_database != null) return;
 
-    // Initialize FFI for desktop platforms
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+    if (_database != null) return;
+
+    // Note: FFI initialization is handled in main.dart
 
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String path = join(appDir.path, _databaseName);

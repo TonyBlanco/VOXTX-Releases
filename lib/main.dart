@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:media_kit/media_kit.dart';
 
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
 import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
 import 'core/services/service_locator.dart';
@@ -17,6 +20,12 @@ void main() async {
 
   // Initialize MediaKit
   MediaKit.ensureInitialized();
+
+  // Initialize Windows Database Engine immediately
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 
   // Initialize critical services (Prefs) immediately for SettingsProvider
   // Database will be initialized in SplashScreen

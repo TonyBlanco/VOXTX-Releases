@@ -160,14 +160,23 @@ class PlaylistProvider extends ChangeNotifier {
       notifyListeners();
 
       // Insert channels
-      for (int i = 0; i < channels.length; i++) {
-        await ServiceLocator.database.insert('channels', channels[i].toMap());
-
-        if (i % 50 == 0) {
-          _importProgress = 0.6 + (0.4 * i / channels.length);
-          notifyListeners();
-        }
+      // Insert channels using batch for performance
+      final batch = ServiceLocator.database.db.batch();
+      for (final channel in channels) {
+        batch.insert('channels', channel.toMap());
       }
+      await batch.commit(noResult: true);
+
+      // Update playlist channel count
+      await ServiceLocator.database.update(
+        'playlists',
+        {
+          'last_updated': DateTime.now().millisecondsSinceEpoch,
+          'channel_count': channels.length,
+        },
+        where: 'id = ?',
+        whereArgs: [playlistId],
+      );
 
       _importProgress = 1.0;
       notifyListeners();
