@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -90,16 +91,16 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   }
 
   Widget _buildAddPlaylistSection(PlaylistProvider provider) {
-    return FocusTraversalGroup(
-      policy: ReadingOrderTraversalPolicy(),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(20),
         ),
+      ),
+      child: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -113,71 +114,40 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ... inputs
-            // Name Input
-            TVFocusable(
-              onSelect: () => _nameFocusNode.requestFocus(),
-              child: TextField(
+            // Name Input - Order 1
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(1),
+              child: _buildFocusableTextField(
                 controller: _nameController,
                 focusNode: _nameFocusNode,
-                style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: InputDecoration(
-                  hintText:
-                      AppStrings.of(context)?.playlistName ?? 'Playlist Name',
-                  hintStyle: const TextStyle(color: AppTheme.textMuted),
-                  prefixIcon: const Icon(Icons.label_outline,
-                      color: AppTheme.textMuted),
-                  filled: true,
-                  fillColor: AppTheme.cardColor,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                        color: AppTheme.primaryColor, width: 2),
-                  ),
-                ),
+                hintText:
+                    AppStrings.of(context)?.playlistName ?? 'Playlist Name',
+                prefixIcon: Icons.label_outline,
+                autofocus: true,
               ),
             ),
             const SizedBox(height: 12),
 
-            // URL Input
-            TVFocusable(
-              onSelect: () => _urlFocusNode.requestFocus(),
-              child: TextField(
+            // URL Input - Order 2
+            FocusTraversalOrder(
+              order: const NumericFocusOrder(2),
+              child: _buildFocusableTextField(
                 controller: _urlController,
                 focusNode: _urlFocusNode,
-                style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: InputDecoration(
-                  hintText:
-                      AppStrings.of(context)?.playlistUrl ?? 'M3U/M3U8 URL',
-                  hintStyle: const TextStyle(color: AppTheme.textMuted),
-                  prefixIcon: const Icon(Icons.link, color: AppTheme.textMuted),
-                  filled: true,
-                  fillColor: AppTheme.cardColor,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                        color: AppTheme.primaryColor, width: 2),
-                  ),
-                ),
+                hintText: AppStrings.of(context)?.playlistUrl ?? 'M3U/M3U8 URL',
+                prefixIcon: Icons.link,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Action Buttons
+            // Action Buttons Row
             Row(
               children: [
+                // Add from URL Button - Order 3
                 Expanded(
-                  child: TVFocusable(
-                    onSelect: () => _addPlaylist(provider),
-                    child: ElevatedButton.icon(
+                  child: FocusTraversalOrder(
+                    order: const NumericFocusOrder(3),
+                    child: _buildActionButton(
                       onPressed: provider.isLoading
                           ? null
                           : () => _addPlaylist(provider),
@@ -191,41 +161,24 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               ),
                             )
                           : const Icon(Icons.add_rounded, size: 20),
-                      label: Text(provider.isLoading
+                      label: provider.isLoading
                           ? (AppStrings.of(context)?.importing ??
                               'Importing...')
                           : (AppStrings.of(context)?.addFromUrl ??
-                              'Add from URL')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                              'Add from URL'),
+                      isPrimary: true,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                TVFocusable(
-                  onSelect: () => _pickFile(provider),
-                  child: OutlinedButton.icon(
+                // From File Button - Order 4
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(4),
+                  child: _buildActionButton(
                     onPressed: () => _pickFile(provider),
                     icon: const Icon(Icons.folder_open_rounded, size: 20),
-                    label:
-                        Text(AppStrings.of(context)?.fromFile ?? 'From File'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.primaryColor,
-                      side: const BorderSide(color: AppTheme.primaryColor),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                    label: AppStrings.of(context)?.fromFile ?? 'From File',
+                    isPrimary: false,
                   ),
                 ),
               ],
@@ -296,6 +249,153 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Build a focusable text field that works well with TV remote
+  Widget _buildFocusableTextField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required IconData prefixIcon,
+    bool autofocus = false,
+  }) {
+    return Focus(
+      focusNode: focusNode,
+      onFocusChange: (hasFocus) {
+        // Trigger rebuild to show focus state
+        if (mounted) setState(() {});
+      },
+      onKeyEvent: (node, event) {
+        // Allow Enter/Select to focus the text field for editing
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.select ||
+              event.logicalKey == LogicalKeyboardKey.enter) {
+            // TextField is already focused, just allow default behavior
+            return KeyEventResult.ignored;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Builder(
+        builder: (context) {
+          final isFocused = focusNode.hasFocus;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isFocused ? AppTheme.primaryColor : Colors.transparent,
+                width: isFocused ? 3 : 0,
+              ),
+              boxShadow: isFocused
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: TextField(
+              controller: controller,
+              autofocus: autofocus,
+              style: const TextStyle(color: AppTheme.textPrimary),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: const TextStyle(color: AppTheme.textMuted),
+                prefixIcon: Icon(prefixIcon, color: AppTheme.textMuted),
+                filled: true,
+                fillColor: AppTheme.cardColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Build an action button that works well with TV remote
+  Widget _buildActionButton({
+    required VoidCallback? onPressed,
+    required Widget icon,
+    required String label,
+    required bool isPrimary,
+  }) {
+    return Builder(
+      builder: (context) {
+        return Focus(
+          onFocusChange: (hasFocus) {
+            if (mounted) setState(() {});
+          },
+          child: Builder(
+            builder: (context) {
+              final isFocused = Focus.of(context).hasFocus;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.identity()..scale(isFocused ? 1.05 : 1.0),
+                transformAlignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isFocused
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withOpacity(0.4),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: isPrimary
+                    ? ElevatedButton.icon(
+                        onPressed: onPressed,
+                        icon: icon,
+                        label: Text(label),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      )
+                    : OutlinedButton.icon(
+                        onPressed: onPressed,
+                        icon: icon,
+                        label: Text(label),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                          side: BorderSide(
+                            color: isFocused
+                                ? AppTheme.primaryColor
+                                : AppTheme.primaryColor.withOpacity(0.5),
+                            width: isFocused ? 2 : 1,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

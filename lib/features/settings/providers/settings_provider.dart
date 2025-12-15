@@ -9,6 +9,8 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyRefreshInterval = 'refresh_interval';
   static const String _keyDefaultQuality = 'default_quality';
   static const String _keyHardwareDecoding = 'hardware_decoding';
+  static const String _keyDecodingMode =
+      'decoding_mode'; // New: auto, hardware, software
   static const String _keyBufferSize = 'buffer_size';
   static const String _keyLastPlaylistId = 'last_playlist_id';
   static const String _keyEnableEpg = 'enable_epg';
@@ -26,6 +28,7 @@ class SettingsProvider extends ChangeNotifier {
   int _refreshInterval = 24; // hours
   String _defaultQuality = 'auto';
   bool _hardwareDecoding = true;
+  String _decodingMode = 'auto'; // New: auto, hardware, software
   int _bufferSize = 30; // seconds
   int? _lastPlaylistId;
   bool _enableEpg = true;
@@ -43,6 +46,7 @@ class SettingsProvider extends ChangeNotifier {
   int get refreshInterval => _refreshInterval;
   String get defaultQuality => _defaultQuality;
   bool get hardwareDecoding => _hardwareDecoding;
+  String get decodingMode => _decodingMode;
   int get bufferSize => _bufferSize;
   int? get lastPlaylistId => _lastPlaylistId;
   bool get enableEpg => _enableEpg;
@@ -65,6 +69,7 @@ class SettingsProvider extends ChangeNotifier {
     _refreshInterval = prefs.getInt(_keyRefreshInterval) ?? 24;
     _defaultQuality = prefs.getString(_keyDefaultQuality) ?? 'auto';
     _hardwareDecoding = prefs.getBool(_keyHardwareDecoding) ?? true;
+    _decodingMode = prefs.getString(_keyDecodingMode) ?? 'auto';
     _bufferSize = prefs.getInt(_keyBufferSize) ?? 30;
     _lastPlaylistId = prefs.getInt(_keyLastPlaylistId);
     _enableEpg = prefs.getBool(_keyEnableEpg) ?? true;
@@ -92,6 +97,7 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setInt(_keyRefreshInterval, _refreshInterval);
     await prefs.setString(_keyDefaultQuality, _defaultQuality);
     await prefs.setBool(_keyHardwareDecoding, _hardwareDecoding);
+    await prefs.setString(_keyDecodingMode, _decodingMode);
     await prefs.setInt(_keyBufferSize, _bufferSize);
     if (_lastPlaylistId != null) {
       await prefs.setInt(_keyLastPlaylistId, _lastPlaylistId!);
@@ -141,6 +147,14 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setHardwareDecoding(bool enabled) async {
     _hardwareDecoding = enabled;
+    await _saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> setDecodingMode(String mode) async {
+    _decodingMode = mode;
+    // Also update hardwareDecoding based on mode for backward compatibility
+    _hardwareDecoding = mode != 'software';
     await _saveSettings();
     notifyListeners();
   }

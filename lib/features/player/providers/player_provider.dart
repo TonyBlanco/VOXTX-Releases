@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'dart:io' show Platform;
 
 import '../../../core/models/channel.dart';
+import '../../../core/services/service_locator.dart';
 
 enum PlayerState {
   idle,
@@ -27,6 +29,10 @@ class PlayerProvider extends ChangeNotifier {
   double _playbackSpeed = 1.0;
   bool _isFullscreen = false;
   bool _controlsVisible = true;
+
+  // Track retry attempts for fallback
+  int _retryCount = 0;
+  static const int _maxRetries = 2;
 
   // Getters
   Player? get player => _player;
@@ -68,14 +74,71 @@ class PlayerProvider extends ChangeNotifier {
     _initPlayer();
   }
 
-  void _initPlayer() {
+  void _initPlayer({bool useSoftwareDecoding = false}) {
+    // Dispose existing player if any
+    _player?.dispose();
+
+    // Get decoding mode preference from settings
+    // Options: 'auto', 'hardware', 'software'
+    String decodingMode = 'auto';
+    try {
+      decodingMode = ServiceLocator.prefs.getString('decoding_mode') ?? 'auto';
+    } catch (_) {}
+
+    // If forced software decoding (fallback after error), override the setting
+    if (useSoftwareDecoding) {
+      decodingMode = 'software';
+    }
+
+    // Create player with configuration
     _player = Player();
-    _videoController = VideoController(_player!);
+
+    // Configure VideoController with appropriate hwdec settings
+    // For Android TV, use more compatible settings
+    VideoControllerConfiguration config;
+
+    if (Platform.isAndroid) {
+      switch (decodingMode) {
+        case 'hardware':
+          // Force hardware decoding via mediacodec
+          config = const VideoControllerConfiguration(
+            vo: 'mediacodec_embed',
+            hwdec: 'mediacodec',
+            enableHardwareAcceleration: true,
+          );
+          break;
+        case 'software':
+          // Force software decoding
+          config = const VideoControllerConfiguration(
+            vo: 'gpu',
+            hwdec: 'no',
+            enableHardwareAcceleration: false,
+          );
+          break;
+        case 'auto':
+        default:
+          // Auto mode: let mpv decide, with safe fallback
+          config = const VideoControllerConfiguration(
+            vo: 'gpu',
+            hwdec: 'auto-safe',
+            enableHardwareAcceleration: true,
+          );
+          break;
+      }
+    } else {
+      // For Windows/Other platforms
+      config = VideoControllerConfiguration(
+        enableHardwareAcceleration: decodingMode != 'software',
+      );
+    }
+
+    _videoController = VideoController(_player!, configuration: config);
 
     // Listen to player streams
     _player!.stream.playing.listen((playing) {
       if (playing) {
         _state = PlayerState.playing;
+        _retryCount = 0; // Reset retry count on successful play
       } else if (_state == PlayerState.playing) {
         _state = PlayerState.paused;
       }
@@ -119,15 +182,47 @@ class PlayerProvider extends ChangeNotifier {
 
     _player!.stream.error.listen((error) {
       if (error.isNotEmpty) {
-        _state = PlayerState.error;
-        _error = error;
-        notifyListeners();
+        // Check if this is a codec error and we should try software decoding
+        if (_shouldTrySoftwareFallback(error)) {
+          _attemptSoftwareFallback();
+        } else {
+          _state = PlayerState.error;
+          _error = error;
+          notifyListeners();
+        }
       }
     });
 
     // Listen to video dimensions
     _player!.stream.width.listen((_) => notifyListeners());
     _player!.stream.height.listen((_) => notifyListeners());
+  }
+
+  bool _shouldTrySoftwareFallback(String error) {
+    // Check if this looks like a codec/decoder error
+    final lowerError = error.toLowerCase();
+    return (lowerError.contains('codec') ||
+            lowerError.contains('decoder') ||
+            lowerError.contains('hwdec') ||
+            lowerError.contains('mediacodec')) &&
+        _retryCount < _maxRetries;
+  }
+
+  void _attemptSoftwareFallback() {
+    _retryCount++;
+    debugPrint(
+        'PlayerProvider: Hardware decoding failed, attempting software fallback (attempt $_retryCount)');
+
+    // Store current channel to replay
+    final channelToPlay = _currentChannel;
+
+    // Reinitialize player with software decoding
+    _initPlayer(useSoftwareDecoding: true);
+
+    // Replay the channel if we had one
+    if (channelToPlay != null) {
+      playChannel(channelToPlay);
+    }
   }
 
   // Play a channel

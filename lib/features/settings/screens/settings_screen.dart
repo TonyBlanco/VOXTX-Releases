@@ -64,15 +64,12 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: (value) => settings.setAutoPlay(value),
                 ),
                 _buildDivider(),
-                _buildSwitchTile(
+                _buildSelectTile(
                   context,
-                  title: AppStrings.of(context)?.hardwareDecoding ??
-                      'Hardware Decoding',
-                  subtitle: AppStrings.of(context)?.hardwareDecodingSubtitle ??
-                      'Use hardware acceleration for video playback',
+                  title: 'Decoding Mode',
+                  subtitle: _getDecodingModeLabel(settings.decodingMode),
                   icon: Icons.memory_rounded,
-                  value: settings.hardwareDecoding,
-                  onChanged: (value) => settings.setHardwareDecoding(value),
+                  onTap: () => _showDecodingModeDialog(context, settings),
                 ),
                 _buildDivider(),
                 _buildSelectTile(
@@ -234,6 +231,73 @@ class SettingsScreen extends StatelessWidget {
     if (PlatformDetector.isAndroid) return 'Android';
     if (PlatformDetector.isWindows) return 'Windows';
     return 'Unknown';
+  }
+
+  String _getDecodingModeLabel(String mode) {
+    switch (mode) {
+      case 'hardware':
+        return 'Hardware (硬解)';
+      case 'software':
+        return 'Software (软解)';
+      case 'auto':
+      default:
+        return 'Auto (自动)';
+    }
+  }
+
+  void _showDecodingModeDialog(
+      BuildContext context, SettingsProvider settings) {
+    final options = ['auto', 'hardware', 'software'];
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surfaceColor,
+          title: const Text(
+            'Decoding Mode / 解码模式',
+            style: TextStyle(color: AppTheme.textPrimary),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((mode) {
+              return RadioListTile<String>(
+                title: Text(
+                  _getDecodingModeLabel(mode),
+                  style: const TextStyle(color: AppTheme.textPrimary),
+                ),
+                subtitle: Text(
+                  _getDecodingModeDescription(mode),
+                  style:
+                      const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+                value: mode,
+                groupValue: settings.decodingMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setDecodingMode(value);
+                    Navigator.pop(context);
+                  }
+                },
+                activeColor: AppTheme.primaryColor,
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getDecodingModeDescription(String mode) {
+    switch (mode) {
+      case 'hardware':
+        return 'Force MediaCodec. May cause errors on some devices. / 强制硬解，部分设备可能报错';
+      case 'software':
+        return 'Use CPU decoding. More compatible but uses more power. / 使用CPU解码，兼容性好但耗电';
+      case 'auto':
+      default:
+        return 'Automatically choose best option. Recommended. / 自动选择最佳方式，推荐';
+    }
   }
 
   Widget _buildSectionHeader(String title) {
