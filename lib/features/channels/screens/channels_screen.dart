@@ -32,6 +32,12 @@ class ChannelsScreen extends StatefulWidget {
 class _ChannelsScreenState extends State<ChannelsScreen> {
   String? _selectedGroup;
   final ScrollController _scrollController = ScrollController();
+  final ScrollController _groupScrollController = ScrollController();
+  
+  // 用于TV端分类焦点管理
+  final List<FocusNode> _groupFocusNodes = [];
+  final List<FocusNode> _channelFocusNodes = [];
+  int _currentGroupIndex = 0;
 
   @override
   void initState() {
@@ -46,6 +52,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _groupScrollController.dispose();
+    for (final node in _groupFocusNodes) {
+      node.dispose();
+    }
+    for (final node in _channelFocusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
@@ -82,101 +95,124 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
   Widget _buildGroupsSidebar() {
     return Consumer<ChannelProvider>(
       builder: (context, provider, _) {
-        return Container(
-          width: 240,
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(2, 0),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppTheme.cardColor,
-                      width: 1,
+        // 确保焦点节点数量正确 (1个"全部频道" + 分类数量)
+        final totalGroups = provider.groups.length + 1;
+        while (_groupFocusNodes.length < totalGroups) {
+          _groupFocusNodes.add(FocusNode());
+        }
+        while (_groupFocusNodes.length > totalGroups) {
+          _groupFocusNodes.removeLast().dispose();
+        }
+        
+        return FocusTraversalGroup(
+          child: Container(
+            width: 240,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(2, 0),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppTheme.cardColor,
+                        width: 1,
+                      ),
                     ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    TVFocusable(
-                      onSelect: () => Navigator.of(context).pop(),
-                      focusScale: 1.1,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.cardColor,
-                          borderRadius: BorderRadius.circular(8),
+                  child: Row(
+                    children: [
+                      TVFocusable(
+                        onSelect: () => Navigator.of(context).pop(),
+                        focusScale: 1.1,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppTheme.textPrimary,
+                            size: 20,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.arrow_back_rounded,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppStrings.of(context)?.categories ?? 'Categories',
+                        style: const TextStyle(
                           color: AppTheme.textPrimary,
-                          size: 20,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      AppStrings.of(context)?.categories ?? 'Categories',
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              // All Channels Option
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: _buildGroupItem(
-                  name: AppStrings.of(context)?.allChannels ?? 'All Channels',
-                  count: provider.totalChannelCount,
-                  isSelected: _selectedGroup == null,
-                  onTap: () {
-                    setState(() => _selectedGroup = null);
-                    provider.clearGroupFilter();
-                  },
-                ),
-              ),
-
-              const Divider(color: AppTheme.cardColor, height: 1),
-
-              // Groups List
-              Expanded(
-                child: ListView.builder(
+                // All Channels Option
+                Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  itemCount: provider.groups.length,
-                  itemBuilder: (context, index) {
-                    final group = provider.groups[index];
-                    return _buildGroupItem(
-                      name: group.name,
-                      count: group.channelCount,
-                      isSelected: _selectedGroup == group.name,
-                      onTap: () {
-                        setState(() => _selectedGroup = group.name);
-                        provider.selectGroup(group.name);
-                      },
-                    );
-                  },
+                  child: _buildGroupItem(
+                    name: AppStrings.of(context)?.allChannels ?? 'All Channels',
+                    count: provider.totalChannelCount,
+                    isSelected: _selectedGroup == null,
+                    focusNode: _groupFocusNodes.isNotEmpty ? _groupFocusNodes[0] : null,
+                    groupIndex: 0,
+                    onTap: () {
+                      setState(() {
+                        _selectedGroup = null;
+                        _currentGroupIndex = 0;
+                      });
+                      provider.clearGroupFilter();
+                    },
+                  ),
                 ),
-              ),
-            ],
+
+                const Divider(color: AppTheme.cardColor, height: 1),
+
+                // Groups List
+                Expanded(
+                  child: ListView.builder(
+                    controller: _groupScrollController,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    itemCount: provider.groups.length,
+                    itemBuilder: (context, index) {
+                      final group = provider.groups[index];
+                      final focusIndex = index + 1; // +1 因为第一个是"全部频道"
+                      return _buildGroupItem(
+                        name: group.name,
+                        count: group.channelCount,
+                        isSelected: _selectedGroup == group.name,
+                        focusNode: focusIndex < _groupFocusNodes.length ? _groupFocusNodes[focusIndex] : null,
+                        groupIndex: focusIndex,
+                        onTap: () {
+                          setState(() {
+                            _selectedGroup = group.name;
+                            _currentGroupIndex = focusIndex;
+                          });
+                          provider.selectGroup(group.name);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -188,12 +224,32 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     required int count,
     required bool isSelected,
     required VoidCallback onTap,
+    FocusNode? focusNode,
+    int groupIndex = 0,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: TVFocusable(
+        focusNode: focusNode,
         onSelect: onTap,
-        onFocus: PlatformDetector.isTV ? onTap : null, // TV端焦点移动自动选中分类
+        onFocus: PlatformDetector.isTV ? () {
+          // TV端焦点移动自动选中分类
+          _currentGroupIndex = groupIndex;
+          onTap();
+        } : null,
+        onRight: PlatformDetector.isTV ? () {
+          // 按右键跳转到频道网格的第一个频道
+          if (_channelFocusNodes.isNotEmpty) {
+            _channelFocusNodes[0].requestFocus();
+          }
+        } : null,
+        onLeft: PlatformDetector.isTV ? () {
+          // 按左键跳转到侧边菜单的当前选中项（频道页是index 1）
+          final menuNodes = TVSidebar.menuFocusNodes;
+          if (menuNodes != null && menuNodes.length > 1) {
+            menuNodes[1].requestFocus(); // 频道页是第2个菜单项
+          }
+        } : null,
         focusScale: 1.02,
         showFocusBorder: false,
         builder: (context, isFocused, child) {
@@ -394,6 +450,21 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                       final epgProvider = context.watch<EpgProvider>();
                       final currentProgram = epgProvider.getCurrentProgram(channel.epgId, channel.name);
                       final nextProgram = epgProvider.getNextProgram(channel.epgId, channel.name);
+                      
+                      // TV端：确保焦点节点数量正确
+                      if (PlatformDetector.isTV) {
+                        while (_channelFocusNodes.length <= index) {
+                          _channelFocusNodes.add(FocusNode());
+                        }
+                      }
+                      
+                      // TV端：判断是否是第一列（需要处理左键导航）
+                      final isFirstColumn = index % crossAxisCount == 0;
+                      
+                      // TV端：判断是否是最后一行（需要处理下键切换分类）
+                      final totalRows = (channels.length / crossAxisCount).ceil();
+                      final currentRow = index ~/ crossAxisCount;
+                      final isLastRow = currentRow == totalRows - 1;
 
                       return ChannelCard(
                         name: channel.name,
@@ -406,6 +477,18 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                         isFavorite: isFavorite,
                         isUnavailable: isUnavailable,
                         autofocus: index == 0,
+                        focusNode: PlatformDetector.isTV && index < _channelFocusNodes.length 
+                            ? _channelFocusNodes[index] 
+                            : null,
+                        onLeft: (PlatformDetector.isTV && isFirstColumn) ? () {
+                          // 第一列按左键，跳转到当前选中的分类
+                          if (_currentGroupIndex < _groupFocusNodes.length) {
+                            _groupFocusNodes[_currentGroupIndex].requestFocus();
+                          }
+                        } : null,
+                        onDown: (PlatformDetector.isTV && isLastRow) ? () {
+                          // 最后一行按下键，不做任何事（阻止跳转）
+                        } : null,
                         onFavoriteToggle: () {
                           context
                               .read<FavoritesProvider>()

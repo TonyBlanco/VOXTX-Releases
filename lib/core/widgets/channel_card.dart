@@ -20,6 +20,8 @@ class ChannelCard extends StatelessWidget {
   final VoidCallback? onLongPress;
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onTest;
+  final VoidCallback? onLeft;
+  final VoidCallback? onDown;
   final bool autofocus;
   final FocusNode? focusNode;
 
@@ -37,6 +39,8 @@ class ChannelCard extends StatelessWidget {
     this.onLongPress,
     this.onFavoriteToggle,
     this.onTest,
+    this.onLeft,
+    this.onDown,
     this.autofocus = false,
     this.focusNode,
   });
@@ -49,6 +53,8 @@ class ChannelCard extends StatelessWidget {
       autofocus: autofocus,
       focusNode: focusNode,
       onSelect: onTap,
+      onLeft: onLeft,
+      onDown: onDown,
       focusScale: isTV ? 1.0 : 1.03, // TV端不缩放
       showFocusBorder: false,
       builder: (context, isFocused, child) {

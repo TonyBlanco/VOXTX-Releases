@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../navigation/app_router.dart';
 import '../i18n/app_strings.dart';
-import '../platform/platform_detector.dart';
 import 'tv_focusable.dart';
 
 /// TV端共享侧边栏组件
@@ -10,6 +9,9 @@ import 'tv_focusable.dart';
 class TVSidebar extends StatefulWidget {
   final int selectedIndex;
   final Widget child;
+  
+  /// 用于外部获取菜单焦点节点列表
+  static List<FocusNode>? menuFocusNodes;
 
   const TVSidebar({
     super.key,
@@ -23,11 +25,25 @@ class TVSidebar extends StatefulWidget {
 
 class _TVSidebarState extends State<TVSidebar> {
   bool _expanded = false;
-  final FocusNode _sidebarFocusNode = FocusNode();
+  final List<FocusNode> _menuFocusNodes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // 创建5个菜单项的焦点节点
+    for (int i = 0; i < 5; i++) {
+      _menuFocusNodes.add(FocusNode());
+    }
+    // 暴露给外部
+    TVSidebar.menuFocusNodes = _menuFocusNodes;
+  }
 
   @override
   void dispose() {
-    _sidebarFocusNode.dispose();
+    for (final node in _menuFocusNodes) {
+      node.dispose();
+    }
+    TVSidebar.menuFocusNodes = null;
     super.dispose();
   }
 
@@ -135,6 +151,7 @@ class _TVSidebarState extends State<TVSidebar> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: TVFocusable(
+        focusNode: index < _menuFocusNodes.length ? _menuFocusNodes[index] : null,
         autofocus: index == widget.selectedIndex,
         onSelect: () => _onNavItemTap(index, item.route),
         focusScale: 1.0,
