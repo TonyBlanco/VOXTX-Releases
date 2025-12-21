@@ -15,6 +15,7 @@ import '../../../core/models/channel.dart';
 import '../providers/channel_provider.dart';
 import '../widgets/channel_test_dialog.dart';
 import '../../favorites/providers/favorites_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
 
 class ChannelsScreen extends StatefulWidget {
@@ -496,6 +497,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                         },
                         onTest: () => _testSingleChannel(context, channel),
                         onTap: () {
+                          // 保存上次播放的频道ID
+                          final settingsProvider = context.read<SettingsProvider>();
+                          if (settingsProvider.rememberLastChannel && channel.id != null) {
+                            settingsProvider.setLastChannelId(channel.id);
+                          }
+                          
                           Navigator.pushNamed(
                             context,
                             AppRouter.player,
@@ -723,6 +730,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     );
   }
 
+  // ignore: unused_element
   Future<void> _deleteUnavailableChannels(List<ChannelTestResult> results) async {
     final confirm = await showDialog<bool>(
       context: context,

@@ -213,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
+                        child: const LinearProgressIndicator(
                           backgroundColor: AppTheme.surfaceColor,
                           color: AppTheme.primaryColor,
                           minHeight: 4,

@@ -221,6 +221,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setLastChannelId(int? id) async {
+    debugPrint('DEBUG: 保存上次播放频道ID: $id');
     _lastChannelId = id;
     await _saveSettings();
     notifyListeners();

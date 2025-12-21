@@ -138,9 +138,9 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   Widget _buildAddPlaylistSection(PlaylistProvider provider) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: const BorderRadius.vertical(
+        borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20),
         ),
       ),

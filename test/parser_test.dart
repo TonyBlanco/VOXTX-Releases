@@ -23,6 +23,7 @@ http://183.207.248.71/PLTV/3/224/3221228213/1.m3u8\$南京移动
     expect(channels[1].name, 'CCTV1');
     expect(channels[1].logoUrl, 'https://live.fanmingming.com/tv/CCTV1.png');
     // Also check if URL is cleaned (it won't be with current logic, but we can verify)
+    // ignore: avoid_print
     print('URL 2: ${channels[1].url}');
   });
 }
@@ -50,7 +51,7 @@ class Channel {
 List<Channel> parse(String content, int playlistId) {
   final List<Channel> channels = [];
   final lines = LineSplitter.split(content).toList();
-  const _extInf = '#EXTINF:';
+  const extInf = '#EXTINF:';
 
   String? currentName;
   String? currentLogo;
@@ -61,8 +62,8 @@ List<Channel> parse(String content, int playlistId) {
     final line = lines[i].trim();
     if (line.isEmpty) continue;
 
-    if (line.startsWith(_extInf)) {
-      String content = line.substring(_extInf.length);
+    if (line.startsWith(extInf)) {
+      String content = line.substring(extInf.length);
       final lastCommaIndex = content.lastIndexOf(',');
       if (lastCommaIndex != -1) {
         currentName = content.substring(lastCommaIndex + 1).trim();

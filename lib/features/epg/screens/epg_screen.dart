@@ -57,7 +57,7 @@ class EpgScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Electronic Program Guide will be available in a future update',
               style: TextStyle(
                 color: AppTheme.textSecondary,

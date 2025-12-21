@@ -10,9 +10,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/platform/platform_detector.dart';
 import '../../../core/platform/native_player_channel.dart';
+import '../../../core/models/channel.dart';
 import '../providers/player_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../channels/providers/channel_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
 
 class PlayerScreen extends StatefulWidget {
@@ -153,12 +155,19 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
   void _startPlayback() {
     final playerProvider = context.read<PlayerProvider>();
     final channelProvider = context.read<ChannelProvider>();
+    final settingsProvider = context.read<SettingsProvider>();
 
     try {
       // Try to find the matching channel to enable playlist navigation
       final channel = channelProvider.channels.firstWhere(
         (c) => c.url == widget.channelUrl,
       );
+      
+      // 保存上次播放的频道ID
+      if (settingsProvider.rememberLastChannel && channel.id != null) {
+        settingsProvider.setLastChannelId(channel.id);
+      }
+      
       playerProvider.playChannel(channel);
     } catch (_) {
       // Fallback if channel object not found
@@ -203,6 +212,14 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     super.dispose();
+  }
+
+  void _saveLastChannelId(Channel? channel) {
+    if (channel == null || channel.id == null) return;
+    final settingsProvider = context.read<SettingsProvider>();
+    if (settingsProvider.rememberLastChannel) {
+      settingsProvider.setLastChannelId(channel.id);
+    }
   }
 
   DateTime? _lastSelectKeyDownTime;
@@ -327,6 +344,8 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
         key == LogicalKeyboardKey.channelUp) {
       final channelProvider = context.read<ChannelProvider>();
       playerProvider.playPrevious(channelProvider.filteredChannels);
+      // 保存上次播放的频道ID
+      _saveLastChannelId(playerProvider.currentChannel);
       return KeyEventResult.handled;
     }
 
@@ -335,6 +354,8 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
         key == LogicalKeyboardKey.channelDown) {
       final channelProvider = context.read<ChannelProvider>();
       playerProvider.playNext(channelProvider.filteredChannels);
+      // 保存上次播放的频道ID
+      _saveLastChannelId(playerProvider.currentChannel);
       return KeyEventResult.handled;
     }
 
@@ -1148,6 +1169,12 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
                   return TVFocusable(
                     autofocus: index == 0,
                     onSelect: () {
+                      // 保存上次播放的频道ID
+                      final settingsProvider = context.read<SettingsProvider>();
+                      if (settingsProvider.rememberLastChannel && channel.id != null) {
+                        settingsProvider.setLastChannelId(channel.id);
+                      }
+                      
                       // 切换到该频道
                       playerProvider.playChannel(channel);
                       // 关闭面板

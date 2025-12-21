@@ -77,11 +77,11 @@ class ChannelTestService {
     
     try {
       client = HttpClient();
-      client.connectionTimeout = Duration(seconds: _timeout);
+      client.connectionTimeout = const Duration(seconds: _timeout);
       
       // 使用 GET 请求
       request = await client.getUrl(uri).timeout(
-        Duration(seconds: _timeout),
+        const Duration(seconds: _timeout),
       );
       
       // 设置常见的流媒体请求头
@@ -90,7 +90,7 @@ class ChannelTestService {
       request.headers.set('Connection', 'keep-alive');
       
       response = await request.close().timeout(
-        Duration(seconds: _timeout),
+        const Duration(seconds: _timeout),
       );
       
       stopwatch.stop();
@@ -100,14 +100,8 @@ class ChannelTestService {
       final statusCode = response.statusCode;
       final isAvailable = statusCode >= 200 && statusCode < 400;
       
-      // 检查 Content-Type 是否像流媒体
+      // 检查 Content-Type 是否像流媒体 (用于调试日志)
       final contentType = response.headers.contentType?.toString() ?? '';
-      final isStreamContent = contentType.contains('video') ||
-          contentType.contains('audio') ||
-          contentType.contains('mpegurl') ||
-          contentType.contains('octet-stream') ||
-          contentType.contains('x-mpegURL') ||
-          contentType.isEmpty; // 有些服务器不返回 Content-Type
       
       debugPrint('测试频道 ${channel.name}: HTTP $statusCode, Content-Type: $contentType');
       
@@ -141,7 +135,7 @@ class ChannelTestService {
       socket = await Socket.connect(
         host,
         port,
-        timeout: Duration(seconds: _timeout),
+        timeout: const Duration(seconds: _timeout),
       );
       
       stopwatch.stop();

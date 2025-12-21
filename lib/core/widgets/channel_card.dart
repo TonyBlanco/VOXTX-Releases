@@ -133,7 +133,7 @@ class ChannelCard extends StatelessWidget {
                       ),
                     // TV端只显示收藏图标（小）
                     if (isTV && isFavorite)
-                      Positioned(
+                      const Positioned(
                         top: 6,
                         right: 6,
                         child: Icon(Icons.favorite, color: AppTheme.primaryColor, size: 16),

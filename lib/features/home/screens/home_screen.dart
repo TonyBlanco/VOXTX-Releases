@@ -13,6 +13,7 @@ import '../../channels/providers/channel_provider.dart';
 import '../../playlist/providers/playlist_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../player/providers/player_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../../../core/models/channel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -197,7 +198,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCompactHeader(ChannelProvider provider) {
-    final recentChannel = provider.channels.isNotEmpty ? provider.channels.first : null;
+    // 获取上次播放的频道 - 使用 watch 来监听变化
+    final settingsProvider = context.watch<SettingsProvider>();
+    Channel? lastChannel;
+    
+    debugPrint('DEBUG: rememberLastChannel=${settingsProvider.rememberLastChannel}, lastChannelId=${settingsProvider.lastChannelId}');
+    
+    if (settingsProvider.rememberLastChannel && settingsProvider.lastChannelId != null) {
+      try {
+        lastChannel = provider.channels.firstWhere(
+          (c) => c.id == settingsProvider.lastChannelId,
+        );
+        debugPrint('DEBUG: 找到上次播放的频道: ${lastChannel.name} (ID: ${lastChannel.id})');
+      } catch (_) {
+        // 频道不存在，使用第一个频道
+        debugPrint('DEBUG: 未找到上次播放的频道ID ${settingsProvider.lastChannelId}，使用第一个频道');
+        lastChannel = provider.channels.isNotEmpty ? provider.channels.first : null;
+      }
+    } else {
+      debugPrint('DEBUG: 未启用记忆功能或无上次频道，使用第一个频道');
+      lastChannel = provider.channels.isNotEmpty ? provider.channels.first : null;
+    }
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
@@ -221,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Row(
             children: [
-              _buildHeaderButton(Icons.play_arrow_rounded, AppStrings.of(context)?.continueWatching ?? 'Continue', true, recentChannel != null ? () => _playChannel(recentChannel) : null),
+              _buildHeaderButton(Icons.play_arrow_rounded, AppStrings.of(context)?.continueWatching ?? 'Continue', true, lastChannel != null ? () => _playChannel(lastChannel!) : null),
               const SizedBox(width: 10),
               _buildHeaderButton(Icons.playlist_add_rounded, AppStrings.of(context)?.playlists ?? 'Playlists', false, () => Navigator.pushNamed(context, AppRouter.playlistManager)),
             ],
@@ -386,6 +407,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _playChannel(Channel channel) {
+    // 保存上次播放的频道ID
+    final settingsProvider = context.read<SettingsProvider>();
+    if (settingsProvider.rememberLastChannel && channel.id != null) {
+      settingsProvider.setLastChannelId(channel.id);
+    }
+    
     context.read<PlayerProvider>().playChannel(channel);
     Navigator.pushNamed(context, AppRouter.player, arguments: {
       'channelUrl': channel.url,

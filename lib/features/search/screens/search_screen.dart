@@ -10,6 +10,7 @@ import '../../../core/platform/platform_detector.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -342,6 +343,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   context.read<FavoritesProvider>().toggleFavorite(channel);
                 },
                 onTap: () {
+                  // 保存上次播放的频道ID
+                  final settingsProvider = context.read<SettingsProvider>();
+                  if (settingsProvider.rememberLastChannel && channel.id != null) {
+                    settingsProvider.setLastChannelId(channel.id);
+                  }
+                  
                   Navigator.pushNamed(
                     context,
                     AppRouter.player,

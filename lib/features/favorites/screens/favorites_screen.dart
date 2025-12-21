@@ -8,6 +8,7 @@ import '../../../core/widgets/tv_sidebar.dart';
 import '../../../core/platform/platform_detector.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../providers/favorites_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -187,6 +188,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return TVFocusable(
       autofocus: index == 0,
       onSelect: () {
+        // 保存上次播放的频道ID
+        final settingsProvider = context.read<SettingsProvider>();
+        if (settingsProvider.rememberLastChannel && channel.id != null) {
+          settingsProvider.setLastChannelId(channel.id);
+        }
+        
         Navigator.pushNamed(
           context,
           AppRouter.player,
@@ -301,6 +308,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 // Play Button
                 TVFocusable(
                   onSelect: () {
+                    // 保存上次播放的频道ID
+                    final settingsProvider = context.read<SettingsProvider>();
+                    if (settingsProvider.rememberLastChannel && channel.id != null) {
+                      settingsProvider.setLastChannelId(channel.id);
+                    }
+                    
                     Navigator.pushNamed(
                       context,
                       AppRouter.player,

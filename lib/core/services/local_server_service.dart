@@ -197,10 +197,14 @@ class LocalServerService {
         }
 
         // Bonus for known physical interface names
-        if (name.contains('wi-fi') || name.contains('wlan')) score += 50;
+        if (name.contains('wi-fi') || name.contains('wlan')) {
+          score += 50;
+        }
         if (name.contains('ethernet') ||
             name.contains('以太网') ||
-            name.contains('本地连接')) score += 40;
+            name.contains('本地连接')) {
+          score += 40;
+        }
 
         // Find the first IPv4 address
         String? ip;
@@ -211,7 +215,9 @@ class LocalServerService {
           }
         }
 
-        if (ip == null) continue;
+        if (ip == null) {
+          continue;
+        }
 
         // Bonus for standard LAN ranges
         if (ip.startsWith('192.168.')) {
