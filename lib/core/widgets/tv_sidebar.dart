@@ -14,6 +14,8 @@ class TVSidebar extends StatefulWidget {
   
   /// 用于外部获取菜单焦点节点列表
   static List<FocusNode>? menuFocusNodes;
+  /// 当前选中的菜单索引
+  static int? selectedMenuIndex;
 
   const TVSidebar({
     super.key,
@@ -39,6 +41,15 @@ class _TVSidebarState extends State<TVSidebar> {
     }
     // 暴露给外部
     TVSidebar.menuFocusNodes = _menuFocusNodes;
+    TVSidebar.selectedMenuIndex = widget.selectedIndex;
+  }
+
+  @override
+  void didUpdateWidget(TVSidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedIndex != widget.selectedIndex) {
+      TVSidebar.selectedMenuIndex = widget.selectedIndex;
+    }
   }
 
   @override
@@ -47,6 +58,7 @@ class _TVSidebarState extends State<TVSidebar> {
       node.dispose();
     }
     TVSidebar.menuFocusNodes = null;
+    TVSidebar.selectedMenuIndex = null;
     super.dispose();
   }
 
@@ -92,6 +104,15 @@ class _TVSidebarState extends State<TVSidebar> {
         Focus(
           onFocusChange: (hasFocus) {
             setState(() => _expanded = hasFocus);
+            // 当侧边栏获得焦点时，自动聚焦到当前选中的菜单项
+            if (hasFocus && widget.selectedIndex < _menuFocusNodes.length) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final targetNode = _menuFocusNodes[widget.selectedIndex];
+                if (targetNode.canRequestFocus && !targetNode.hasFocus) {
+                  targetNode.requestFocus();
+                }
+              });
+            }
           },
           child: Container(
             width: width,

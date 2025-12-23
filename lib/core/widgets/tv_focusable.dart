@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import 'tv_sidebar.dart';
 
 /// A widget that provides D-Pad focus support for TV and desktop navigation
 class TVFocusable extends StatefulWidget {
@@ -103,9 +104,14 @@ class _TVFocusableState extends State<TVFocusable>
     }
 
     // Handle directional navigation callbacks
-    if (key == LogicalKeyboardKey.arrowLeft && widget.onLeft != null) {
-      widget.onLeft!();
-      return KeyEventResult.handled;
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      if (widget.onLeft != null) {
+        widget.onLeft!();
+        return KeyEventResult.handled;
+      }
+      // 不拦截左键，让系统默认处理（移动到左边的元素）
+      // 如果左边没有元素了，系统会自动移到菜单
+      return KeyEventResult.ignored;
     }
     if (key == LogicalKeyboardKey.arrowRight && widget.onRight != null) {
       widget.onRight!();
