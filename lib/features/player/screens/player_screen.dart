@@ -57,6 +57,9 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
   
   // 本地 loading 状态，用于强制刷新
   bool _isLoading = true;
+  
+  // 错误已显示标记，防止重复显示
+  bool _errorShown = false;
 
   @override
   void initState() {
@@ -80,11 +83,19 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
   
   void _onProviderUpdate() {
     if (!mounted) return;
-    final newLoading = _playerProvider?.isLoading ?? false;
+    final provider = _playerProvider;
+    if (provider == null) return;
+    
+    final newLoading = provider.isLoading;
     if (_isLoading != newLoading) {
       setState(() {
         _isLoading = newLoading;
       });
+    }
+    
+    // 检查错误状态
+    if (provider.hasError && !_errorShown) {
+      _checkAndShowError();
     }
   }
 
@@ -165,34 +176,48 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     // Hide system UI for immersive experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    // Listen for errors
-    final playerProvider = context.read<PlayerProvider>();
-    playerProvider.addListener(_onError);
+    // 不再使用持续监听，改为一次性错误检查
   }
 
-  void _onError() {
-    if (!mounted) return;
+  void _checkAndShowError() {
+    if (!mounted || _errorShown) return;
     final provider = context.read<PlayerProvider>();
     if (provider.hasError && provider.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final errorMessage = provider.error!;
+      _errorShown = true;
+      provider.clearError();
+      
+      ScaffoldMessenger.of(context).clearSnackBars();
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
-              '${AppStrings.of(context)?.playbackError ?? "Error"}: ${provider.error}'),
+              '${AppStrings.of(context)?.playbackError ?? "Error"}: $errorMessage'),
           backgroundColor: AppTheme.errorColor,
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 30), // 设置较长时间，用 Timer 控制
+          behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
             label: AppStrings.of(context)?.retry ?? 'Retry',
             textColor: Colors.white,
-            onPressed: _startPlayback,
+            onPressed: () {
+              _errorShown = false;
+              _startPlayback();
+            },
           ),
-          showCloseIcon: true,
-          closeIconColor: Colors.white,
         ),
       );
+      
+      // 3秒后自动关闭
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          scaffoldMessenger.hideCurrentSnackBar();
+        }
+      });
     }
   }
 
   void _startPlayback() {
+    _errorShown = false; // 重置错误显示标记
     final playerProvider = context.read<PlayerProvider>();
     final channelProvider = context.read<ChannelProvider>();
     final settingsProvider = context.read<SettingsProvider>();
@@ -241,7 +266,6 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     // Only stop playback if we're using Flutter player (not native)
     if (!_usingNativePlayer && _playerProvider != null) {
       debugPrint('PlayerScreen: calling _playerProvider.stop()');
-      _playerProvider!.removeListener(_onError);
       _playerProvider!.removeListener(_onProviderUpdate);
       _playerProvider!.stop();
     }
@@ -372,6 +396,7 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     if (_currentGestureType == 'channel') {
       final threshold = screenHeight * 0.08; // 滑动超过屏幕8%即可切换
       if (dy.abs() > threshold) {
+        _errorShown = false; // 切换频道时重置错误标记
         final playerProvider = _playerProvider ?? context.read<PlayerProvider>();
         final channelProvider = context.read<ChannelProvider>();
         if (dy > 0) {
@@ -582,6 +607,7 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     // Previous Channel (Up)
     if (key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.channelUp) {
+      _errorShown = false; // 切换频道时重置错误标记
       final channelProvider = context.read<ChannelProvider>();
       playerProvider.playPrevious(channelProvider.filteredChannels);
       // 保存上次播放的频道ID
@@ -592,6 +618,7 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     // Next Channel (Down)
     if (key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.channelDown) {
+      _errorShown = false; // 切换频道时重置错误标记
       final channelProvider = context.read<ChannelProvider>();
       playerProvider.playNext(channelProvider.filteredChannels);
       // 保存上次播放的频道ID

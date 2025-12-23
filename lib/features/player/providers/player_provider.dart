@@ -75,7 +75,42 @@ class PlayerProvider extends ChangeNotifier {
 
   bool get isPlaying => _state == PlayerState.playing;
   bool get isLoading => _state == PlayerState.loading || _state == PlayerState.buffering;
-  bool get hasError => _state == PlayerState.error;
+  bool get hasError => _state == PlayerState.error && _error != null;
+
+  // 清除错误状态（用于显示错误后防止重复显示）
+  void clearError() {
+    _error = null;
+    _errorDisplayed = true; // 标记错误已被显示，防止重复触发
+    // 重置状态为 idle，避免 hasError 一直为 true
+    if (_state == PlayerState.error) {
+      _state = PlayerState.idle;
+    }
+    notifyListeners();
+  }
+
+  // 错误防抖：记录上次错误时间，避免短时间内重复触发
+  DateTime? _lastErrorTime;
+  String? _lastErrorMessage;
+  bool _errorDisplayed = false; // 标记错误是否已被显示
+  
+  void _setError(String error) {
+    final now = DateTime.now();
+    // 如果错误已经被显示过，不再设置
+    if (_errorDisplayed) {
+      return;
+    }
+    // 相同错误在30秒内不重复设置
+    if (_lastErrorMessage == error && 
+        _lastErrorTime != null &&
+        now.difference(_lastErrorTime!).inSeconds < 30) {
+      return;
+    }
+    _lastErrorMessage = error;
+    _lastErrorTime = now;
+    _state = PlayerState.error;
+    _error = error;
+    notifyListeners();
+  }
 
   String _hwdecMode = 'unknown';
   String _videoCodec = '';
@@ -166,7 +201,7 @@ class PlayerProvider extends ChangeNotifier {
     _mediaKitPlayer!.stream.error.listen((err) {
       if (err.isNotEmpty) {
         if (_shouldTrySoftwareFallback(err)) { _attemptSoftwareFallback(); }
-        else { _state = PlayerState.error; _error = err; notifyListeners(); }
+        else { _setError(err); }
       }
     });
     _mediaKitPlayer!.stream.width.listen((_) => notifyListeners());
@@ -226,8 +261,8 @@ class PlayerProvider extends ChangeNotifier {
       await _exoPlayer!.play();
       _state = PlayerState.playing;
     } catch (e) {
-      _state = PlayerState.error;
-      _error = 'Failed to initialize player: $e';
+      _setError('Failed to initialize player: $e');
+      return;
     }
     notifyListeners();
   }
@@ -239,8 +274,8 @@ class PlayerProvider extends ChangeNotifier {
     _duration = value.duration;
 
     if (value.hasError) { 
-      _state = PlayerState.error; 
-      _error = value.errorDescription ?? 'Unknown error'; 
+      _setError(value.errorDescription ?? 'Unknown error');
+      return;
     } else if (value.isPlaying) { 
       _state = PlayerState.playing; 
     } else if (value.isBuffering) { 
@@ -267,26 +302,30 @@ class PlayerProvider extends ChangeNotifier {
     _currentChannel = channel;
     _state = PlayerState.loading;
     _error = null;
+    _lastErrorMessage = null; // 重置错误防抖
+    _errorDisplayed = false; // 重置错误显示标记
     loadVolumeSettings(); // Apply volume boost settings
     notifyListeners();
 
     try {
       if (_useExoPlayer) { await _initExoPlayer(channel.url); }
       else { await _mediaKitPlayer?.open(Media(channel.url)); _state = PlayerState.playing; }
-    } catch (e) { _state = PlayerState.error; _error = 'Failed to play channel: $e'; }
+    } catch (e) { _setError('Failed to play channel: $e'); return; }
     notifyListeners();
   }
 
   Future<void> playUrl(String url, {String? name}) async {
     _state = PlayerState.loading;
     _error = null;
+    _lastErrorMessage = null; // 重置错误防抖
+    _errorDisplayed = false; // 重置错误显示标记
     loadVolumeSettings(); // Apply volume boost settings
     notifyListeners();
 
     try {
       if (_useExoPlayer) { await _initExoPlayer(url); }
       else { await _mediaKitPlayer?.open(Media(url)); _state = PlayerState.playing; }
-    } catch (e) { _state = PlayerState.error; _error = 'Failed to play: $e'; }
+    } catch (e) { _setError('Failed to play: $e'); return; }
     notifyListeners();
   }
 

@@ -385,6 +385,11 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, constraints) {
+            // 如果没有频道，不显示任何内容
+            if (channels.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            
             // 每个卡片宽度 160 + 间距 12
             const cardWidth = 160.0;
             const cardSpacing = 12.0;

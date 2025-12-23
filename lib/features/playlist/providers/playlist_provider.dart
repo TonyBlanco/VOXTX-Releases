@@ -416,16 +416,12 @@ class PlaylistProvider extends ChangeNotifier {
       debugPrint('DEBUG: 已删除 $deleteResult 个旧频道记录');
 
       // Insert new channels - 改为使用批量插入以提高性能
-      debugPrint('DEBUG: 开始批量插入新频道...');
       final batch = ServiceLocator.database.db.batch();
       for (final channel in channels) {
         final channelMap = channel.toMap();
-        debugPrint(
-            'DEBUG: 插入频道 - 名称: ${channel.name}, 台标: ${channel.logoUrl ?? "无"}');
         batch.insert('channels', channelMap);
       }
       await batch.commit(noResult: true);
-      debugPrint('DEBUG: 批量插入完成，共插入 ${channels.length} 个频道');
 
       // Update playlist timestamp
       debugPrint('DEBUG: 更新播放列表时间戳...');
