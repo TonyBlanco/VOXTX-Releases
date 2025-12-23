@@ -86,7 +86,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
 
     if (isTV) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         body: TVSidebar(
           selectedIndex: 1, // 频道页
           onRight: () {
@@ -101,7 +101,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       body: content,
     );
   }
@@ -122,7 +122,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           child: Container(
             width: 240,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: AppTheme.getSurfaceColor(context),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.2),
@@ -137,10 +137,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 // Header
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: AppTheme.cardColor,
+                        color: AppTheme.getCardColor(context),
                         width: 1,
                       ),
                     ),
@@ -153,12 +153,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
+                            color: AppTheme.getCardColor(context),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back_rounded,
-                            color: AppTheme.textPrimary,
+                            color: AppTheme.getTextPrimary(context),
                             size: 20,
                           ),
                         ),
@@ -166,8 +166,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                       const SizedBox(width: 12),
                       Text(
                         AppStrings.of(context)?.categories ?? 'Categories',
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -196,7 +196,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   ),
                 ),
 
-                const Divider(color: AppTheme.cardColor, height: 1),
+                Divider(color: AppTheme.getCardColor(context), height: 1),
 
                 // Groups List
                 Expanded(
@@ -283,7 +283,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               color: isSelected
                   ? AppTheme.primaryColor.withOpacity(0.2)
                   : isFocused
-                      ? AppTheme.cardColor
+                      ? AppTheme.getCardColor(context)
                       : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
@@ -317,7 +317,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     style: TextStyle(
                       color: isSelected
                           ? AppTheme.primaryColor
-                          : AppTheme.textPrimary,
+                          : AppTheme.getTextPrimary(context),
                       fontSize: 14,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -334,7 +334,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.primaryColor.withOpacity(0.2)
-                        : AppTheme.cardColor,
+                        : AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -342,7 +342,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     style: TextStyle(
                       color: isSelected
                           ? AppTheme.primaryColor
-                          : AppTheme.textMuted,
+                          : AppTheme.getTextMuted(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -371,12 +371,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             // App Bar
             SliverAppBar(
               floating: true,
-              backgroundColor: AppTheme.backgroundColor.withOpacity(0.95),
+              backgroundColor: AppTheme.getBackgroundColor(context).withOpacity(0.95),
               title: Text(
                 _selectedGroup ??
                     (AppStrings.of(context)?.allChannels ?? 'All Channels'),
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -389,7 +389,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 // Test channels button
                 IconButton(
                   icon: const Icon(Icons.speed_rounded),
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.getTextSecondary(context),
                   tooltip: '测试频道',
                   onPressed: channels.isEmpty
                       ? null
@@ -410,13 +410,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     margin: const EdgeInsets.only(right: 16),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
+                      color: AppTheme.getSurfaceColor(context),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${channels.length} ${AppStrings.of(context)?.channels ?? 'channels'}',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: AppTheme.getTextSecondary(context),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -436,14 +436,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                       Icon(
                         Icons.live_tv_outlined,
                         size: 64,
-                        color: AppTheme.textMuted.withOpacity(0.5),
+                        color: AppTheme.getTextMuted(context).withOpacity(0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         AppStrings.of(context)?.noChannelsFound ??
                             'No channels found',
-                        style: const TextStyle(
-                          color: AppTheme.textSecondary,
+                        style: TextStyle(
+                          color: AppTheme.getTextSecondary(context),
                           fontSize: 16,
                         ),
                       ),
@@ -559,15 +559,15 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: AppTheme.getSurfaceColor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           '删除所有失效频道',
-          style: TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
           '确定要删除全部 $count 个失效频道吗？此操作不可撤销。',
-          style: const TextStyle(color: AppTheme.textSecondary),
+          style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
           TextButton(
@@ -761,15 +761,15 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: AppTheme.getSurfaceColor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           '确认删除',
-          style: TextStyle(color: AppTheme.textPrimary),
+          style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
           '确定要删除 ${results.length} 个不可用的频道吗？此操作不可撤销。',
-          style: const TextStyle(color: AppTheme.textSecondary),
+          style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
           TextButton(
@@ -829,7 +829,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: AppTheme.getSurfaceColor(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -842,8 +842,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               // Channel name
               Text(
                 channel.name,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -856,7 +856,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: isFavorite
                       ? AppTheme.accentColor
-                      : AppTheme.textSecondary,
+                      : AppTheme.getTextSecondary(context),
                 ),
                 title: Text(
                   isFavorite
@@ -864,7 +864,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                           'Remove from Favorites')
                       : (AppStrings.of(context)?.addFavorites ??
                           'Add to Favorites'),
-                  style: const TextStyle(color: AppTheme.textPrimary),
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
                 ),
                 onTap: () async {
                   await favoritesProvider.toggleFavorite(channel);
@@ -873,13 +873,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               ),
 
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.info_outline_rounded,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.getTextSecondary(context),
                 ),
                 title: Text(
                   AppStrings.of(context)?.channelInfo ?? 'Channel Info',
-                  style: const TextStyle(color: AppTheme.textPrimary),
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -888,13 +888,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               ),
 
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.speed_rounded,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.getTextSecondary(context),
                 ),
-                title: const Text(
+                title: Text(
                   '测试频道',
-                  style: TextStyle(color: AppTheme.textPrimary),
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -911,7 +911,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   ),
                   title: Text(
                     '恢复到原分类 (${ChannelProvider.extractOriginalGroup(channel.groupName)})',
-                    style: const TextStyle(color: AppTheme.textPrimary),
+                    style: TextStyle(color: AppTheme.getTextPrimary(context)),
                   ),
                   onTap: () async {
                     Navigator.pop(context);

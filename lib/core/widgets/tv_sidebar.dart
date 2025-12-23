@@ -120,7 +120,7 @@ class _TVSidebarState extends State<TVSidebar> {
           },
           child: Container(
             width: width,
-            color: AppTheme.surfaceColor,
+            color: AppTheme.getSurfaceColor(context),
             child: Column(
               children: [
                 const SizedBox(height: 12),

@@ -55,6 +55,14 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.language_rounded,
                 onTap: () => _showLanguageDialog(context, settings),
               ),
+              _buildDivider(),
+              _buildSelectTile(
+                context,
+                title: AppStrings.of(context)?.theme ?? 'Theme',
+                subtitle: _getThemeModeLabel(context, settings.themeMode),
+                icon: Icons.palette_rounded,
+                onTap: () => _showThemeModeDialog(context, settings),
+              ),
             ]),
 
               const SizedBox(height: 24),
@@ -300,7 +308,7 @@ class SettingsScreen extends StatelessWidget {
 
     if (isTV) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         body: TVSidebar(
           selectedIndex: 4, // 设置页
           child: content,
@@ -309,12 +317,12 @@ class SettingsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         title: Text(
           AppStrings.of(context)?.settings ?? 'Settings',
-          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 20, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -418,37 +426,43 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: AppTheme.textSecondary,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.only(left: 4, bottom: 12),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: AppTheme.getTextSecondary(context),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSettingsCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: children,
+    return Builder(
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.getSurfaceColor(context),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: children,
+        ),
       ),
     );
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      color: AppTheme.cardColor,
-      height: 1,
-      indent: 56,
+    return Builder(
+      builder: (context) => Divider(
+        color: AppTheme.getCardColor(context),
+        height: 1,
+        indent: 56,
+      ),
     );
   }
 
@@ -467,7 +481,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (context, isFocused, child) {
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? AppTheme.cardColor : Colors.transparent,
+            color: isFocused ? AppTheme.getCardColor(context) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: child,
@@ -492,8 +506,8 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: AppTheme.getTextPrimary(context),
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
@@ -501,8 +515,8 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
+                    style: TextStyle(
+                      color: AppTheme.getTextMuted(context),
                       fontSize: 12,
                     ),
                   ),
@@ -534,7 +548,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (context, isFocused, child) {
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? AppTheme.cardColor : Colors.transparent,
+            color: isFocused ? AppTheme.getCardColor(context) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: child,
@@ -561,8 +575,8 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
+                      style: TextStyle(
+                        color: AppTheme.getTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -570,17 +584,17 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
+                      style: TextStyle(
+                        color: AppTheme.getTextMuted(context),
                         fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppTheme.textMuted,
+                color: AppTheme.getTextMuted(context),
               ),
             ],
           ),
@@ -623,7 +637,7 @@ class SettingsScreen extends StatelessWidget {
             color: isFocused
                 ? (isDestructive
                     ? AppTheme.errorColor.withOpacity(0.1)
-                    : AppTheme.cardColor)
+                    : AppTheme.getCardColor(context))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
@@ -663,7 +677,7 @@ class SettingsScreen extends StatelessWidget {
                       style: TextStyle(
                         color: isDestructive
                             ? AppTheme.errorColor
-                            : AppTheme.textPrimary,
+                            : AppTheme.getTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -671,8 +685,8 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
+                      style: TextStyle(
+                        color: AppTheme.getTextMuted(context),
                         fontSize: 12,
                       ),
                     ),
@@ -699,16 +713,16 @@ class SettingsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.textMuted.withOpacity(0.15),
+              color: AppTheme.getTextMuted(context).withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: AppTheme.textMuted, size: 20),
+            child: Icon(icon, color: AppTheme.getTextMuted(context), size: 20),
           ),
           const SizedBox(width: 16),
           Text(
             title,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 15,
               fontWeight: FontWeight.w500,
             ),
@@ -716,8 +730,8 @@ class SettingsScreen extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
           ),
@@ -1064,6 +1078,57 @@ class SettingsScreen extends StatelessWidget {
                 activeColor: AppTheme.primaryColor,
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _getThemeModeLabel(BuildContext context, String mode) {
+    final strings = AppStrings.of(context);
+    switch (mode) {
+      case 'light':
+        return strings?.themeLight ?? 'Light';
+      case 'dark':
+        return strings?.themeDark ?? 'Dark';
+      case 'system':
+      default:
+        return strings?.themeSystem ?? 'Follow System';
+    }
+  }
+
+  void _showThemeModeDialog(BuildContext context, SettingsProvider settings) {
+    final options = ['system', 'light', 'dark'];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surfaceColor,
+          title: Text(
+            AppStrings.of(context)?.theme ?? 'Theme',
+            style: const TextStyle(color: AppTheme.textPrimary),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((mode) {
+              return RadioListTile<String>(
+                title: Text(
+                  _getThemeModeLabel(context, mode),
+                  style: const TextStyle(color: AppTheme.textPrimary),
+                ),
+                value: mode,
+                groupValue: settings.themeMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    settings.setThemeMode(value);
+                    Navigator.pop(dialogContext);
+                    _showSuccess(context, '${AppStrings.of(context)?.themeChanged ?? "主题已切换"}: ${_getThemeModeLabel(context, value)}');
+                  }
+                },
+                activeColor: AppTheme.primaryColor,
+              );
+            }).toList(),
           ),
         );
       },

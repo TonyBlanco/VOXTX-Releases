@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (isTV) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         body: TVSidebar(
           selectedIndex: 0,
           child: _buildMainContent(context),
@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       body: _buildMainContent(context),
       bottomNavigationBar: _buildBottomNav(context),
     );
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNav(BuildContext context) {
     final navItems = _getNavItems(context);
     return Container(
-      decoration: const BoxDecoration(color: AppTheme.surfaceColor, border: Border(top: BorderSide(color: Color(0x1AFFFFFF), width: 1))),
+      decoration: BoxDecoration(color: AppTheme.getSurfaceColor(context), border: const Border(top: BorderSide(color: Color(0x1AFFFFFF), width: 1))),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(gradient: isSelected ? AppTheme.lotusGradient : null, borderRadius: BorderRadius.circular(AppTheme.radiusPill)),
-                  child: Icon(item.icon, color: isSelected ? Colors.white : AppTheme.textMuted, size: 24),
+                  child: Icon(item.icon, color: isSelected ? Colors.white : AppTheme.getTextMuted(context), size: 24),
                 ),
               );
             }),
@@ -267,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${provider.totalChannelCount} ${AppStrings.of(context)?.channels ?? "频道"} · ${provider.groups.length} ${AppStrings.of(context)?.categories ?? "分类"} · ${context.watch<FavoritesProvider>().count} ${AppStrings.of(context)?.favorites ?? "收藏"}$playlistInfo',
-                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                  style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 13),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -296,20 +296,26 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             gradient: isPrimary || isFocused ? AppTheme.lotusGradient : null,
-            color: isPrimary || isFocused ? null : AppTheme.glassColor,
+            color: isPrimary || isFocused ? null : AppTheme.getGlassColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.glassBorderColor, width: isFocused ? 2 : 1),
+            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.getGlassBorderColor(context), width: isFocused ? 2 : 1),
           ),
           child: child,
         );
       },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
+      child: Builder(
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final textColor = isPrimary ? Colors.white : (isDark ? Colors.white : AppTheme.textPrimaryLight);
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: textColor, size: 16),
+              const SizedBox(width: 6),
+              Text(label, style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500)),
+            ],
+          );
+        },
       ),
     );
   }
@@ -329,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Row(
           children: [
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+            Text(title, style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.w600)),
             if (showRefresh) ...[
               const SizedBox(width: 10),
               TVFocusable(
@@ -340,13 +346,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Container(
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: isFocused ? AppTheme.primaryColor : AppTheme.glassColor,
+                      color: isFocused ? AppTheme.primaryColor : AppTheme.getGlassColor(context),
                       shape: BoxShape.circle,
                     ),
                     child: child,
                   );
                 },
-                child: const Icon(Icons.refresh_rounded, color: Colors.white, size: 14),
+                child: Icon(Icons.refresh_rounded, color: AppTheme.getTextPrimary(context), size: 14),
               ),
             ],
             const Spacer(),
@@ -368,9 +374,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(AppStrings.of(context)?.more ?? 'More', style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                    Text(AppStrings.of(context)?.more ?? 'More', style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 12)),
                     const SizedBox(width: 2),
-                    const Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 16),
+                    Icon(Icons.chevron_right_rounded, color: AppTheme.getTextMuted(context), size: 16),
                   ],
                 ),
               ),
@@ -447,9 +453,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(Icons.playlist_add_rounded, size: 48, color: Colors.white),
           ),
           const SizedBox(height: 20),
-          Text(AppStrings.of(context)?.noPlaylistYet ?? 'No Playlists Yet', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(AppStrings.of(context)?.noPlaylistYet ?? 'No Playlists Yet', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(AppStrings.of(context)?.addM3uToStart ?? 'Add M3U playlist to start watching', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+          Text(AppStrings.of(context)?.addM3uToStart ?? 'Add M3U playlist to start watching', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13)),
           const SizedBox(height: 24),
           TVFocusable(
             autofocus: true,
@@ -560,9 +566,9 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             gradient: isFocused ? AppTheme.lotusGradient : null,
-            color: isFocused ? null : AppTheme.glassColor,
+            color: isFocused ? null : AppTheme.getGlassColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.glassBorderColor),
+            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.getGlassBorderColor(context)),
           ),
           child: child,
         );
@@ -570,9 +576,9 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(CategoryCard.getIconForCategory(name), size: 14, color: AppTheme.textSecondary),
+          Icon(CategoryCard.getIconForCategory(name), size: 14, color: AppTheme.getTextSecondary(context)),
           const SizedBox(width: 6),
-          Text(name, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          Text(name, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
         ],
       ),
     );
@@ -588,9 +594,9 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             gradient: isFocused ? AppTheme.lotusGradient : null,
-            color: isFocused ? null : AppTheme.glassColor,
+            color: isFocused ? null : AppTheme.getGlassColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.glassBorderColor),
+            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.getGlassBorderColor(context)),
           ),
           child: child,
         );
@@ -598,9 +604,9 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.more_horiz_rounded, size: 14, color: AppTheme.textSecondary),
+          Icon(Icons.more_horiz_rounded, size: 14, color: AppTheme.getTextSecondary(context)),
           const SizedBox(width: 4),
-          Text('+$hiddenCount', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          Text('+$hiddenCount', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
         ],
       ),
     );
@@ -616,19 +622,19 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             gradient: isFocused ? AppTheme.lotusGradient : null,
-            color: isFocused ? null : AppTheme.glassColor,
+            color: isFocused ? null : AppTheme.getGlassColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.glassBorderColor),
+            border: Border.all(color: isFocused ? AppTheme.focusBorderColor : AppTheme.getGlassBorderColor(context)),
           ),
           child: child,
         );
       },
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.unfold_less_rounded, size: 14, color: AppTheme.textSecondary),
-          SizedBox(width: 4),
-          Text('收起', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          Icon(Icons.unfold_less_rounded, size: 14, color: AppTheme.getTextSecondary(context)),
+          const SizedBox(width: 4),
+          Text('收起', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12)),
         ],
       ),
     );

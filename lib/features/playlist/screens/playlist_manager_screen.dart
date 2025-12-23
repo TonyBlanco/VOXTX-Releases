@@ -44,13 +44,13 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         return Stack(
           children: [
             Scaffold(
-              backgroundColor: AppTheme.backgroundColor,
+              backgroundColor: AppTheme.getBackgroundColor(context),
               appBar: AppBar(
-                backgroundColor: AppTheme.backgroundColor,
+                backgroundColor: AppTheme.getBackgroundColor(context),
                 title: Text(
                   AppStrings.of(context)?.playlistManager ?? 'Playlist Manager',
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -79,7 +79,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   // Add Playlist Section
                   _buildAddPlaylistSection(provider),
 
-                  const Divider(color: AppTheme.cardColor, height: 1),
+                  Divider(color: AppTheme.getCardColor(context), height: 1),
 
                   // Playlists List
                   Expanded(
@@ -98,7 +98,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
+                      color: AppTheme.getSurfaceColor(context),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -108,8 +108,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                         const SizedBox(height: 16),
                         Text(
                           '${(provider.importProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            color: AppTheme.textPrimary,
+                          style: TextStyle(
+                            color: AppTheme.getTextPrimary(context),
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.none,
@@ -118,8 +118,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                         const SizedBox(height: 8),
                         Text(
                           AppStrings.of(context)?.processing ?? 'Processing, please wait...',
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
+                          style: TextStyle(
+                            color: AppTheme.getTextSecondary(context),
                             fontSize: 14,
                             decoration: TextDecoration.none,
                           ),
@@ -138,9 +138,9 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   Widget _buildAddPlaylistSection(PlaylistProvider provider) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: AppTheme.getSurfaceColor(context),
+        borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(20),
         ),
       ),
@@ -151,8 +151,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           children: [
             Text(
               AppStrings.of(context)?.addNewPlaylist ?? 'Add New Playlist',
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
+              style: TextStyle(
+                color: AppTheme.getTextPrimary(context),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -271,7 +271,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: provider.importProgress,
-                  backgroundColor: AppTheme.cardColor,
+                  backgroundColor: AppTheme.getCardColor(context),
                   color: AppTheme.primaryColor,
                   minHeight: 6,
                 ),
@@ -279,8 +279,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               const SizedBox(height: 8),
               Text(
                 '${(provider.importProgress * 100).toInt()}% Complete',
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
+                style: TextStyle(
+                  color: AppTheme.getTextSecondary(context),
                   fontSize: 12,
                 ),
                 textAlign: TextAlign.center,
@@ -381,13 +381,13 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             child: TextField(
               controller: controller,
               autofocus: autofocus,
-              style: const TextStyle(color: AppTheme.textPrimary),
+              style: TextStyle(color: AppTheme.getTextPrimary(context)),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: AppTheme.textMuted),
-                prefixIcon: Icon(prefixIcon, color: AppTheme.textMuted),
+                hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
+                prefixIcon: Icon(prefixIcon, color: AppTheme.getTextMuted(context)),
                 filled: true,
-                fillColor: AppTheme.cardColor,
+                fillColor: AppTheme.getCardColor(context),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -546,20 +546,20 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: AppTheme.getSurfaceColor(context),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Icon(
               Icons.playlist_add_rounded,
               size: 50,
-              color: AppTheme.textMuted.withOpacity(0.5),
+              color: AppTheme.getTextMuted(context).withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             AppStrings.of(context)?.noPlaylists ?? 'No Playlists',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -567,8 +567,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           const SizedBox(height: 8),
           Text(
             platformText,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
             textAlign: TextAlign.center,
@@ -610,7 +610,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                     ],
                   )
                 : null,
-            color: isActive ? null : AppTheme.surfaceColor,
+            color: isActive ? null : AppTheme.getSurfaceColor(context),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isActive
@@ -662,8 +662,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                                 Expanded(
                                   child: Text(
                                     playlist.name,
-                                    style: const TextStyle(
-                                      color: AppTheme.textPrimary,
+                                    style: TextStyle(
+                                      color: AppTheme.getTextPrimary(context),
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -694,18 +694,18 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               children: [
                                 Icon(
                                   playlist.isRemote ? Icons.cloud_outlined : Icons.folder_outlined,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getTextMuted(context),
                                   size: 12,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   playlist.isRemote ? 'URL' : (AppStrings.of(context)?.localFile ?? 'Local File'),
-                                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                  style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 11),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   '${playlist.channelCount} ${AppStrings.of(context)?.channels ?? 'channels'} • ${playlist.groupCount} ${AppStrings.of(context)?.categories ?? 'groups'}',
-                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                  style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13),
                                 ),
                               ],
                             ),
@@ -713,7 +713,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${AppStrings.of(context)?.updated ?? 'Updated'}: ${_formatDate(playlist.lastUpdated!)}',
-                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 11),
                               ),
                             ],
                           ],
@@ -731,10 +731,10 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardColor,
+                    color: AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.refresh_rounded, color: AppTheme.textSecondary, size: 22),
+                  child: Icon(Icons.refresh_rounded, color: AppTheme.getTextSecondary(context), size: 22),
                 ),
               ),
               const SizedBox(width: 8),
@@ -745,7 +745,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardColor,
+                    color: AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 22),
@@ -789,7 +789,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                     ],
                   )
                 : null,
-            color: isActive ? null : AppTheme.surfaceColor,
+            color: isActive ? null : AppTheme.getSurfaceColor(context),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isFocused
@@ -839,8 +839,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                     Expanded(
                       child: Text(
                         playlist.name,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -874,19 +874,19 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   children: [
                     Icon(
                       playlist.isRemote ? Icons.cloud_outlined : Icons.folder_outlined,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getTextMuted(context),
                       size: 12,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       playlist.isRemote ? 'URL' : (AppStrings.of(context)?.localFile ?? 'Local File'),
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                      style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 11),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '${playlist.channelCount} ${AppStrings.of(context)?.channels ?? 'channels'} • ${playlist.groupCount} ${AppStrings.of(context)?.categories ?? 'groups'}',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: AppTheme.getTextSecondary(context),
                         fontSize: 13,
                       ),
                     ),
@@ -896,8 +896,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${AppStrings.of(context)?.updated ?? 'Updated'}: ${_formatDate(playlist.lastUpdated!)}',
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
+                    style: TextStyle(
+                      color: AppTheme.getTextMuted(context),
                       fontSize: 11,
                     ),
                   ),
@@ -918,10 +918,10 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.cardColor,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.refresh_rounded, color: AppTheme.textSecondary, size: 20),
+                    child: Icon(Icons.refresh_rounded, color: AppTheme.getTextSecondary(context), size: 20),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -931,7 +931,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.cardColor,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.delete_outline_rounded, color: AppTheme.errorColor, size: 20),
@@ -940,7 +940,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               ] else ...[
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded),
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.getTextSecondary(context),
                   onPressed: () => _refreshPlaylist(provider, playlist),
                   tooltip: AppStrings.of(context)?.refresh ?? 'Refresh',
                 ),
@@ -1111,19 +1111,19 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppTheme.surfaceColor,
+          backgroundColor: AppTheme.getSurfaceColor(context),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             AppStrings.of(context)?.deletePlaylist ?? 'Delete Playlist',
-            style: const TextStyle(color: AppTheme.textPrimary),
+            style: TextStyle(color: AppTheme.getTextPrimary(context)),
           ),
           content: Text(
             (AppStrings.of(context)?.deleteConfirmation ??
                     'Are you sure you want to delete "{name}"? This will also remove all channels from this playlist.')
                 .replaceAll('{name}', playlist.name),
-            style: const TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: AppTheme.getTextSecondary(context)),
           ),
           actions: [
             TextButton(

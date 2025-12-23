@@ -184,7 +184,7 @@ class _QrImportDialogState extends State<QrImportDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: AppTheme.getSurfaceColor(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         width: 520,
@@ -210,8 +210,8 @@ class _QrImportDialogState extends State<QrImportDialog> {
                 const SizedBox(width: 12),
                 Text(
                   AppStrings.of(context)?.scanToImport ?? 'Scan to Import Playlist',
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -240,8 +240,8 @@ class _QrImportDialogState extends State<QrImportDialog> {
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.textSecondary,
-                    side: const BorderSide(color: AppTheme.cardColor),
+                    foregroundColor: AppTheme.getTextSecondary(context),
+                    side: BorderSide(color: AppTheme.getCardColor(context)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -271,7 +271,7 @@ class _QrImportDialogState extends State<QrImportDialog> {
         const SizedBox(height: 16),
         Text(
           AppStrings.of(context)?.startingServer ?? 'Starting server...',
-          style: const TextStyle(color: AppTheme.textSecondary),
+          style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
       ],
     );
@@ -298,6 +298,7 @@ class _QrImportDialogState extends State<QrImportDialog> {
             onPressed: _startServer,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
             ),
             child: Text(AppStrings.of(context)?.retry ?? 'Retry'),
           ),
@@ -337,7 +338,7 @@ class _QrImportDialogState extends State<QrImportDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.cardColor,
+                  color: AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -357,22 +358,22 @@ class _QrImportDialogState extends State<QrImportDialog> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppTheme.cardColor.withAlpha(128),
+                  color: AppTheme.getCardColor(context).withAlpha(128),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.wifi_rounded,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getTextMuted(context),
                       size: 16,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         _serverService.serverUrl,
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
+                        style: TextStyle(
+                          color: AppTheme.getTextMuted(context),
                           fontSize: 13,
                           fontFamily: 'monospace',
                         ),
@@ -415,7 +416,7 @@ class _QrImportDialogState extends State<QrImportDialog> {
                                 ? Colors.green
                                 : _receivedMessage!.contains('✗')
                                     ? Colors.red
-                                    : AppTheme.textPrimary,
+                                    : AppTheme.getTextPrimary(context),
                             fontWeight: FontWeight.w500,
                             fontSize: 13,
                           ),
@@ -457,8 +458,8 @@ class _QrImportDialogState extends State<QrImportDialog> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 13,
             ),
           ),

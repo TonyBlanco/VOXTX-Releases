@@ -33,7 +33,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     if (isTV) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         body: TVSidebar(
           selectedIndex: 2, // 收藏页
           child: content,
@@ -42,13 +42,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         title: Text(
           AppStrings.of(context)?.favorites ?? 'Favorites',
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
+          style: TextStyle(
+            color: AppTheme.getTextPrimary(context),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -102,20 +102,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: AppTheme.getSurfaceColor(context),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Icon(
               Icons.favorite_outline_rounded,
               size: 50,
-              color: AppTheme.textMuted.withOpacity(0.5),
+              color: AppTheme.getTextMuted(context).withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             AppStrings.of(context)?.noFavoritesYet ?? 'No Favorites Yet',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -124,8 +124,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           Text(
             AppStrings.of(context)?.favoritesHint ??
                 'Long press on a channel to add it to favorites',
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
           ),
@@ -210,7 +210,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         return AnimatedContainer(
           duration: AppTheme.animationFast,
           decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+            color: AppTheme.getSurfaceColor(context),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isFocused ? AppTheme.focusBorderColor : Colors.transparent,
@@ -252,7 +252,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppTheme.cardColor,
+                color: AppTheme.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 image: channel.logoUrl != null
                     ? DecorationImage(
@@ -262,9 +262,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     : null,
               ),
               child: channel.logoUrl == null
-                  ? const Icon(
+                  ? Icon(
                       Icons.live_tv_rounded,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getTextMuted(context),
                       size: 28,
                     )
                   : null,
@@ -279,8 +279,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 children: [
                   Text(
                     channel.name,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: AppTheme.getTextPrimary(context),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -291,8 +291,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     const SizedBox(height: 4),
                     Text(
                       channel.groupName!,
-                      style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                      style: TextStyle(
+                        color: AppTheme.getTextSecondary(context),
                         fontSize: 13,
                       ),
                     ),
@@ -385,18 +385,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppTheme.surfaceColor,
+          backgroundColor: AppTheme.getSurfaceColor(context),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             AppStrings.of(context)?.clearAllFavorites ?? 'Clear All Favorites',
-            style: const TextStyle(color: AppTheme.textPrimary),
+            style: TextStyle(color: AppTheme.getTextPrimary(context)),
           ),
           content: Text(
             AppStrings.of(context)?.clearFavoritesConfirm ??
                 'Are you sure you want to remove all channels from your favorites?',
-            style: const TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: AppTheme.getTextSecondary(context)),
           ),
           actions: [
             TextButton(

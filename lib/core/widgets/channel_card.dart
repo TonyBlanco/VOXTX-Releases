@@ -61,16 +61,19 @@ class ChannelCard extends StatelessWidget {
       focusScale: isTV ? 1.0 : 1.03, // TV端不缩放
       showFocusBorder: false,
       builder: (context, isFocused, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? const Color(0xFF1E1E2E) : AppTheme.cardColor,
+            color: isFocused 
+                ? (isDark ? const Color(0xFF1E1E2E) : const Color(0xFFE8E0F0))
+                : AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             border: Border.all(
               color: isFocused
                   ? AppTheme.focusBorderColor
                   : isPlaying
                       ? AppTheme.successColor
-                      : AppTheme.glassBorderColor,
+                      : AppTheme.getGlassBorderColor(context),
               width: isFocused ? 2 : 1,
             ),
           ),
@@ -95,7 +98,9 @@ class ChannelCard extends StatelessWidget {
                   children: [
                     // Logo
                     Container(
-                      color: const Color(0xFF0A0A0A),
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? const Color(0xFF0A0A0A) 
+                          : const Color(0xFFE8E8E8),
                       child: Center(
                         child: logoUrl != null && logoUrl!.isNotEmpty
                             ? _buildChannelLogo(logoUrl!)
@@ -172,7 +177,7 @@ class ChannelCard extends StatelessWidget {
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 11, fontWeight: FontWeight.w600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -192,16 +197,16 @@ class ChannelCard extends StatelessWidget {
                       const SizedBox(height: 1),
                       Row(
                         children: [
-                          const Icon(Icons.schedule, color: AppTheme.textMuted, size: 9),
+                          Icon(Icons.schedule, color: AppTheme.getTextMuted(context), size: 9),
                           const SizedBox(width: 3),
                           Expanded(
-                            child: Text(nextProgram!, style: const TextStyle(color: AppTheme.textMuted, fontSize: 8), maxLines: 1, overflow: TextOverflow.ellipsis),
+                            child: Text(nextProgram!, style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 8), maxLines: 1, overflow: TextOverflow.ellipsis),
                           ),
                         ],
                       ),
                     ] else if (currentProgram == null && groupName != null) ...[
                       const SizedBox(height: 2),
-                      Text(groupName!, style: const TextStyle(color: AppTheme.textMuted, fontSize: 9), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(groupName!, style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 9), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ],
                 ),
@@ -218,7 +223,7 @@ class ChannelCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
+        backgroundColor: AppTheme.getSurfaceColor(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(name, style: const TextStyle(color: Colors.white, fontSize: 16)),
         content: Column(
@@ -236,7 +241,7 @@ class ChannelCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: isFocused ? AppTheme.primaryColor : AppTheme.cardColor,
+                    color: isFocused ? AppTheme.primaryColor : AppTheme.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: child,
@@ -263,7 +268,7 @@ class ChannelCard extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isFocused ? AppTheme.primaryColor : AppTheme.cardColor,
+                      color: isFocused ? AppTheme.primaryColor : AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: child,

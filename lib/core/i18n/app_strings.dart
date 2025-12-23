@@ -32,6 +32,11 @@ class AppStrings {
   String get general => _localizedValues['general']!;
   String get followSystem => _localizedValues['followSystem']!;
   String get languageFollowSystem => _localizedValues['languageFollowSystem']!;
+  String get theme => _localizedValues['theme']!;
+  String get themeDark => _localizedValues['themeDark']!;
+  String get themeLight => _localizedValues['themeLight']!;
+  String get themeSystem => _localizedValues['themeSystem']!;
+  String get themeChanged => _localizedValues['themeChanged']!;
   String get unknown => _localizedValues['unknown']!;
   String get save => _localizedValues['save']!;
   String get error => _localizedValues['error']!;
@@ -237,6 +242,11 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'general': '通用',
     'followSystem': '跟随系统',
     'languageFollowSystem': '已设置为跟随系统语言',
+    'theme': '主题',
+    'themeDark': '深色',
+    'themeLight': '明亮',
+    'themeSystem': '跟随系统',
+    'themeChanged': '主题已切换',
     'unknown': '未知',
     'save': '保存',
     'error': '错误',
@@ -412,6 +422,11 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'general': 'General',
     'followSystem': 'Follow System',
     'languageFollowSystem': 'Set to follow system language',
+    'theme': 'Theme',
+    'themeDark': 'Dark',
+    'themeLight': 'Light',
+    'themeSystem': 'Follow System',
+    'themeChanged': 'Theme changed',
     'unknown': 'Unknown',
     'save': 'Save',
     'error': 'Error',

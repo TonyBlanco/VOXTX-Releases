@@ -88,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -186,7 +186,7 @@ class _SplashScreenState extends State<SplashScreen>
                             'Professional IPTV Player',
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppTheme.textSecondary.withOpacity(0.8),
+                          color: AppTheme.textSecondaryDark.withOpacity(0.8),
                           letterSpacing: 2,
                         ),
                       ),
@@ -213,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: const LinearProgressIndicator(
-                          backgroundColor: AppTheme.surfaceColor,
+                          backgroundColor: AppTheme.surfaceColorDark,
                           color: AppTheme.primaryColor,
                           minHeight: 4,
                         ),
@@ -223,7 +223,7 @@ class _SplashScreenState extends State<SplashScreen>
                         AppStrings.of(context)?.loading ?? 'Loading...',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.textMutedDark,
                         ),
                       ),
                     ],

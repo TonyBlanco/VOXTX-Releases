@@ -56,7 +56,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (isTV) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: AppTheme.getBackgroundColor(context),
         body: TVSidebar(
           selectedIndex: 3, // 搜索页
           child: content,
@@ -65,7 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       body: content,
     );
   }
@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
         bottom: 16,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: AppTheme.getSurfaceColor(context),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -97,12 +97,12 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppTheme.cardColor,
+                color: AppTheme.getCardColor(context),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_rounded,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
                 size: 22,
               ),
             ),
@@ -114,29 +114,29 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppTheme.cardColor,
+                color: AppTheme.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: AppStrings.of(context)?.searchHint ??
                       'Search channels...',
-                  hintStyle: const TextStyle(color: AppTheme.textMuted),
-                  prefixIcon: const Icon(
+                  hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
+                  prefixIcon: Icon(
                     Icons.search_rounded,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getTextMuted(context),
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.clear_rounded,
-                            color: AppTheme.textMuted,
+                            color: AppTheme.getTextMuted(context),
                           ),
                           onPressed: () {
                             _searchController.clear();
@@ -189,20 +189,20 @@ class _SearchScreenState extends State<SearchScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
+              color: AppTheme.getSurfaceColor(context),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Icon(
               Icons.search_rounded,
               size: 50,
-              color: AppTheme.textMuted.withOpacity(0.5),
+              color: AppTheme.getTextMuted(context).withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             AppStrings.of(context)?.searchChannels ?? 'Search Channels',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -211,8 +211,8 @@ class _SearchScreenState extends State<SearchScreen> {
           Text(
             AppStrings.of(context)?.typeToSearch ??
                 'Type to search by channel name or category',
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
           ),
@@ -222,8 +222,8 @@ class _SearchScreenState extends State<SearchScreen> {
           if (PlatformDetector.useDPadNavigation) ...[
             Text(
               AppStrings.of(context)?.popularCategories ?? 'Popular Categories',
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
+              style: TextStyle(
+                color: AppTheme.getTextPrimary(context),
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -247,10 +247,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Chip(
                     label: Text(
                       category,
-                      style: const TextStyle(color: AppTheme.textPrimary),
+                      style: TextStyle(color: AppTheme.getTextPrimary(context)),
                     ),
-                    backgroundColor: AppTheme.surfaceColor,
-                    side: const BorderSide(color: AppTheme.cardColor),
+                    backgroundColor: AppTheme.getSurfaceColor(context),
+                    side: BorderSide(color: AppTheme.getCardColor(context)),
                   ),
                 );
               }).toList(),
@@ -269,13 +269,13 @@ class _SearchScreenState extends State<SearchScreen> {
           Icon(
             Icons.search_off_rounded,
             size: 64,
-            color: AppTheme.textMuted.withOpacity(0.5),
+            color: AppTheme.getTextMuted(context).withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
             AppStrings.of(context)?.noResultsFound ?? 'No Results Found',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -285,8 +285,8 @@ class _SearchScreenState extends State<SearchScreen> {
             (AppStrings.of(context)?.noChannelsMatch ??
                     'No channels match "{query}"')
                 .replaceAll('{query}', _searchQuery),
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
           ),
@@ -310,8 +310,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     '{count} result(s) for "{query}"')
                 .replaceAll('{count}', '${results.length}')
                 .replaceAll('{query}', _searchQuery),
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
+            style: TextStyle(
+              color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
           ),

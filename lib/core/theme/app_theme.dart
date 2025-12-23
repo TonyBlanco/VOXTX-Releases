@@ -11,21 +11,40 @@ class AppTheme {
   static const Color secondaryColor = Color(0xFF9C27B0); // Purple
   static const Color accentColor = Color(0xFF00BCD4); // Cyan accent
 
-  // Background Colors - 纯黑/极深灰
-  static const Color backgroundColor = Color(0xFF000000); // Pure Black
-  static const Color surfaceColor = Color(0xFF0A0A0A); // Near Black
-  static const Color cardColor = Color(0xFF121212); // Dark Grey
-  static const Color cardHoverColor = Color(0xFF1A1A1A);
+  // ============ Dark Theme Colors ============
+  static const Color backgroundColorDark = Color(0xFF000000); // Pure Black
+  static const Color surfaceColorDark = Color(0xFF0A0A0A); // Near Black
+  static const Color cardColorDark = Color(0xFF121212); // Dark Grey
+  static const Color cardHoverColorDark = Color(0xFF1A1A1A);
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textSecondaryDark = Color(0xFFB0B0B0);
+  static const Color textMutedDark = Color(0xFF757575);
+  static const Color glassColorDark = Color(0x1AFFFFFF);
+  static const Color glassBorderColorDark = Color(0x33FFFFFF);
 
-  // Glassmorphism Colors
-  static const Color glassColor = Color(0x1AFFFFFF); // 10% white
-  static const Color glassBorderColor = Color(0x33FFFFFF); // 20% white
-  static const Color glassHighlight = Color(0x0DFFFFFF); // 5% white
+  // ============ Light Theme Colors ============
+  static const Color backgroundColorLight = Color(0xFFF5F5F5); // Light Grey
+  static const Color surfaceColorLight = Color(0xFFFFFFFF); // White
+  static const Color cardColorLight = Color(0xFFFFFFFF); // White
+  static const Color cardHoverColorLight = Color(0xFFF0F0F0);
+  static const Color textPrimaryLight = Color(0xFF212121);
+  static const Color textSecondaryLight = Color(0xFF616161);
+  static const Color textMutedLight = Color(0xFF9E9E9E);
+  static const Color glassColorLight = Color(0x1A000000);
+  static const Color glassBorderColorLight = Color(0x33000000);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFFFFFFFF);
-  static const Color textSecondary = Color(0xFFB0B0B0); // Grey 400
-  static const Color textMuted = Color(0xFF757575); // Grey 500
+  // ============ Dynamic Colors (based on theme) ============
+  // 这些是默认值（暗色主题），实际使用时通过 of(context) 获取
+  static const Color backgroundColor = backgroundColorDark;
+  static const Color surfaceColor = surfaceColorDark;
+  static const Color cardColor = cardColorDark;
+  static const Color cardHoverColor = cardHoverColorDark;
+  static const Color textPrimary = textPrimaryDark;
+  static const Color textSecondary = textSecondaryDark;
+  static const Color textMuted = textMutedDark;
+  static const Color glassColor = glassColorDark;
+  static const Color glassBorderColor = glassBorderColorDark;
+  static const Color glassHighlight = Color(0x0DFFFFFF);
 
   // Focus Colors (for TV navigation) - Lotus gradient
   static const Color focusColor = Color(0xFFE91E8C);
@@ -36,6 +55,47 @@ class AppTheme {
   static const Color errorColor = Color(0xFFFF5252);
   static const Color warningColor = Color(0xFFFFB74D);
   static const Color infoColor = Color(0xFF29B6F6);
+
+  // ============ Helper methods to get theme-aware colors ============
+  static Color getBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? backgroundColorDark : backgroundColorLight;
+  }
+  
+  static Color getSurfaceColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? surfaceColorDark : surfaceColorLight;
+  }
+  
+  static Color getCardColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? cardColorDark : cardColorLight;
+  }
+  
+  static Color getTextPrimary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? textPrimaryDark : textPrimaryLight;
+  }
+  
+  static Color getTextSecondary(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? textSecondaryDark : textSecondaryLight;
+  }
+  
+  static Color getTextMuted(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? textMutedDark : textMutedLight;
+  }
+  
+  static Color getGlassColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? glassColorDark : glassColorLight;
+  }
+  
+  static Color getGlassBorderColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? glassBorderColorDark : glassBorderColorLight;
+  }
 
   // Lotus Gradient - 莲花渐变
   static const LinearGradient lotusGradient = LinearGradient(
@@ -307,6 +367,142 @@ class AppTheme {
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
         inactiveTrackColor: glassColor,
+        thumbColor: primaryColor,
+        overlayColor: primaryColor.withAlpha(51),
+        trackHeight: 4,
+      ),
+    );
+  }
+
+  // Light Theme
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      primaryColor: primaryColor,
+      scaffoldBackgroundColor: backgroundColorLight,
+      fontFamily: 'NotoSansSC',
+      colorScheme: const ColorScheme.light(
+        primary: primaryColor,
+        secondary: secondaryColor,
+        surface: surfaceColorLight,
+        error: errorColor,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: textPrimaryLight,
+        onError: Colors.white,
+      ),
+      cardTheme: CardThemeData(
+        color: cardColorLight,
+        elevation: 1,
+        shadowColor: Colors.black12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+        ),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: surfaceColorLight,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: textPrimaryLight),
+        titleTextStyle: TextStyle(
+          color: textPrimaryLight,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: surfaceColorLight,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: textMutedLight,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+      iconTheme: const IconThemeData(
+        color: textSecondaryLight,
+        size: 24,
+      ),
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textPrimaryLight),
+        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimaryLight),
+        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: textPrimaryLight),
+        headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: textPrimaryLight),
+        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: textPrimaryLight),
+        headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: textPrimaryLight),
+        titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimaryLight),
+        titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textPrimaryLight),
+        titleSmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: textSecondaryLight),
+        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: textPrimaryLight),
+        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: textSecondaryLight),
+        bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: textMutedLight),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textPrimaryLight),
+        labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: textSecondaryLight),
+        labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textMutedLight),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusPill)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryColor,
+          side: const BorderSide(color: primaryColor),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusPill)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: glassColorLight,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: glassBorderColorLight),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: glassBorderColorLight),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: errorColor),
+        ),
+        hintStyle: const TextStyle(color: textMutedLight),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: cardColorLight,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusLarge)),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: cardColorLight,
+        contentTextStyle: const TextStyle(color: textPrimaryLight),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusMedium)),
+        behavior: SnackBarBehavior.floating,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE0E0E0),
+        thickness: 1,
+        space: 1,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: primaryColor),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: primaryColor,
+        inactiveTrackColor: glassColorLight,
         thumbColor: primaryColor,
         overlayColor: primaryColor.withAlpha(51),
         trackHeight: 4,

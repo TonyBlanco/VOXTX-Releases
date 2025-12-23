@@ -14,13 +14,13 @@ class EpgScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.getBackgroundColor(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
-        title: const Text(
+        backgroundColor: AppTheme.getBackgroundColor(context),
+        title: Text(
           'Program Guide',
           style: TextStyle(
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -38,29 +38,29 @@ class EpgScreen extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppTheme.surfaceColor,
+                color: AppTheme.getSurfaceColor(context),
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Icon(
                 Icons.event_note_rounded,
                 size: 50,
-                color: AppTheme.textMuted.withOpacity(0.5),
+                color: AppTheme.getTextMuted(context).withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'EPG Coming Soon',
               style: TextStyle(
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Electronic Program Guide will be available in a future update',
               style: TextStyle(
-                color: AppTheme.textSecondary,
+                color: AppTheme.getTextSecondary(context),
                 fontSize: 14,
               ),
               textAlign: TextAlign.center,

@@ -101,7 +101,7 @@ class _WindowTitleBarState extends State<WindowTitleBar> {
               child: Container(
                 height: _barHeight,
                 decoration: BoxDecoration(
-                  color: AppTheme.backgroundColor,
+                  color: AppTheme.backgroundColorDark,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -132,7 +132,7 @@ class _WindowTitleBarState extends State<WindowTitleBar> {
                     Text(
                       widget.title,
                       style: const TextStyle(
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.textSecondaryDark,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         decoration: TextDecoration.none,
@@ -198,7 +198,7 @@ class _WindowButtonState extends State<_WindowButton> {
             size: 16,
             color: _isHovered && widget.hoverColor != null
                 ? Colors.white
-                : AppTheme.textSecondary,
+                : AppTheme.textSecondaryDark,
           ),
         ),
       ),
@@ -247,7 +247,7 @@ class _MaximizeButtonState extends State<_MaximizeButton> {
           child: Icon(
             _isMaximized ? Icons.filter_none : Icons.crop_square,
             size: 14,
-            color: AppTheme.textSecondary,
+            color: AppTheme.textSecondaryDark,
           ),
         ),
       ),

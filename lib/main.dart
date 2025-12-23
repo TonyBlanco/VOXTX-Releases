@@ -147,9 +147,10 @@ class FlutterIPTVApp extends StatelessWidget {
           return MaterialApp(
             title: AppStrings.of(context)?.lotusIptv ?? 'Lotus IPTV',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.dark,
+            themeMode: settings.themeMode == 'light' ? ThemeMode.light : 
+                       settings.themeMode == 'system' ? ThemeMode.system : ThemeMode.dark,
             locale: settings.locale,
             supportedLocales: const [
               Locale('en', ''),
