@@ -149,7 +149,8 @@ class EpgService {
   }
 
   String _normalizeName(String name) {
-    return name.toLowerCase().replaceAll(RegExp(r'[^\w\u4e00-\u9fa5]'), '').replaceAll('hd', '').replaceAll('高清', '').replaceAll('标清', '').replaceAll('超清', '');
+    // 保留 + 号，因为 CCTV5 和 CCTV5+ 是不同的频道
+    return name.toLowerCase().replaceAll(RegExp(r'[^\w\u4e00-\u9fa5+]'), '').replaceAll('hd', '').replaceAll('高清', '').replaceAll('标清', '').replaceAll('超清', '');
   }
 
   /// 从 URL 加载 EPG 数据
@@ -272,7 +273,8 @@ class EpgService {
   }
 
   static String _normalizeNameStatic(String name) {
-    return name.toLowerCase().replaceAll(RegExp(r'[^\w\u4e00-\u9fa5]'), '').replaceAll('hd', '').replaceAll('高清', '').replaceAll('标清', '').replaceAll('超清', '');
+    // 保留 + 号，因为 CCTV5 和 CCTV5+ 是不同的频道
+    return name.toLowerCase().replaceAll(RegExp(r'[^\w\u4e00-\u9fa5+]'), '').replaceAll('hd', '').replaceAll('高清', '').replaceAll('标清', '').replaceAll('超清', '');
   }
 
   static DateTime? _parseDateTimeStatic(String str) {
