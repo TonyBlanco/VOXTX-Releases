@@ -189,12 +189,54 @@
 
         <!-- Help Text -->
         <TextView
+            android:id="@+id/help_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="#66FFFFFF"
             android:textSize="11sp"
             android:text="↑↓ 切换频道 · ← 分类列表 · OK 播放/暂停"
             android:gravity="end" />
+
+        <!-- Progress Bar (DLNA mode) -->
+        <LinearLayout
+            android:id="@+id/progress_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/progress_current"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:text="00:00" />
+
+            <SeekBar
+                android:id="@+id/progress_bar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="12dp"
+                android:max="100"
+                android:progress="0"
+                android:focusable="false"
+                android:thumb="@android:drawable/presence_online"
+                android:progressTint="#E91E63"
+                android:progressBackgroundTint="#66FFFFFF" />
+
+            <TextView
+                android:id="@+id/progress_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:text="00:00" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

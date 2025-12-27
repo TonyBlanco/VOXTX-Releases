@@ -40,6 +40,7 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver {
   Timer? _hideControlsTimer;
+  Timer? _dlnaSyncTimer; // DLNA 状态同步定时器（Android TV 原生播放器用）
   bool _showControls = true;
   final FocusNode _playerFocusNode = FocusNode();
   bool _usingNativePlayer = false;
@@ -131,25 +132,41 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
       if (nativeAvailable && mounted) {
         _usingNativePlayer = true;
 
-        // Get channel list for native player (use all channels, not filtered)
-        final channelProvider = context.read<ChannelProvider>();
-        final channels = channelProvider.channels;
-
-        // Find current channel index
-        int currentIndex = 0;
-        for (int i = 0; i < channels.length; i++) {
-          if (channels[i].url == widget.channelUrl) {
-            currentIndex = i;
-            break;
-          }
+        // 检查是否是 DLNA 投屏模式
+        bool isDlnaMode = false;
+        try {
+          final dlnaProvider = context.read<DlnaProvider>();
+          isDlnaMode = dlnaProvider.isActiveSession;
+        } catch (e) {
+          // 忽略
         }
 
-        // Prepare channel lists with groups
-        final urls = channels.map((c) => c.url).toList();
-        final names = channels.map((c) => c.name).toList();
-        final groups = channels.map((c) => c.groupName ?? '').toList();
+        // DLNA 模式下不传递频道列表，禁用频道切换
+        List<String>? urls;
+        List<String>? names;
+        List<String>? groups;
+        int currentIndex = 0;
+        
+        if (!isDlnaMode) {
+          // Get channel list for native player (use all channels, not filtered)
+          final channelProvider = context.read<ChannelProvider>();
+          final channels = channelProvider.channels;
 
-        debugPrint('PlayerScreen: Launching native player for ${widget.channelName} (index $currentIndex of ${channels.length})');
+          // Find current channel index
+          for (int i = 0; i < channels.length; i++) {
+            if (channels[i].url == widget.channelUrl) {
+              currentIndex = i;
+              break;
+            }
+          }
+
+          // Prepare channel lists with groups
+          urls = channels.map((c) => c.url).toList();
+          names = channels.map((c) => c.name).toList();
+          groups = channels.map((c) => c.groupName ?? '').toList();
+        }
+
+        debugPrint('PlayerScreen: Launching native player for ${widget.channelName} (isDlna=$isDlnaMode, index $currentIndex of ${urls?.length ?? 0})');
 
         // Launch native player with channel list and callback for when it closes
         final launched = await NativePlayerChannel.launchPlayer(
@@ -161,8 +178,23 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
           groups: groups,
           onClosed: () {
             debugPrint('PlayerScreen: Native player closed callback');
+            // 停止 DLNA 同步定时器
+            _dlnaSyncTimer?.cancel();
+            _dlnaSyncTimer = null;
+            
+            // 通知 DLNA 播放已停止（如果是 DLNA 投屏的话）
+            try {
+              final dlnaProvider = context.read<DlnaProvider>();
+              if (dlnaProvider.isActiveSession) {
+                dlnaProvider.notifyPlaybackStopped();
+              }
+            } catch (e) {
+              // 忽略错误
+            }
+            
             if (mounted) {
-              Navigator.of(context).pop();
+              // 返回首页
+              Navigator.of(context).popUntil((route) => route.isFirst);
             }
           },
         );
@@ -170,6 +202,9 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
         if (launched && mounted) {
           // Don't pop - wait for native player to close via callback
           // The native player is now a Fragment overlay, not a separate Activity
+          
+          // 如果是 DLNA 投屏，启动状态同步定时器
+          _startDlnaSyncForNativePlayer();
           return;
         } else if (!launched && mounted) {
           // Native player failed to launch, fall back to Flutter player
@@ -195,6 +230,44 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     // 不再使用持续监听，改为一次性错误检查
+  }
+  
+  /// 为 Android TV 原生播放器启动 DLNA 状态同步
+  void _startDlnaSyncForNativePlayer() {
+    try {
+      final dlnaProvider = context.read<DlnaProvider>();
+      if (!dlnaProvider.isActiveSession) return;
+      
+      // 每秒同步一次播放状态
+      _dlnaSyncTimer?.cancel();
+      _dlnaSyncTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
+        if (!mounted) {
+          _dlnaSyncTimer?.cancel();
+          return;
+        }
+        
+        try {
+          final state = await NativePlayerChannel.getPlaybackState();
+          if (state != null) {
+            final isPlaying = state['isPlaying'] as bool? ?? false;
+            final position = Duration(milliseconds: (state['position'] as int?) ?? 0);
+            final duration = Duration(milliseconds: (state['duration'] as int?) ?? 0);
+            final stateStr = state['state'] as String? ?? 'unknown';
+            
+            dlnaProvider.syncPlayerState(
+              isPlaying: isPlaying,
+              isPaused: stateStr == 'paused',
+              position: position,
+              duration: duration,
+            );
+          }
+        } catch (e) {
+          // 忽略错误
+        }
+      });
+    } catch (e) {
+      // DLNA provider 不可用
+    }
   }
 
   void _checkAndShowError() {
@@ -276,6 +349,7 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     debugPrint('PlayerScreen: dispose() called, _usingNativePlayer=$_usingNativePlayer');
     WidgetsBinding.instance.removeObserver(this);
     _hideControlsTimer?.cancel();
+    _dlnaSyncTimer?.cancel(); // 清理 DLNA 同步定时器
     _playerFocusNode.dispose();
     _categoryScrollController.dispose();
     _channelScrollController.dispose();

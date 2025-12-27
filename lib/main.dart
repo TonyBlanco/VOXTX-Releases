@@ -13,6 +13,7 @@ import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
 import 'core/services/service_locator.dart';
 import 'core/platform/native_player_channel.dart';
+import 'core/platform/platform_detector.dart';
 import 'features/channels/providers/channel_provider.dart';
 import 'features/player/providers/player_provider.dart';
 import 'features/playlist/providers/playlist_provider.dart';
@@ -160,30 +161,71 @@ class _DlnaAwareApp extends StatefulWidget {
   State<_DlnaAwareApp> createState() => _DlnaAwareAppState();
 }
 
-class _DlnaAwareAppState extends State<_DlnaAwareApp> {
+class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   String? _currentDlnaUrl; // 记录当前 DLNA 播放的 URL
 
   @override
   void initState() {
     super.initState();
-    // 设置 DLNA 回调
+    // Windows 窗口关闭监听
+    if (Platform.isWindows) {
+      windowManager.addListener(this);
+    }
+    // 立即触发 DlnaProvider 的创建（会自动启动 DLNA 服务）
+    // 使用 addPostFrameCallback 确保 context 可用
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final dlnaProvider = context.read<DlnaProvider>();
-      dlnaProvider.onPlayRequested = _handleDlnaPlay;
-      dlnaProvider.onPauseRequested = _handleDlnaPause;
-      dlnaProvider.onStopRequested = _handleDlnaStop;
-      dlnaProvider.onSeekRequested = _handleDlnaSeek;
-      dlnaProvider.onVolumeRequested = _handleDlnaVolume;
+      _setupDlnaCallbacks();
     });
+  }
+  
+  @override
+  void dispose() {
+    if (Platform.isWindows) {
+      windowManager.removeListener(this);
+    }
+    super.dispose();
+  }
+  
+  @override
+  void onWindowClose() async {
+    // 窗口关闭时停止 DLNA 服务
+    try {
+      final dlnaProvider = context.read<DlnaProvider>();
+      await dlnaProvider.setEnabled(false);
+      debugPrint('DLNA: 窗口关闭，服务已停止');
+    } catch (e) {
+      // 忽略错误
+    }
+    await windowManager.destroy();
+  }
+  
+  void _setupDlnaCallbacks() {
+    final dlnaProvider = context.read<DlnaProvider>();
+    dlnaProvider.onPlayRequested = _handleDlnaPlay;
+    dlnaProvider.onPauseRequested = _handleDlnaPause;
+    dlnaProvider.onStopRequested = _handleDlnaStop;
+    dlnaProvider.onSeekRequested = _handleDlnaSeek;
+    dlnaProvider.onVolumeRequested = _handleDlnaVolume;
+    debugPrint('DLNA: Provider 已初始化，回调已设置');
+  }
+  
+  /// 清除 DLNA 播放状态（播放器主动退出时调用）
+  void _clearDlnaPlayState() {
+    if (_currentDlnaUrl != null) {
+      _currentDlnaUrl = null;
+      try {
+        final dlnaProvider = context.read<DlnaProvider>();
+        dlnaProvider.notifyPlaybackStopped();
+      } catch (e) {
+        // 忽略错误
+      }
+    }
   }
 
   void _handleDlnaPlay(String url, String? title) {
-    debugPrint('DLNA: 播放请求 - $url (当前: $_currentDlnaUrl)');
-    
     // 如果已经在播放相同的 URL，不重复导航
     if (_currentDlnaUrl == url) {
-      debugPrint('DLNA: 相同 URL，跳过导航');
       return;
     }
     
@@ -193,6 +235,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> {
     }
     
     _currentDlnaUrl = url;
+    debugPrint('DLNA: 播放 - ${title ?? url}');
     _navigatorKey.currentState?.pushNamed(
       AppRouter.player,
       arguments: {
@@ -204,45 +247,62 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> {
   }
   
   void _handleDlnaPause() {
-    debugPrint('DLNA: 暂停播放');
     try {
-      final playerProvider = context.read<PlayerProvider>();
-      playerProvider.pause();
+      // Android TV 使用原生播放器
+      if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
+        NativePlayerChannel.pause();
+      } else {
+        final playerProvider = context.read<PlayerProvider>();
+        playerProvider.pause();
+      }
     } catch (e) {
-      debugPrint('DLNA: 暂停失败 - $e');
+      // 忽略错误
     }
   }
   
   void _handleDlnaStop() {
-    debugPrint('DLNA: 停止播放（手机端断开）');
-    _currentDlnaUrl = null; // 清除当前播放 URL
+    _currentDlnaUrl = null;
     try {
-      final playerProvider = context.read<PlayerProvider>();
-      playerProvider.stop();
-      // 返回首页（可能需要 pop 多次）
-      _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      // Android TV 使用原生播放器
+      if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
+        // closePlayer 会触发 onClosed 回调，回调中会处理导航
+        NativePlayerChannel.closePlayer();
+        // 不需要额外的 popUntil，onClosed 回调会处理
+      } else {
+        final playerProvider = context.read<PlayerProvider>();
+        playerProvider.stop();
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      }
     } catch (e) {
-      debugPrint('DLNA: 停止失败 - $e');
+      // 忽略错误
     }
   }
   
   void _handleDlnaSeek(Duration position) {
-    debugPrint('DLNA: 跳转到 $position');
     try {
-      final playerProvider = context.read<PlayerProvider>();
-      playerProvider.seek(position);
+      // Android TV 使用原生播放器
+      if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
+        NativePlayerChannel.seekTo(position.inMilliseconds);
+      } else {
+        final playerProvider = context.read<PlayerProvider>();
+        playerProvider.seek(position);
+      }
     } catch (e) {
-      debugPrint('DLNA: 跳转失败 - $e');
+      // 忽略错误
     }
   }
   
   void _handleDlnaVolume(int volume) {
-    debugPrint('DLNA: 设置音量 $volume');
     try {
-      final playerProvider = context.read<PlayerProvider>();
-      playerProvider.setVolume(volume / 100.0);
+      // Android TV 使用原生播放器
+      if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
+        NativePlayerChannel.setVolume(volume);
+      } else {
+        final playerProvider = context.read<PlayerProvider>();
+        playerProvider.setVolume(volume / 100.0);
+      }
     } catch (e) {
-      debugPrint('DLNA: 设置音量失败 - $e');
+      // 忽略错误
     }
   }
 

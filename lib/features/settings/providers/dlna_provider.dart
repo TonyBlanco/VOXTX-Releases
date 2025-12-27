@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/services/dlna_service.dart';
+import '../../../core/services/service_locator.dart';
 
 /// DLNA 服务状态管理
 class DlnaProvider extends ChangeNotifier {
   final DlnaService _dlnaService = DlnaService();
+  static const String _keyDlnaEnabled = 'dlna_enabled';
 
   bool _isEnabled = false;
   bool _isRunning = false;
@@ -27,41 +29,52 @@ class DlnaProvider extends ChangeNotifier {
 
   DlnaProvider() {
     _setupCallbacks();
+    // 后台异步启动 DLNA 服务
+    Future.microtask(() => _autoStart());
+  }
+  
+  /// 自动启动 DLNA 服务（如果之前启用过）
+  Future<void> _autoStart() async {
+    try {
+      final prefs = ServiceLocator.prefs;
+      final wasEnabled = prefs.getBool(_keyDlnaEnabled) ?? false;
+      debugPrint('DLNA: 检查自动启动状态 - wasEnabled=$wasEnabled');
+      if (wasEnabled) {
+        debugPrint('DLNA: 后台自动启动服务...');
+        final success = await setEnabled(true);
+        debugPrint('DLNA: 自动启动${success ? '成功' : '失败'}');
+      }
+    } catch (e) {
+      debugPrint('DLNA: 自动启动失败 - $e');
+    }
   }
 
   void _setupCallbacks() {
     _dlnaService.onPlayUrl = (url, title) {
-      debugPrint('DLNA Provider: 收到播放请求 - $url');
       _pendingUrl = url;
       _pendingTitle = title;
-      _isActiveSession = true; // 开始 DLNA 会话
+      _isActiveSession = true;
       notifyListeners();
-      
-      // 调用外部回调
       onPlayRequested?.call(url, title);
     };
 
     _dlnaService.onPause = () {
-      debugPrint('DLNA Provider: 收到暂停请求');
       onPauseRequested?.call();
     };
 
     _dlnaService.onStop = () {
-      debugPrint('DLNA Provider: 收到停止请求');
       _pendingUrl = null;
       _pendingTitle = null;
-      _isActiveSession = false; // 结束 DLNA 会话
+      _isActiveSession = false;
       notifyListeners();
       onStopRequested?.call();
     };
 
     _dlnaService.onSetVolume = (volume) {
-      debugPrint('DLNA Provider: 设置音量 - $volume');
       onVolumeRequested?.call(volume);
     };
 
     _dlnaService.onSeek = (position) {
-      debugPrint('DLNA Provider: 跳转到 - $position');
       onSeekRequested?.call(position);
     };
   }
@@ -75,6 +88,13 @@ class DlnaProvider extends ChangeNotifier {
       if (success) {
         _isEnabled = true;
         _isRunning = true;
+        // 保存启用状态
+        try {
+          final prefs = ServiceLocator.prefs;
+          await prefs.setBool(_keyDlnaEnabled, true);
+        } catch (e) {
+          // 忽略保存错误
+        }
         notifyListeners();
         return true;
       }
@@ -83,8 +103,16 @@ class DlnaProvider extends ChangeNotifier {
       await _dlnaService.stop();
       _isEnabled = false;
       _isRunning = false;
+      _isActiveSession = false;
       _pendingUrl = null;
       _pendingTitle = null;
+      // 保存禁用状态
+      try {
+        final prefs = ServiceLocator.prefs;
+        await prefs.setBool(_keyDlnaEnabled, false);
+      } catch (e) {
+        // 忽略保存错误
+      }
       notifyListeners();
       return true;
     }

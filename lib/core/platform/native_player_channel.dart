@@ -97,4 +97,53 @@ class NativePlayerChannel {
       debugPrint('NativePlayerChannel: closePlayer error: $e');
     }
   }
+  
+  /// Pause the native player (for DLNA control)
+  static Future<void> pause() async {
+    try {
+      await _channel.invokeMethod('pause');
+    } catch (e) {
+      debugPrint('NativePlayerChannel: pause error: $e');
+    }
+  }
+  
+  /// Resume/play the native player (for DLNA control)
+  static Future<void> play() async {
+    try {
+      await _channel.invokeMethod('play');
+    } catch (e) {
+      debugPrint('NativePlayerChannel: play error: $e');
+    }
+  }
+  
+  /// Seek to position in milliseconds (for DLNA control)
+  static Future<void> seekTo(int positionMs) async {
+    try {
+      await _channel.invokeMethod('seekTo', {'position': positionMs});
+    } catch (e) {
+      debugPrint('NativePlayerChannel: seekTo error: $e');
+    }
+  }
+  
+  /// Set volume (0-100) (for DLNA control)
+  static Future<void> setVolume(int volume) async {
+    try {
+      await _channel.invokeMethod('setVolume', {'volume': volume});
+    } catch (e) {
+      debugPrint('NativePlayerChannel: setVolume error: $e');
+    }
+  }
+  
+  /// Get current playback state from native player
+  static Future<Map<String, dynamic>?> getPlaybackState() async {
+    try {
+      final result = await _channel.invokeMethod<Map>('getPlaybackState');
+      if (result != null) {
+        return Map<String, dynamic>.from(result);
+      }
+    } catch (e) {
+      debugPrint('NativePlayerChannel: getPlaybackState error: $e');
+    }
+    return null;
+  }
 }

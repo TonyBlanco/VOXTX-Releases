@@ -50,6 +50,13 @@ class NativePlayerFragment : Fragment() {
     private lateinit var epgCurrentTime: TextView
     private lateinit var epgNextTitle: TextView
     
+    // Progress views (DLNA mode)
+    private lateinit var progressContainer: View
+    private lateinit var progressBar: android.widget.SeekBar
+    private lateinit var progressCurrent: TextView
+    private lateinit var progressDuration: TextView
+    private lateinit var helpText: TextView
+    
     // Category panel views
     private lateinit var categoryPanel: View
     private lateinit var categoryListContainer: View
@@ -89,6 +96,10 @@ class NativePlayerFragment : Fragment() {
     // EPG update
     private var epgUpdateRunnable: Runnable? = null
     private val EPG_UPDATE_INTERVAL = 60000L // 每分钟更新一次
+    
+    // Progress update (DLNA mode)
+    private var progressUpdateRunnable: Runnable? = null
+    private val PROGRESS_UPDATE_INTERVAL = 1000L // 每秒更新一次
     
     var onCloseListener: (() -> Unit)? = null
 
@@ -168,6 +179,13 @@ class NativePlayerFragment : Fragment() {
         epgCurrentTitle = view.findViewById(R.id.epg_current_title)
         epgCurrentTime = view.findViewById(R.id.epg_current_time)
         epgNextTitle = view.findViewById(R.id.epg_next_title)
+        
+        // Progress views (DLNA mode)
+        progressContainer = view.findViewById(R.id.progress_container)
+        progressBar = view.findViewById(R.id.progress_bar)
+        progressCurrent = view.findViewById(R.id.progress_current)
+        progressDuration = view.findViewById(R.id.progress_duration)
+        helpText = view.findViewById(R.id.help_text)
 
         channelNameText.text = currentName
         updateStatus("Loading")
@@ -178,6 +196,17 @@ class NativePlayerFragment : Fragment() {
         }
         
         playerView.useController = false
+        
+        // DLNA 模式：显示进度条，隐藏帮助文字
+        val isDlnaMode = channelUrls.isEmpty()
+        if (isDlnaMode) {
+            progressContainer.visibility = View.VISIBLE
+            helpText.visibility = View.GONE
+            startProgressUpdate()
+        } else {
+            progressContainer.visibility = View.GONE
+            helpText.visibility = View.VISIBLE
+        }
         
         // Setup category panel
         setupCategoryPanel()
@@ -537,6 +566,9 @@ class NativePlayerFragment : Fragment() {
     private fun handleKeyDown(keyCode: Int): Boolean {
         Log.d(TAG, "handleKeyDown: keyCode=$keyCode, categoryPanelVisible=$categoryPanelVisible")
         
+        // DLNA 模式：没有频道列表时禁用频道切换，但启用进度拖动
+        val isDlnaMode = channelUrls.isEmpty()
+        
         when (keyCode) {
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
                 return handleBackKey()
@@ -551,6 +583,12 @@ class NativePlayerFragment : Fragment() {
                 return true
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
+                // DLNA 模式下左键快退 10 秒
+                if (isDlnaMode) {
+                    showControls()
+                    player?.seekBack()
+                    return true
+                }
                 if (categoryPanelVisible) {
                     if (showingChannelList) {
                         // Go back to category list
@@ -568,7 +606,13 @@ class NativePlayerFragment : Fragment() {
                 return true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                // Disabled for live streams
+                // DLNA 模式下右键快进 10 秒
+                if (isDlnaMode) {
+                    showControls()
+                    player?.seekForward()
+                    return true
+                }
+                // 直播流禁用快进
                 if (!categoryPanelVisible) {
                     showControls()
                 }
@@ -576,6 +620,11 @@ class NativePlayerFragment : Fragment() {
             }
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_CHANNEL_UP -> {
                 if (!categoryPanelVisible) {
+                    // DLNA 模式下只显示控制栏
+                    if (isDlnaMode) {
+                        showControls()
+                        return true
+                    }
                     Log.d(TAG, "Channel UP pressed")
                     previousChannel()
                 }
@@ -583,6 +632,11 @@ class NativePlayerFragment : Fragment() {
             }
             KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_CHANNEL_DOWN -> {
                 if (!categoryPanelVisible) {
+                    // DLNA 模式下只显示控制栏
+                    if (isDlnaMode) {
+                        showControls()
+                        return true
+                    }
                     Log.d(TAG, "Channel DOWN pressed")
                     nextChannel()
                 }
@@ -864,11 +918,56 @@ class NativePlayerFragment : Fragment() {
     private fun scheduleHideControls() {
         hideControlsRunnable?.let { handler.removeCallbacks(it) }
         hideControlsRunnable = Runnable { 
-            if (player?.isPlaying == true && !categoryPanelVisible) {
+            // 只要不在分类面板中，就隐藏控制栏
+            if (!categoryPanelVisible) {
                 hideControls() 
             }
         }
         handler.postDelayed(hideControlsRunnable!!, CONTROLS_HIDE_DELAY)
+    }
+    
+    // DLNA 模式：启动进度更新
+    private fun startProgressUpdate() {
+        progressUpdateRunnable?.let { handler.removeCallbacks(it) }
+        progressUpdateRunnable = Runnable {
+            updateProgress()
+            handler.postDelayed(progressUpdateRunnable!!, PROGRESS_UPDATE_INTERVAL)
+        }
+        handler.post(progressUpdateRunnable!!)
+    }
+    
+    // DLNA 模式：停止进度更新
+    private fun stopProgressUpdate() {
+        progressUpdateRunnable?.let { handler.removeCallbacks(it) }
+        progressUpdateRunnable = null
+    }
+    
+    // DLNA 模式：更新进度条
+    private fun updateProgress() {
+        val p = player ?: return
+        val position = p.currentPosition
+        val duration = p.duration
+        
+        if (duration > 0) {
+            val progress = (position * 100 / duration).toInt()
+            progressBar.progress = progress
+            progressCurrent.text = formatTime(position)
+            progressDuration.text = formatTime(duration)
+        }
+    }
+    
+    // 格式化时间 (毫秒 -> HH:MM:SS 或 MM:SS)
+    private fun formatTime(ms: Long): String {
+        val totalSeconds = ms / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+        
+        return if (hours > 0) {
+            String.format("%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format("%02d:%02d", minutes, seconds)
+        }
     }
     
     private fun closePlayer() {
@@ -881,6 +980,47 @@ class NativePlayerFragment : Fragment() {
             Log.e(TAG, "Error releasing player", e)
         }
         onCloseListener?.invoke()
+    }
+    
+    // DLNA control methods
+    fun pause() {
+        activity?.runOnUiThread {
+            player?.pause()
+        }
+    }
+    
+    fun play() {
+        activity?.runOnUiThread {
+            player?.play()
+        }
+    }
+    
+    fun seekTo(positionMs: Long) {
+        activity?.runOnUiThread {
+            player?.seekTo(positionMs)
+        }
+    }
+    
+    fun setVolume(volume: Int) {
+        activity?.runOnUiThread {
+            player?.volume = volume / 100f
+        }
+    }
+    
+    fun getPlaybackState(): Map<String, Any?> {
+        val p = player
+        return mapOf(
+            "isPlaying" to (p?.isPlaying ?: false),
+            "position" to (p?.currentPosition ?: 0L),
+            "duration" to (p?.duration ?: 0L),
+            "state" to when (p?.playbackState) {
+                Player.STATE_IDLE -> "idle"
+                Player.STATE_BUFFERING -> "buffering"
+                Player.STATE_READY -> if (p.isPlaying) "playing" else "paused"
+                Player.STATE_ENDED -> "ended"
+                else -> "unknown"
+            }
+        )
     }
 
     override fun onResume() {
@@ -899,6 +1039,7 @@ class NativePlayerFragment : Fragment() {
         super.onDestroyView()
         Log.d(TAG, "onDestroyView")
         hideControlsRunnable?.let { handler.removeCallbacks(it) }
+        stopProgressUpdate() // 停止进度更新
         player?.release()
         player = null
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

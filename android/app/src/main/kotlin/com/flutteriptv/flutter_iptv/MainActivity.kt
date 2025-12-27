@@ -74,6 +74,29 @@ class MainActivity: FlutterFragmentActivity() {
                 "isNativePlayerAvailable" -> {
                     result.success(isAndroidTV())
                 }
+                "pause" -> {
+                    playerFragment?.pause()
+                    result.success(true)
+                }
+                "play" -> {
+                    playerFragment?.play()
+                    result.success(true)
+                }
+                "seekTo" -> {
+                    val position = call.argument<Number>("position")?.toLong() ?: 0L
+                    Log.d(TAG, "DLNA seekTo: position=$position, playerFragment=${playerFragment != null}")
+                    playerFragment?.seekTo(position)
+                    result.success(true)
+                }
+                "setVolume" -> {
+                    val volume = call.argument<Int>("volume") ?: 100
+                    playerFragment?.setVolume(volume)
+                    result.success(true)
+                }
+                "getPlaybackState" -> {
+                    val state = playerFragment?.getPlaybackState()
+                    result.success(state)
+                }
                 else -> {
                     result.notImplemented()
                 }
