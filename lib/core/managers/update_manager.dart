@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/app_update.dart';
 import '../services/update_service.dart';
 import '../widgets/update_dialog.dart';
@@ -9,6 +11,9 @@ class UpdateManager {
   UpdateManager._internal();
 
   final UpdateService _updateService = UpdateService();
+  
+  // Android 安装 APK 的 MethodChannel
+  static const _installChannel = MethodChannel('com.flutteriptv/install');
 
   /// 检查更新并显示更新对话框
   Future<void> checkAndShowUpdateDialog(BuildContext context, {bool forceCheck = false}) async {
@@ -113,25 +118,13 @@ class UpdateManager {
         Navigator.of(context).pop();
       }
 
-      // 打开下载页面
-      final success = await _updateService.openDownloadPage();
-
-      if (context.mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('已打开下载页面'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法打开下载页面，请手动访问GitHub'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+      if (Platform.isAndroid) {
+        await _downloadAndInstallAndroid(context, update);
+      } else if (Platform.isWindows) {
+        await _downloadAndInstallWindows(context, update);
+      } else {
+        // 其他平台打开下载页面
+        await _updateService.openDownloadPage();
       }
     } catch (e) {
       debugPrint('UPDATE_MANAGER: 处理更新时发生错误: $e');
@@ -139,6 +132,194 @@ class UpdateManager {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('更新失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Android 下载并安装 APK
+  Future<void> _downloadAndInstallAndroid(BuildContext context, AppUpdate update) async {
+    double progress = 0;
+    bool cancelled = false;
+    void Function(void Function())? dialogSetState;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          dialogSetState = setState;
+          return AlertDialog(
+            title: const Text('下载更新'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(value: progress),
+                const SizedBox(height: 16),
+                Text('${(progress * 100).toStringAsFixed(1)}%'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  cancelled = true;
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('取消'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    try {
+      final file = await _updateService.downloadUpdate(
+        update,
+        onProgress: (p) {
+          if (!cancelled && dialogSetState != null) {
+            progress = p;
+            dialogSetState!(() {});
+          }
+        },
+      );
+
+      if (cancelled) {
+        debugPrint('UPDATE_MANAGER: 用户取消下载');
+        return;
+      }
+
+      // 关闭下载对话框
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (file != null) {
+        debugPrint('UPDATE_MANAGER: 下载完成，开始安装: ${file.path}');
+        await _installApk(file.path);
+      } else {
+        throw Exception('下载失败');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('下载失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 调用原生方法安装 APK
+  Future<void> _installApk(String filePath) async {
+    try {
+      await _installChannel.invokeMethod('installApk', {'filePath': filePath});
+    } catch (e) {
+      debugPrint('UPDATE_MANAGER: 安装 APK 失败: $e');
+      rethrow;
+    }
+  }
+
+  /// Windows 下载并安装
+  Future<void> _downloadAndInstallWindows(BuildContext context, AppUpdate update) async {
+    double progress = 0;
+    bool cancelled = false;
+    void Function(void Function())? dialogSetState;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) {
+          dialogSetState = setState;
+          return AlertDialog(
+            title: const Text('下载更新'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LinearProgressIndicator(value: progress),
+                const SizedBox(height: 16),
+                Text('${(progress * 100).toStringAsFixed(1)}%'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  cancelled = true;
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('取消'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    try {
+      final file = await _updateService.downloadUpdate(
+        update,
+        onProgress: (p) {
+          if (!cancelled && dialogSetState != null) {
+            progress = p;
+            dialogSetState!(() {});
+          }
+        },
+      );
+
+      if (cancelled) {
+        debugPrint('UPDATE_MANAGER: 用户取消下载');
+        return;
+      }
+
+      // 关闭下载对话框
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (file != null) {
+        debugPrint('UPDATE_MANAGER: 下载完成: ${file.path}');
+        
+        // Windows: 启动安装程序
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('下载完成'),
+              content: const Text('是否立即运行安装程序？'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('稍后'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    // 启动安装程序
+                    await Process.start(file.path, [], mode: ProcessStartMode.detached);
+                    // 退出当前应用
+                    exit(0);
+                  },
+                  child: const Text('立即安装'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        throw Exception('下载失败');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('下载失败: $e'),
             backgroundColor: Colors.red,
           ),
         );
