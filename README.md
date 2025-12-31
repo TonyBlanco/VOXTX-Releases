@@ -60,6 +60,21 @@ Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Feature
 - Double-press BACK to exit player (prevents accidental exit)
 - Watch history tracking
 - Default channel logo for missing thumbnails
+- **Multi-source support**: Auto-merge channels with same name, switch sources with LEFT/RIGHT keys
+
+### 📡 EPG (Electronic Program Guide)
+- Support for XMLTV format EPG data
+- Auto-load EPG from M3U `x-tvg-url` attribute
+- Manual EPG URL configuration in settings
+- Display current and upcoming programs in player
+- Program remaining time indicator
+
+### 📺 DLNA Screen Casting
+- Built-in DLNA renderer (DMR) service
+- Cast videos from other devices to Lotus IPTV
+- Support for common video formats
+- Playback control from casting device (play/pause/seek/volume)
+- Auto-start DLNA service option
 
 ## 📸 Screenshots
 
