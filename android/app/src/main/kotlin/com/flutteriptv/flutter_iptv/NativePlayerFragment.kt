@@ -148,6 +148,7 @@ class NativePlayerFragment : Fragment() {
     private val NETWORK_SPEED_UPDATE_INTERVAL = 1000L
     private var lastRxBytes = 0L
     private var lastSpeedUpdateTime = 0L
+    private var currentSpeedBps = 0.0 // 当前网速 bytes/s，用于码率显示
 
     // Video info display
     private lateinit var resolutionText: TextView
@@ -1109,6 +1110,7 @@ class NativePlayerFragment : Fragment() {
             if (timeDelta > 0 && lastRxBytes > 0) {
                 val bytesDelta = currentRxBytes - lastRxBytes
                 val speedBytesPerSecond = bytesDelta * 1000.0 / timeDelta
+                currentSpeedBps = speedBytesPerSecond // 保存当前网速用于码率显示
                 val speedKbps = speedBytesPerSecond / 1024.0 // KB/s
                 val speedMbps = speedKbps / 1024.0 // MB/s
 
@@ -1292,17 +1294,11 @@ class NativePlayerFragment : Fragment() {
 
             // 更新右上角分辨率和码率显示
             if (showVideoInfo && videoWidth > 0 && videoHeight > 0) {
-                val p = player
-                var totalBitrate = 0
-                p?.videoFormat?.let { if (it.bitrate > 0) totalBitrate += it.bitrate }
-                p?.audioFormat?.let { if (it.bitrate > 0) totalBitrate += it.bitrate }
+                // 使用实时网速作为码率（更准确）
+                val bitrateMbps = currentSpeedBps * 8 / 1000000.0 // bytes/s -> Mbps
                 
-                val resInfo = if (totalBitrate > 0) {
-                    val bitrateMbps = totalBitrate / 1000000.0
-                    "${videoWidth}x${videoHeight} %.1fMbps".format(bitrateMbps)
-                } else {
-                    "${videoWidth}x${videoHeight}"
-                }
+                // 固定格式：分辨率 + 码率，码率保留一位小数，固定宽度
+                val resInfo = "%4dx%-4d %5.1fMbps".format(videoWidth, videoHeight, bitrateMbps)
                 resolutionText.text = resInfo
                 resolutionText.visibility = View.VISIBLE
             } else {
