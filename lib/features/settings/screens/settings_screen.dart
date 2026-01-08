@@ -274,11 +274,11 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // DLNA Settings
+            _buildSectionHeader(AppStrings.of(context)?.dlnaCasting ?? 'DLNA Casting'),
             Consumer<DlnaProvider>(
               builder: (context, dlnaProvider, _) {
                 final strings = AppStrings.of(context);
                 return _buildSettingsCard([
-                  _buildSectionHeader(strings?.dlnaCasting ?? 'DLNA Casting'),
                   _buildSwitchTile(
                     context,
                     title: strings?.enableDlnaService ?? 'Enable DLNA Service',

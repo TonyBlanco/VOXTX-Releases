@@ -1292,13 +1292,9 @@ class NativePlayerFragment : Fragment() {
                 fpsText.visibility = View.GONE
             }
 
-            // 更新右上角分辨率和码率显示
+            // 更新右上角分辨率显示（不显示码率）
             if (showVideoInfo && videoWidth > 0 && videoHeight > 0) {
-                // 使用实时网速作为码率（更准确）
-                val bitrateMbps = currentSpeedBps * 8 / 1000000.0 // bytes/s -> Mbps
-                
-                // 固定格式：分辨率 + 码率，码率保留一位小数，固定宽度
-                val resInfo = "%4dx%-4d %5.1fMbps".format(videoWidth, videoHeight, bitrateMbps)
+                val resInfo = "${videoWidth}x${videoHeight}"
                 resolutionText.text = resInfo
                 resolutionText.visibility = View.VISIBLE
             } else {

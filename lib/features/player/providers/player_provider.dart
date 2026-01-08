@@ -156,8 +156,16 @@ class PlayerProvider extends ChangeNotifier {
   
   // FPS 显示
   double _currentFps = 0;
+  
+  // 视频信息
+  int _videoWidth = 0;
+  int _videoHeight = 0;
+  double _downloadSpeed = 0; // bytes per second
 
   double get currentFps => _currentFps;
+  int get videoWidth => _videoWidth;
+  int get videoHeight => _videoHeight;
+  double get downloadSpeed => _downloadSpeed;
 
   String get videoInfo {
     if (_useExoPlayer) {
@@ -276,6 +284,7 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   Timer? _debugInfoTimer;
+  
   void _updateDebugInfo() {
     _debugInfoTimer?.cancel();
     
@@ -283,12 +292,39 @@ class PlayerProvider extends ChangeNotifier {
       if (_mediaKitPlayer == null) return;
       _hwdecMode = 'mediacodec';
       
+      // 更新视频尺寸
+      _videoWidth = _mediaKitPlayer!.state.width ?? 0;
+      _videoHeight = _mediaKitPlayer!.state.height ?? 0;
+      
       // Windows 端直接使用 track 中的 fps 信息
       // media_kit (mpv) 的渲染帧率基本等于视频源帧率
       if (_state == PlayerState.playing && _fps > 0) {
         _currentFps = _fps;
       } else {
         _currentFps = 0;
+      }
+      
+      // 估算下载速度 - 基于视频分辨率和帧率
+      // media_kit 没有直接的下载速度 API，使用视频参数估算
+      if (_state == PlayerState.playing && _videoWidth > 0 && _videoHeight > 0) {
+        final pixels = _videoWidth * _videoHeight;
+        final fps = _fps > 0 ? _fps : 25.0;
+        // 估算公式：像素数 * 帧率 * 压缩系数 (H.264/H.265 典型压缩比)
+        // 1080p@30fps 约 3-8 Mbps, 4K@30fps 约 15-25 Mbps
+        double compressionFactor;
+        if (pixels >= 3840 * 2160) {
+          compressionFactor = 0.04; // 4K
+        } else if (pixels >= 1920 * 1080) {
+          compressionFactor = 0.06; // 1080p
+        } else if (pixels >= 1280 * 720) {
+          compressionFactor = 0.08; // 720p
+        } else {
+          compressionFactor = 0.10; // SD
+        }
+        final estimatedBitrate = pixels * fps * compressionFactor; // bits per second
+        _downloadSpeed = estimatedBitrate / 8.0; // bytes per second
+      } else {
+        _downloadSpeed = 0;
       }
       
       notifyListeners();
@@ -465,8 +501,18 @@ class PlayerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  double _volumeBeforeMute = 1.0; // 保存静音前的音量
+
   void toggleMute() {
+    if (!_isMuted) {
+      // 静音前保存当前音量
+      _volumeBeforeMute = _volume > 0 ? _volume : 1.0;
+    }
     _isMuted = !_isMuted;
+    if (!_isMuted && _volume == 0) {
+      // 取消静音时如果音量为0，恢复到之前的音量
+      _volume = _volumeBeforeMute;
+    }
     _applyVolume();
     notifyListeners();
   }

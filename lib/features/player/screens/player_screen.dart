@@ -368,6 +368,26 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
     _startHideControlsTimer();
   }
 
+  String _formatSpeed(double bytesPerSecond) {
+    if (bytesPerSecond >= 1024 * 1024) {
+      return '↓${(bytesPerSecond / (1024 * 1024)).toStringAsFixed(1)} MB/s';
+    } else if (bytesPerSecond >= 1024) {
+      return '↓${(bytesPerSecond / 1024).toStringAsFixed(0)} KB/s';
+    } else {
+      return '↓${bytesPerSecond.toStringAsFixed(0)} B/s';
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   void dispose() {
     debugPrint('PlayerScreen: dispose() called, _usingNativePlayer=$_usingNativePlayer');
@@ -770,6 +790,8 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
       if (WindowsPipChannel.isInPipMode) {
         WindowsPipChannel.exitPipMode();
         setState(() {});
+        // 恢复焦点到播放器
+        _playerFocusNode.requestFocus();
         return KeyEventResult.handled;
       }
       playerProvider.stop();
@@ -894,11 +916,16 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
                     ),
                   ),
 
-                // FPS 显示 - 右上角红色
+                // FPS 显示 - 右上角红色（迷你模式单独显示）
                 Builder(
                   builder: (context) {
                     final settings = context.watch<SettingsProvider>();
                     final player = context.watch<PlayerProvider>();
+                    
+                    // 非迷你模式下由下面的组件统一显示
+                    if (!WindowsPipChannel.isInPipMode) {
+                      return const SizedBox.shrink();
+                    }
                     
                     if (!settings.showFps || player.state != PlayerState.playing) {
                       return const SizedBox.shrink();
@@ -906,31 +933,133 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
                     final fps = player.currentFps;
                     if (fps <= 0) return const SizedBox.shrink();
                     
-                    // 迷你模式下调整位置和大小
-                    final isMinMode = WindowsPipChannel.isInPipMode;
-                    
                     return Positioned(
-                      top: isMinMode ? null : MediaQuery.of(context).padding.top + 8,
-                      bottom: isMinMode ? 4 : null, // 迷你模式放右下角
-                      right: isMinMode ? 4 : 16,
+                      bottom: 4,
+                      right: 4,
                       child: IgnorePointer(
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isMinMode ? 4 : 8,
-                            vertical: isMinMode ? 2 : 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.red.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(isMinMode ? 2 : 4),
+                            borderRadius: BorderRadius.circular(2),
                           ),
                           child: Text(
                             '${fps.toStringAsFixed(0)} FPS',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
-                              fontSize: isMinMode ? 8 : 12,
+                              fontSize: 8,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // Windows 播放器信息显示 - 右上角（网速、时间、FPS、分辨率）
+                Builder(
+                  builder: (context) {
+                    final settings = context.watch<SettingsProvider>();
+                    final player = context.watch<PlayerProvider>();
+                    
+                    // 迷你模式或非播放状态不显示
+                    if (WindowsPipChannel.isInPipMode || player.state != PlayerState.playing) {
+                      return const SizedBox.shrink();
+                    }
+                    
+                    // 检查是否有任何信息需要显示
+                    final showAny = settings.showNetworkSpeed || settings.showClock || settings.showFps || settings.showVideoInfo;
+                    if (!showAny) return const SizedBox.shrink();
+                    
+                    final fps = player.currentFps;
+                    
+                    return Positioned(
+                      top: MediaQuery.of(context).padding.top + 8,
+                      right: 16,
+                      child: IgnorePointer(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 网速显示 - 绿色 (仅 TV 端显示，Windows 端不显示)
+                            if (settings.showNetworkSpeed && player.downloadSpeed > 0 && PlatformDetector.isTV)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  _formatSpeed(player.downloadSpeed),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            // 时间显示 - 黑色
+                            if (settings.showClock)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: StreamBuilder(
+                                  stream: Stream.periodic(const Duration(seconds: 1)),
+                                  builder: (context, snapshot) {
+                                    final now = DateTime.now();
+                                    return Text(
+                                      '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            // FPS 显示 - 红色
+                            if (settings.showFps && fps > 0)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${fps.toStringAsFixed(0)} FPS',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            // 分辨率显示 - 蓝色
+                            if (settings.showVideoInfo && player.videoWidth > 0 && player.videoHeight > 0)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${player.videoWidth}x${player.videoHeight}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     );
@@ -995,82 +1124,62 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
 
   // 迷你模式下的简化控件
   Widget _buildMiniControlsOverlay() {
-    return Focus(
-      // 确保迷你模式下也能接收键盘事件
-      canRequestFocus: true,
-      child: GestureDetector(
-        // 整个区域可拖动
-        onPanStart: (_) => windowManager.startDragging(),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.5),
-                Colors.transparent,
-                Colors.black.withOpacity(0.5),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
+    return GestureDetector(
+      // 整个区域可拖动
+      onPanStart: (_) => windowManager.startDragging(),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.transparent,
+              Colors.black.withOpacity(0.5),
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
-          child: Column(
-            children: [
-              // 顶部：频道名 + 源信息 + 退出/恢复按钮
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Consumer<PlayerProvider>(
-                        builder: (context, provider, _) {
-                          final hasMultipleSources = provider.currentChannel?.hasMultipleSources ?? false;
-                          final sourceInfo = hasMultipleSources 
-                              ? ' [${provider.currentSourceIndex}/${provider.sourceCount}]' 
-                              : '';
-                          return Text(
-                            '${provider.currentChannel?.name ?? widget.channelName}$sourceInfo',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          );
-                        },
-                      ),
-                    ),
-                    // 恢复大小按钮
-                    GestureDetector(
-                      onTap: () async {
-                        await WindowsPipChannel.exitPipMode();
-                        setState(() {});
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Icon(Icons.fullscreen, color: Colors.white, size: 16),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // 关闭按钮
-                    GestureDetector(
-                      onTap: () {
-                        WindowsPipChannel.exitPipMode();
-                        context.read<PlayerProvider>().stop();
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+        ),
+        child: Column(
+          children: [
+            // 顶部：只保留恢复和关闭按钮，不显示标题
+            Padding(
+              padding: const EdgeInsets.all(6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // 恢复大小按钮
+                  GestureDetector(
+                    onTap: () async {
+                      await WindowsPipChannel.exitPipMode();
+                      setState(() {});
+                      // 恢复焦点到播放器
+                      _playerFocusNode.requestFocus();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+                      child: const Icon(Icons.fullscreen, color: Colors.white, size: 14),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // 关闭按钮
+                  GestureDetector(
+                    onTap: () {
+                      WindowsPipChannel.exitPipMode();
+                      context.read<PlayerProvider>().stop();
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(Icons.close, color: Colors.white, size: 14),
                     ),
                   ),
                 ],
@@ -1126,7 +1235,6 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
           ],
         ),
       ),
-    ),  // 闭合 Focus widget
     );
   }
 
@@ -1579,26 +1687,53 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
                 ],
               ),
 
-              // Slim progress bar at bottom (if applicable)
-              if (provider.duration.inSeconds > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      trackHeight: 2,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
-                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
-                      activeTrackColor: AppTheme.primaryColor,
-                      inactiveTrackColor: const Color(0x33FFFFFF),
-                      thumbColor: AppTheme.primaryColor,
+              // Slim progress bar at bottom (only for DLNA mode with valid duration)
+              Consumer<DlnaProvider>(
+                builder: (context, dlnaProvider, _) {
+                  // 只有 DLNA 投屏模式且有有效时长时才显示进度条
+                  // IPTV 直播流不显示进度条
+                  final showProgressBar = dlnaProvider.isActiveSession && provider.duration.inSeconds > 0;
+                  if (!showProgressBar) return const SizedBox.shrink();
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      children: [
+                        // 时间显示
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatDuration(provider.position),
+                              style: const TextStyle(color: Color(0x99FFFFFF), fontSize: 11),
+                            ),
+                            Text(
+                              _formatDuration(provider.duration),
+                              style: const TextStyle(color: Color(0x99FFFFFF), fontSize: 11),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 2,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+                            activeTrackColor: AppTheme.primaryColor,
+                            inactiveTrackColor: const Color(0x33FFFFFF),
+                            thumbColor: AppTheme.primaryColor,
+                          ),
+                          child: Slider(
+                            value: provider.position.inSeconds.toDouble().clamp(0, provider.duration.inSeconds.toDouble()),
+                            max: provider.duration.inSeconds.toDouble(),
+                            onChanged: (value) => provider.seek(Duration(seconds: value.toInt())),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Slider(
-                      value: provider.position.inSeconds.toDouble(),
-                      max: provider.duration.inSeconds.toDouble(),
-                      onChanged: (value) => provider.seek(Duration(seconds: value.toInt())),
-                    ),
-                  ),
-                ),
+                  );
+                },
+              ),
 
               // Keyboard hints
               if (PlatformDetector.useDPadNavigation)
@@ -1662,7 +1797,13 @@ class _PlayerScreenState extends State<PlayerScreen> with WidgetsBindingObserver
             ),
             child: Slider(
               value: provider.isMuted ? 0 : volume,
-              onChanged: (value) => provider.setVolume(value),
+              onChanged: (value) {
+                // 如果当前是静音状态，拖动滑块时先取消静音
+                if (provider.isMuted && value > 0) {
+                  provider.toggleMute();
+                }
+                provider.setVolume(value);
+              },
               activeColor: AppTheme.primaryColor,
               inactiveColor: const Color(0x33FFFFFF),
             ),

@@ -11,6 +11,7 @@ import '../../../core/i18n/app_strings.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../settings/providers/settings_provider.dart';
+import '../../epg/providers/epg_provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -292,9 +293,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildResultsGrid(List<dynamic> results) {
-    final size = MediaQuery.of(context).size;
-    final crossAxisCount = PlatformDetector.getGridCrossAxisCount(size.width);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -314,9 +312,9 @@ class _SearchScreenState extends State<SearchScreen> {
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: 0.85,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 180,
+              childAspectRatio: 1.11,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
             ),
@@ -324,11 +322,16 @@ class _SearchScreenState extends State<SearchScreen> {
             itemBuilder: (context, index) {
               final channel = results[index];
               final isFavorite = context.read<FavoritesProvider>().isFavorite(channel.id ?? 0);
+              final epgProvider = context.watch<EpgProvider>();
+              final currentProgram = epgProvider.getCurrentProgram(channel.epgId, channel.name);
+              final nextProgram = epgProvider.getNextProgram(channel.epgId, channel.name);
 
               return ChannelCard(
                 name: channel.name,
                 logoUrl: channel.logoUrl,
                 groupName: channel.groupName,
+                currentProgram: currentProgram?.title,
+                nextProgram: nextProgram?.title,
                 isFavorite: isFavorite,
                 autofocus: index == 0 && PlatformDetector.useDPadNavigation,
                 onFavoriteToggle: () {
