@@ -24,7 +24,7 @@
   <a href="README.md">English</a> | <strong>中文</strong>
 </p>
 
-Lotus IPTV 是一款基于 Flutter 开发的现代化高性能 IPTV 播放器。采用精美的莲花主题 UI，粉紫渐变色调，针对桌面、移动端和电视平台进行了深度优化。
+Lotus IPTV 是一款基于 Flutter 开发的现代化高性能 IPTV 播放器（支持分屏播放）。采用精美的莲花主题 UI，粉紫渐变色调，针对桌面、移动端和电视平台进行了深度优化。
 
 
 ## 📸 软件截图
