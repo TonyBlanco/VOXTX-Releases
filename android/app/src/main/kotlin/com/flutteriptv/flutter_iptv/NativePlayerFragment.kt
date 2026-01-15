@@ -459,7 +459,7 @@ class NativePlayerFragment : Fragment() {
         val groupMap = mutableMapOf<String, Int>()
         
         for (group in channelGroups) {
-            val name = group.ifEmpty { "未分类" }
+            val name = group.ifEmpty { getString(R.string.uncategorized) }
             if (!groupMap.containsKey(name)) {
                 groupOrder.add(name) // 记录首次出现的顺序
             }
@@ -482,8 +482,9 @@ class NativePlayerFragment : Fragment() {
         
         // Get channels for this category
         val channelsInCategory = mutableListOf<ChannelItem>()
+        val uncategorizedStr = getString(R.string.uncategorized)
         for (i in channelGroups.indices) {
-            val groupName = channelGroups[i].ifEmpty { "未分类" }
+            val groupName = channelGroups[i].ifEmpty { uncategorizedStr }
             if (groupName == category.name) {
                 val isPlaying = i == currentIndex
                 channelsInCategory.add(ChannelItem(i, channelNames.getOrElse(i) { "Channel $i" }, isPlaying))
@@ -560,7 +561,7 @@ class NativePlayerFragment : Fragment() {
         
         // 找到当前播放频道所在的分类
         val currentGroup = if (currentIndex >= 0 && currentIndex < channelGroups.size) {
-            channelGroups[currentIndex].ifEmpty { "未分类" }
+            channelGroups[currentIndex].ifEmpty { getString(R.string.uncategorized) }
         } else {
             null
         }
@@ -610,9 +611,10 @@ class NativePlayerFragment : Fragment() {
         // Get channels for this category
         val channelsInCategory = mutableListOf<ChannelItem>()
         var currentChannelPositionInList = -1
+        val uncategorizedStr = getString(R.string.uncategorized)
         
         for (i in channelGroups.indices) {
-            val groupName = channelGroups[i].ifEmpty { "未分类" }
+            val groupName = channelGroups[i].ifEmpty { uncategorizedStr }
             if (groupName == category.name) {
                 val isPlaying = i == currentIndex
                 if (isPlaying) {
@@ -725,7 +727,7 @@ class NativePlayerFragment : Fragment() {
             lastBackPressTime = currentTime
             // 显示提示
             activity?.runOnUiThread {
-                android.widget.Toast.makeText(requireContext(), "再按一次返回退出播放", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(requireContext(), getString(R.string.press_back_again_to_exit), android.widget.Toast.LENGTH_SHORT).show()
             }
         }
         return true
@@ -1269,7 +1271,7 @@ class NativePlayerFragment : Fragment() {
         activity?.runOnUiThread {
             if (sources.size > 1) {
                 // 更新源指示器文本
-                sourceText.text = "源 ${currentSourceIndex + 1}/${sources.size}"
+                sourceText.text = getString(R.string.source_indicator, currentSourceIndex + 1, sources.size)
                 sourceIndicator.visibility = View.VISIBLE
                 // 频道名称不再显示源信息
                 channelNameText.text = currentName
@@ -1350,9 +1352,9 @@ class NativePlayerFragment : Fragment() {
                 parts.add("${frameRate.toInt()}fps")
             }
             if (isHardwareDecoder) {
-                parts.add("硬解")
+                parts.add(getString(R.string.hardware_decode))
             } else {
-                parts.add("软解")
+                parts.add(getString(R.string.software_decode))
             }
             
             if (parts.isNotEmpty()) {
@@ -1423,7 +1425,7 @@ class NativePlayerFragment : Fragment() {
                         if (currentTitle != null) {
                             epgCurrentContainer.visibility = View.VISIBLE
                             epgCurrentTitle.text = currentTitle
-                            epgCurrentTime.text = if (currentRemaining != null) "${currentRemaining}分钟后结束" else ""
+                            epgCurrentTime.text = if (currentRemaining != null) getString(R.string.epg_ends_in_minutes, currentRemaining) else ""
                         } else {
                             epgCurrentContainer.visibility = View.GONE
                         }
@@ -1534,14 +1536,14 @@ class NativePlayerFragment : Fragment() {
                     isFavorite = newFavoriteStatus
                     updateFavoriteIcon()
                     val message = if (newFavoriteStatus) {
-                        "已添加到收藏夹"
+                        getString(R.string.added_to_favorites)
                     } else {
-                        "已从收藏夹移除"
+                        getString(R.string.removed_from_favorites)
                     }
                     android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
                 } else {
                     Log.e(TAG, "toggleFavorite: operation failed")
-                    android.widget.Toast.makeText(requireContext(), "操作失败", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(requireContext(), getString(R.string.operation_failed), android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
         }

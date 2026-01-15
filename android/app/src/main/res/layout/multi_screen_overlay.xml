@@ -59,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="按OK键添加频道"
+            android:text="@string/press_ok_to_add_channel"
             android:textColor="#666666"
             android:textSize="12sp" />
 
@@ -85,7 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="播放失败"
+            android:text="@string/playback_failed"
             android:textColor="#F44336"
             android:textSize="14sp" />
 

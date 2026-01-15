@@ -6,6 +6,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/platform/windows_pip_channel.dart';
+import '../../../core/i18n/app_strings.dart';
 import '../providers/multi_screen_provider.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
@@ -176,7 +177,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: widget.onBack ?? () => Navigator.of(context).pop(),
-              tooltip: '返回',
+              tooltip: AppStrings.of(context)?.backToPlayer ?? 'Back',
             ),
             const Spacer(),
             IconButton(
@@ -185,12 +186,12 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                 await WindowsPipChannel.enterPipMode();
                 setState(() {});
               },
-              tooltip: '迷你模式',
+              tooltip: AppStrings.of(context)?.miniMode ?? 'Mini Mode',
             ),
             IconButton(
               icon: const Icon(Icons.fullscreen_exit, color: Colors.white),
               onPressed: widget.onExitMultiScreen,
-              tooltip: '退出分屏',
+              tooltip: AppStrings.of(context)?.exitMultiScreen ?? 'Exit Multi-Screen',
             ),
           ],
         ),
@@ -365,7 +366,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '屏幕 ${_targetScreenIndex + 1}',
+                          (AppStrings.of(context)?.screenNumber ?? 'Screen {number}').replaceAll('{number}', '${_targetScreenIndex + 1}'),
                           style: TextStyle(
                             color: AppTheme.getTextPrimary(context),
                             fontSize: 16,
@@ -379,7 +380,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                 // 全部频道选项
                 _buildCategoryItem(
                   context,
-                  name: '全部频道',
+                  name: AppStrings.of(context)?.allChannels ?? 'All Channels',
                   count: channelProvider.totalChannelCount,
                   isSelected: _selectedCategory == null,
                   onTap: () => setState(() => _selectedCategory = null),
@@ -502,7 +503,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
           child: Row(
             children: [
               Text(
-                _selectedCategory ?? '全部频道',
+                _selectedCategory ?? (AppStrings.of(context)?.allChannels ?? 'All Channels'),
                 style: TextStyle(
                   color: AppTheme.getTextPrimary(context),
                   fontSize: 18,
@@ -517,7 +518,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${channels.length} 个频道',
+                  '${channels.length} ${AppStrings.of(context)?.channels ?? 'channels'}',
                   style: TextStyle(
                     color: AppTheme.getTextSecondary(context),
                     fontSize: 12,
@@ -739,7 +740,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             const CircularProgressIndicator(color: AppTheme.primaryColor),
             const SizedBox(height: 8),
             Text(
-              screen.channel?.name ?? '加载中...',
+              screen.channel?.name ?? (AppStrings.of(context)?.loading ?? 'Loading...'),
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ],
@@ -761,8 +762,8 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
           children: [
             Icon(Icons.add_circle_outline, size: 36, color: Colors.grey[600]),
             const SizedBox(height: 8),
-            Text('屏幕 ${index + 1}', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-            Text('点击添加频道', style: TextStyle(color: Colors.grey[700], fontSize: 10)),
+            Text((AppStrings.of(context)?.screenNumber ?? 'Screen {number}').replaceAll('{number}', '${index + 1}'), style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            Text(AppStrings.of(context)?.clickToAddChannel ?? 'Click to add channel', style: TextStyle(color: Colors.grey[700], fontSize: 10)),
           ],
         ),
       ),

@@ -255,6 +255,41 @@ class AppStrings {
   String get medium => _localizedValues['medium']!;
   String get strong => _localizedValues['strong']!;
 
+  // Multi-screen player strings
+  String get backToPlayer => _localizedValues['backToPlayer']!;
+  String get miniMode => _localizedValues['miniMode']!;
+  String get exitMultiScreen => _localizedValues['exitMultiScreen']!;
+  String get screenNumber => _localizedValues['screenNumber']!;
+  String get clickToAddChannel => _localizedValues['clickToAddChannel']!;
+  String get selectChannel => _localizedValues['selectChannel']!;
+
+  // Channel test and update strings
+  String get collapse => _localizedValues['collapse']!;
+  String get channelCountLabel => _localizedValues['channelCountLabel']!;
+  String get showOnlyFailed => _localizedValues['showOnlyFailed']!;
+  String get moveToUnavailable => _localizedValues['moveToUnavailable']!;
+  String get stopTest => _localizedValues['stopTest']!;
+  String get startTest => _localizedValues['startTest']!;
+  String get complete => _localizedValues['complete']!;
+  String get runInBackground => _localizedValues['runInBackground']!;
+  String get movedToUnavailable => _localizedValues['movedToUnavailable']!;
+  String get checkingUpdate => _localizedValues['checkingUpdate']!;
+  String get alreadyLatestVersion => _localizedValues['alreadyLatestVersion']!;
+  String get checkUpdateFailed => _localizedValues['checkUpdateFailed']!;
+  String get updateFailed => _localizedValues['updateFailed']!;
+  String get downloadUpdate => _localizedValues['downloadUpdate']!;
+  String get downloadFailed => _localizedValues['downloadFailed']!;
+  String get downloadComplete => _localizedValues['downloadComplete']!;
+  String get runInstallerNow => _localizedValues['runInstallerNow']!;
+  String get later => _localizedValues['later']!;
+  String get installNow => _localizedValues['installNow']!;
+  String get deletedChannels => _localizedValues['deletedChannels']!;
+  String get testing => _localizedValues['testing']!;
+  String get channelAvailableRestored => _localizedValues['channelAvailableRestored']!;
+  String get testingInBackground => _localizedValues['testingInBackground']!;
+  String get restoredToCategory => _localizedValues['restoredToCategory']!;
+  String get dlnaCast => _localizedValues['dlnaCast']!;
+
   // More settings messages
   String get dlnaCasting => _localizedValues['dlnaCasting']!;
   String get enableDlnaService => _localizedValues['enableDlnaService']!;
@@ -533,6 +568,39 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'screenPositionDesc': '选择点击频道时默认使用的播放位置：',
     'screenPositionSet': '默认播放位置已设置为：{position}',
     'multiScreenMode': '多屏模式',
+    // Multi-screen player strings
+    'backToPlayer': '返回',
+    'miniMode': '迷你模式',
+    'exitMultiScreen': '退出分屏',
+    'screenNumber': '屏幕 {number}',
+    'clickToAddChannel': '点击添加频道',
+    'selectChannel': '选择频道',
+    // Channel test and update strings
+    'collapse': '收起',
+    'channelCountLabel': '{count} 频道',
+    'showOnlyFailed': '仅显示失败 ({count})',
+    'moveToUnavailable': '移至失效分类',
+    'stopTest': '停止测试',
+    'startTest': '开始测试',
+    'complete': '完成',
+    'runInBackground': '后台执行',
+    'movedToUnavailable': '已将 {count} 个失效频道移至失效分类',
+    'checkingUpdate': '正在检查更新...',
+    'alreadyLatestVersion': '已是最新版本',
+    'checkUpdateFailed': '检查更新失败: {error}',
+    'updateFailed': '更新失败: {error}',
+    'downloadUpdate': '下载更新',
+    'downloadFailed': '下载失败: {error}',
+    'downloadComplete': '下载完成',
+    'runInstallerNow': '是否立即运行安装程序？',
+    'later': '稍后',
+    'installNow': '立即安装',
+    'deletedChannels': '已删除 {count} 个失效频道',
+    'testing': '正在测试: {name}',
+    'channelAvailableRestored': '{name} 可用，已恢复到 "{group}" 分类',
+    'testingInBackground': '测试已转入后台，剩余 {count} 个频道',
+    'restoredToCategory': '已恢复 {name} 到原分类',
+    'dlnaCast': 'DLNA 投屏',
     'notImplemented': '(未实现)',
     'volumeNormalizationNotImplemented': '音量标准化尚未实现，设置不会生效',
     'autoRefreshNotImplemented': '自动刷新尚未实现，设置不会生效',
@@ -798,6 +866,39 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'screenPositionDesc': 'Choose which screen position to use by default when clicking a channel:',
     'screenPositionSet': 'Default screen position set to: {position}',
     'multiScreenMode': 'Multi-Screen Mode',
+    // Multi-screen player strings
+    'backToPlayer': 'Back',
+    'miniMode': 'Mini Mode',
+    'exitMultiScreen': 'Exit Multi-Screen',
+    'screenNumber': 'Screen {number}',
+    'clickToAddChannel': 'Click to add channel',
+    'selectChannel': 'Select Channel',
+    // Channel test and update strings
+    'collapse': 'Collapse',
+    'channelCountLabel': '{count} channels',
+    'showOnlyFailed': 'Show only failed ({count})',
+    'moveToUnavailable': 'Move to Unavailable',
+    'stopTest': 'Stop Test',
+    'startTest': 'Start Test',
+    'complete': 'Complete',
+    'runInBackground': 'Run in Background',
+    'movedToUnavailable': 'Moved {count} unavailable channels to Unavailable category',
+    'checkingUpdate': 'Checking for updates...',
+    'alreadyLatestVersion': 'Already up to date',
+    'checkUpdateFailed': 'Check update failed: {error}',
+    'updateFailed': 'Update failed: {error}',
+    'downloadUpdate': 'Download Update',
+    'downloadFailed': 'Download failed: {error}',
+    'downloadComplete': 'Download Complete',
+    'runInstallerNow': 'Run installer now?',
+    'later': 'Later',
+    'installNow': 'Install Now',
+    'deletedChannels': 'Deleted {count} unavailable channels',
+    'testing': 'Testing: {name}',
+    'channelAvailableRestored': '{name} available, restored to "{group}" category',
+    'testingInBackground': 'Testing in background, {count} channels remaining',
+    'restoredToCategory': 'Restored {name} to original category',
+    'dlnaCast': 'DLNA Cast',
     'notImplemented': '(Not implemented)',
     'volumeNormalizationNotImplemented': 'Volume normalization not implemented, setting will not take effect',
     'autoRefreshNotImplemented': 'Auto-refresh not implemented, setting will not take effect',

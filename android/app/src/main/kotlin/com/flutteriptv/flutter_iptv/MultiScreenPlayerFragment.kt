@@ -314,7 +314,7 @@ class MultiScreenPlayerFragment : Fragment() {
             overlays[i] = view.findViewById(overlayIds[i])
 
             // 设置屏幕编号
-            overlays[i]?.findViewById<TextView>(R.id.screen_number)?.text = "屏幕 ${i + 1}"
+            overlays[i]?.findViewById<TextView>(R.id.screen_number)?.text = getString(R.string.screen_number, i + 1)
             overlays[i]?.findViewById<TextView>(R.id.badge_number)?.text = "${i + 1}"
 
             playerViews[i]?.useController = false
@@ -501,7 +501,7 @@ class MultiScreenPlayerFragment : Fragment() {
         updateAllScreenOverlays()
         
         // 显示提示
-        Toast.makeText(requireContext(), "屏幕 ${index + 1} 已激活", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.screen_activated, index + 1), Toast.LENGTH_SHORT).show()
     }
 
     private fun updateAllScreenOverlays() {
@@ -549,7 +549,7 @@ class MultiScreenPlayerFragment : Fragment() {
                     errorContainer?.visibility = View.GONE
                     bottomInfo?.visibility = View.GONE
                     infoContainer?.visibility = View.GONE
-                    emptyHint?.text = if (isFocused) "按OK键添加频道" else ""
+                    emptyHint?.text = if (isFocused) getString(R.string.press_ok_to_add_channel) else ""
                     emptyIcon?.setColorFilter(if (isFocused) 0xFF00BCD4.toInt() else 0xFF666666.toInt())
                 }
                 state.hasError -> {
@@ -780,7 +780,7 @@ class MultiScreenPlayerFragment : Fragment() {
         }
         
         clearScreen(focusedScreenIndex)
-        Toast.makeText(requireContext(), "屏幕 ${focusedScreenIndex + 1} 已清空", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.screen_cleared, focusedScreenIndex + 1), Toast.LENGTH_SHORT).show()
     }
     
     // 在焦点屏幕切换频道
@@ -830,17 +830,17 @@ class MultiScreenPlayerFragment : Fragment() {
         val channelName = activeState.channelName
         
         android.app.AlertDialog.Builder(requireContext())
-            .setTitle("退出分屏")
-            .setMessage("当前正在播放: $channelName")
-            .setPositiveButton("继续播放") { _, _ ->
+            .setTitle(getString(R.string.exit_multi_screen))
+            .setMessage(getString(R.string.currently_playing, channelName))
+            .setPositiveButton(getString(R.string.continue_playing)) { _, _ ->
                 // 退出分屏，转为普通播放器继续播放
                 onExitToNormalPlayer?.invoke(activeState.channelIndex)
                 onCloseListener?.invoke()
             }
-            .setNegativeButton("关闭") { _, _ ->
+            .setNegativeButton(getString(R.string.close)) { _, _ ->
                 onCloseListener?.invoke()
             }
-            .setNeutralButton("取消", null)
+            .setNeutralButton(getString(R.string.cancel), null)
             .show()
     }
     
@@ -1058,7 +1058,7 @@ class MultiScreenPlayerFragment : Fragment() {
         isCategoryFocused = true
         
         // 更新标题
-        selectorScreenTitle.text = "屏幕 ${screenIndex + 1}"
+        selectorScreenTitle.text = getString(R.string.screen_number, screenIndex + 1)
         
         // 刷新列表
         categoryList.adapter?.notifyDataSetChanged()
@@ -1082,14 +1082,14 @@ class MultiScreenPlayerFragment : Fragment() {
     
     private fun updateChannelGrid() {
         val categoryName = if (selectedCategoryIndex == 0) {
-            selectorCategoryTitle.text = "全部频道"
-            selectorChannelCount.text = "${channelUrls.size} 个频道"
+            selectorCategoryTitle.text = getString(R.string.all_channels)
+            selectorChannelCount.text = getString(R.string.channel_count, channelUrls.size)
             null
         } else {
             val name = categories[selectedCategoryIndex - 1]
             selectorCategoryTitle.text = name
             val count = categoryChannelCounts[name] ?: 0
-            selectorChannelCount.text = "$count 个频道"
+            selectorChannelCount.text = getString(R.string.channel_count, count)
             name
         }
         
@@ -1244,7 +1244,7 @@ class MultiScreenPlayerFragment : Fragment() {
             val isFocused = isCategoryFocused && position == categoryFocusIndex
             
             if (position == 0) {
-                holder.name.text = "全部频道"
+                holder.name.text = getString(R.string.all_channels)
                 holder.count.text = channelUrls.size.toString()
             } else {
                 val categoryName = categories[position - 1]
@@ -1291,7 +1291,7 @@ class MultiScreenPlayerFragment : Fragment() {
             val channelIndex = filteredChannels[position]
             val isFocused = !isCategoryFocused && position == channelFocusIndex
             
-            holder.name.text = channelNames.getOrElse(channelIndex) { "频道 ${channelIndex + 1}" }
+            holder.name.text = channelNames.getOrElse(channelIndex) { getString(R.string.channel, channelIndex + 1) }
             
             // 加载台标
             val logoUrl = channelLogos.getOrElse(channelIndex) { "" }
