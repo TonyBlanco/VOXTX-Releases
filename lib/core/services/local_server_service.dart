@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 class LocalServerService {
   HttpServer? _server;
   String? _localIp;
-  final int _port = 8899;
+  final int _port = 38888;
 
   // Callbacks
   Function(String url, String name)? onUrlReceived;
