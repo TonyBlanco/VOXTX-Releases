@@ -519,7 +519,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // 如果是全屏模式，退出全屏
     if (_isFullScreen && PlatformDetector.isWindows) {
-      windowManager.setFullScreen(false);
+      unawaited(windowManager.setFullScreen(false));
     }
     // 保存分屏状态（Windows 平台�?
     if (_wasMultiScreenMode && PlatformDetector.isDesktop) {
@@ -1598,6 +1598,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           // Semi-transparent channel logo/back button
           TVFocusable(
             onSelect: () {
+              // 如果是全屏状态，先异步退出全屏
+              if (_isFullScreen && PlatformDetector.isWindows) {
+                _isFullScreen = false;
+                unawaited(windowManager.setFullScreen(false));
+              }
               context.read<PlayerProvider>().stop();
               Navigator.of(context).pop();
             },
@@ -2368,7 +2373,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   // 切换全屏模式 (仅 Windows)
-  Future<void> _toggleFullScreen() async {
+  void _toggleFullScreen() {
     if (!PlatformDetector.isWindows) return;
     
     // 防抖：如果正在切换中，忽略新的请求
@@ -2377,44 +2382,34 @@ class _PlayerScreenState extends State<PlayerScreen>
       return;
     }
     
-    try {
-      _isTogglingFullScreen = true;
-      final newFullScreenState = !_isFullScreen;
-      debugPrint('Toggling fullscreen: $newFullScreenState');
-      
-      // 立即更新UI状态，让按钮图标先变化
-      if (mounted) {
-        setState(() {
-          _isFullScreen = newFullScreenState;
-        });
-      }
-      
-      // 延迟一帧，让UI先渲染
-      await Future.delayed(const Duration(milliseconds: 16));
-      
-      // 在独立的异步任务中执行全屏切换
-      unawaited(Future(() async {
-        try {
-          await windowManager.setFullScreen(newFullScreenState);
-          debugPrint('Fullscreen set successfully: $newFullScreenState');
-        } catch (e) {
-          debugPrint('setFullScreen error: $e');
-          // 如果失败，恢复状态
-          if (mounted) {
-            setState(() {
-              _isFullScreen = !newFullScreenState;
-            });
-          }
-        } finally {
-          // 延迟重置防抖标志，避免过快切换
-          await Future.delayed(const Duration(milliseconds: 500));
-          _isTogglingFullScreen = false;
+    _isTogglingFullScreen = true;
+    final newFullScreenState = !_isFullScreen;
+    debugPrint('Toggling fullscreen: $newFullScreenState');
+    
+    // 立即更新UI状态，让按钮图标先变化
+    setState(() {
+      _isFullScreen = newFullScreenState;
+    });
+    
+    // 完全异步执行全屏切换，不阻塞主线程
+    Future.delayed(const Duration(milliseconds: 50)).then((_) async {
+      try {
+        await windowManager.setFullScreen(newFullScreenState);
+        debugPrint('Fullscreen set successfully: $newFullScreenState');
+      } catch (e) {
+        debugPrint('setFullScreen error: $e');
+        // 如果失败，恢复状态
+        if (mounted) {
+          setState(() {
+            _isFullScreen = !newFullScreenState;
+          });
         }
-      }));
-    } catch (e) {
-      debugPrint('Toggle fullscreen error: $e');
-      _isTogglingFullScreen = false;
-    }
+      } finally {
+        // 延迟重置防抖标志，避免过快切换
+        await Future.delayed(const Duration(milliseconds: 500));
+        _isTogglingFullScreen = false;
+      }
+    });
   }
 
   void _showSettingsSheet(BuildContext context) {
