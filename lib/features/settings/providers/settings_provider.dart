@@ -64,8 +64,8 @@ class SettingsProvider extends ChangeNotifier {
   int _activeScreenIndex = 0; // 当前活动窗口索引
   String _lastPlayMode = 'single'; // 上次播放模式：'single' 或 'multi'
   List<int?> _lastMultiScreenChannels = [null, null, null, null]; // 分屏频道ID列表
-  String _darkColorScheme = 'lotus'; // 黑暗模式配色方案
-  String _lightColorScheme = 'lotus-light'; // 明亮模式配色方案
+  String _darkColorScheme = 'ocean'; // 黑暗模式配色方案（默认海洋）
+  String _lightColorScheme = 'sky'; // 明亮模式配色方案（默认天空）
   String _fontFamily = 'Arial'; // 字体设置（默认Arial，英文环境）
 
   // Getters
@@ -166,8 +166,8 @@ class SettingsProvider extends ChangeNotifier {
     }
     
     // 加载配色方案设置
-    _darkColorScheme = prefs.getString(_keyDarkColorScheme) ?? 'lotus';
-    _lightColorScheme = prefs.getString(_keyLightColorScheme) ?? 'lotus-light';
+    _darkColorScheme = prefs.getString(_keyDarkColorScheme) ?? 'ocean';
+    _lightColorScheme = prefs.getString(_keyLightColorScheme) ?? 'sky';
     
     // 加载字体设置
     _fontFamily = prefs.getString(_keyFontFamily) ?? 'System';
@@ -480,8 +480,8 @@ class SettingsProvider extends ChangeNotifier {
     _enableMultiScreen = true;
     _defaultScreenPosition = 1;
     _activeScreenIndex = 0;
-    _darkColorScheme = 'lotus';
-    _lightColorScheme = 'lotus-light';
+    _darkColorScheme = 'ocean';
+    _lightColorScheme = 'sky';
     _fontFamily = 'Arial';
 
     await _saveSettings();
