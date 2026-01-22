@@ -30,8 +30,8 @@ Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Feature
 
 <table>
   <tr>
-    <td align="center"><img src="assets/screenshots/s1.jpg" width="100%" alt="Home Screen"><br><sub>🏠 Home</sub></td>
-    <td align="center"><img src="assets/screenshots/s8.jpg" width="100%" alt="Multi-Screen"><br><sub>📺 Split Screen</sub></td>
+    <td align="center"><img src="assets/screenshots/s1.jpg" width="100%" alt="Home Screen"><br><sub>🏠 Home Dark Theme</sub></td>
+    <td align="center"><img src="assets/screenshots/s10.jpg" width="100%" alt="Home Screen2"><br><sub>🏠 Home Light Theme</sub></td>
     <td align="center"><img src="assets/screenshots/s2.jpg" width="100%" alt="Channels"><br><sub>📡 Channels</sub></td>
   </tr>
   <tr>
@@ -42,7 +42,7 @@ Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Feature
   <tr>
     <td align="center"><img src="assets/screenshots/s6.jpg" width="100%" alt="Playlist Manager"><br><sub>📂 Playlist Manager</sub></td>
     <td align="center"><img src="assets/screenshots/mini.jpg" width="100%" alt="Split Mini Screen"><br><sub>📺 Split Mini Screen</sub></td>
-    <td align="center"><img src="assets/screenshots/s10.jpg" width="100%" alt="Home Screen2"><br><sub>🏠 Home Light Theme</sub></td>
+    <td align="center"><img src="assets/screenshots/s8.jpg" width="100%" alt="Multi-Screen"><br><sub>📺 Split Screen</sub></td>    
   </tr>
 </table>
 
