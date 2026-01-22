@@ -1174,8 +1174,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 5 : 8),
           decoration: BoxDecoration(
-            gradient: isFocused ? AppTheme.getGradient(context) : null,
-            color: isFocused ? null : AppTheme.getGlassColor(context),
+            gradient: isFocused ? AppTheme.getGradient(context) : AppTheme.getSoftGradient(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
             border: Border.all(color: isFocused ? AppTheme.getPrimaryColor(context) : AppTheme.getGlassBorderColor(context)),
           ),
@@ -1202,8 +1201,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 5 : 8),
           decoration: BoxDecoration(
-            gradient: isFocused ? AppTheme.getGradient(context) : null,
-            color: isFocused ? null : AppTheme.getGlassColor(context),
+            gradient: isFocused ? AppTheme.getGradient(context) : AppTheme.getSoftGradient(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
             border: Border.all(color: isFocused ? AppTheme.getPrimaryColor(context) : AppTheme.getGlassBorderColor(context)),
           ),
@@ -1230,8 +1228,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 5 : 8),
           decoration: BoxDecoration(
-            gradient: isFocused ? AppTheme.getGradient(context) : null,
-            color: isFocused ? null : AppTheme.getGlassColor(context),
+            gradient: isFocused ? AppTheme.getGradient(context) : AppTheme.getSoftGradient(context),
             borderRadius: BorderRadius.circular(AppTheme.radiusPill),
             border: Border.all(color: isFocused ? AppTheme.getPrimaryColor(context) : AppTheme.getGlassBorderColor(context)),
           ),

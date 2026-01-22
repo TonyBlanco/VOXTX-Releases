@@ -317,6 +317,19 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [
+                              const Color(0xFF0A0A0A),
+                              AppTheme.getPrimaryColor(context).withOpacity(0.1),
+                            ]
+                          : [
+                              const Color(0xFFE0E0E0),
+                              AppTheme.getPrimaryColor(context).withOpacity(0.12),
+                            ],
+                    ),
                     border: Border(
                       bottom: BorderSide(
                         color: AppTheme.getCardColor(context),
@@ -577,11 +590,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             duration: AppTheme.animationFast,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.getPrimaryColor(context).withOpacity(0.15)
-                  : isFocused
-                      ? AppTheme.getPrimaryColor(context).withOpacity(0.08)
-                      : Colors.transparent,
+              gradient: isSelected || isFocused ? AppTheme.getSoftGradient(context) : null,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isFocused
@@ -656,7 +665,24 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             // App Bar
             SliverAppBar(
               floating: true,
-              backgroundColor: AppTheme.getBackgroundColor(context).withOpacity(0.95),
+              backgroundColor: Colors.transparent,
+              flexibleSpace: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: Theme.of(context).brightness == Brightness.dark
+                        ? [
+                            const Color(0xFF0A0A0A),
+                            AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                          ]
+                        : [
+                            const Color(0xFFE0E0E0),
+                            AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                          ],
+                  ),
+                ),
+              ),
               // 嵌入模式下不显示leading（使用浮动按钮代替）
               leading: (PlatformDetector.isMobile && !widget.embedded)
                   ? IconButton(

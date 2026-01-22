@@ -103,7 +103,27 @@ class ChannelCard extends StatelessWidget {
                   children: [
                     // Logo
                     Container(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0A0A0A) : AppTheme.getPrimaryColor(context),
+                      decoration: Theme.of(context).brightness == Brightness.dark
+                          ? BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  const Color(0xFF0A0A0A),
+                                  AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                                ],
+                              ),
+                            )
+                          : BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppTheme.getPrimaryColor(context).withOpacity(0.4),
+                                  AppTheme.getPrimaryColor(context).withOpacity(0.99),
+                                ],
+                              ),
+                            ),
                       child: Center(
                         child: logoUrl != null && logoUrl!.isNotEmpty ? _buildChannelLogo(logoUrl!) : _buildPlaceholder(),
                       ),

@@ -120,8 +120,8 @@ const darkMidnight = ColorSchemeData(
 const lightLotus = ColorSchemeData(
   id: 'lotus-light',
   nameKey: 'colorSchemeLotusLight',
-  primaryColor: Color(0xFFE91E8C),
-  secondaryColor: Color(0xFF9C27B0),
+  primaryColor: Color(0xFFDB2777),
+  secondaryColor: Color(0xFF7C3AED),
   backgroundColor: Color(0xFFF5F5F5),
   descriptionKey: 'colorSchemeDescLotusLight',
 );
@@ -130,8 +130,8 @@ const lightLotus = ColorSchemeData(
 const lightSky = ColorSchemeData(
   id: 'sky',
   nameKey: 'colorSchemeSky',
-  primaryColor: Color(0xFF38BDF8),
-  secondaryColor: Color(0xFF0EA5E9),
+  primaryColor: Color(0xFF0284C7),
+  secondaryColor: Color(0xFF0369A1),
   backgroundColor: Color(0xFFF0F9FF),
   descriptionKey: 'colorSchemeDescSky',
 );
@@ -140,8 +140,8 @@ const lightSky = ColorSchemeData(
 const lightSpring = ColorSchemeData(
   id: 'spring',
   nameKey: 'colorSchemeSpring',
-  primaryColor: Color(0xFF34D399),
-  secondaryColor: Color(0xFF10B981),
+  primaryColor: Color(0xFF059669),
+  secondaryColor: Color(0xFF047857),
   backgroundColor: Color(0xFFF0FDF4),
   descriptionKey: 'colorSchemeDescSpring',
 );
@@ -150,8 +150,8 @@ const lightSpring = ColorSchemeData(
 const lightCoral = ColorSchemeData(
   id: 'coral',
   nameKey: 'colorSchemeCoral',
-  primaryColor: Color(0xFFFB923C),
-  secondaryColor: Color(0xFFF97316),
+  primaryColor: Color(0xFFEA580C),
+  secondaryColor: Color(0xFFC2410C),
   backgroundColor: Color(0xFFFFF7ED),
   descriptionKey: 'colorSchemeDescCoral',
 );
@@ -160,8 +160,8 @@ const lightCoral = ColorSchemeData(
 const lightViolet = ColorSchemeData(
   id: 'violet',
   nameKey: 'colorSchemeViolet',
-  primaryColor: Color(0xFFA78BFA),
-  secondaryColor: Color(0xFF8B5CF6),
+  primaryColor: Color(0xFF7C3AED),
+  secondaryColor: Color(0xFF6D28D9),
   backgroundColor: Color(0xFFFAF5FF),
   descriptionKey: 'colorSchemeDescViolet',
 );
@@ -170,8 +170,8 @@ const lightViolet = ColorSchemeData(
 const lightClassic = ColorSchemeData(
   id: 'classic',
   nameKey: 'colorSchemeClassic',
-  primaryColor: Color(0xFF64748B),
-  secondaryColor: Color(0xFF475569),
+  primaryColor: Color(0xFF475569),
+  secondaryColor: Color(0xFF334155),
   backgroundColor: Color(0xFFFFFFFF),
   descriptionKey: 'colorSchemeDescClassic',
 );
