@@ -1045,7 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(AppStrings.of(context)?.addM3uToStart ?? 'Add M3U playlist to start watching', style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13)),
           const SizedBox(height: 24),
           TVFocusable(
-            autofocus: true,
+            autofocus: false,
             onSelect: () => Navigator.pushNamed(context, AppRouter.playlistManager),
             focusScale: 1.0,
             showFocusBorder: false,

@@ -66,21 +66,21 @@ class _SearchScreenState extends State<SearchScreen> {
       return Scaffold(
         body: Container(
           decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: Theme.of(context).brightness == Brightness.dark
-                        ? [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.15),
-                            AppTheme.getBackgroundColor(context),
-                          ]
-                        : [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getBackgroundColor(context).withOpacity(0.9),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.08),
-                          ],
-                  ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                      AppTheme.getBackgroundColor(context),
+                    ]
+                  : [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getBackgroundColor(context).withOpacity(0.9),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.08),
+                    ],
+            ),
           ),
           child: TVSidebar(
             selectedIndex: 3, // 搜索页
@@ -118,10 +118,10 @@ class _SearchScreenState extends State<SearchScreen> {
     
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 12,
-        left: 20,
-        right: 20,
-        bottom: 12,
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 16,
+        right: 16,
+        bottom: 8,
       ),
       decoration: BoxDecoration(
         color: AppTheme.getSurfaceColor(context),
@@ -140,20 +140,20 @@ class _SearchScreenState extends State<SearchScreen> {
             onSelect: () => Navigator.pop(context),
             focusScale: 1.1,
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppTheme.getCardColor(context),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.arrow_back_rounded,
                 color: AppTheme.getTextPrimary(context),
-                size: 22,
+                size: 20,
               ),
             ),
           ),
 
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
 
           // Search Field - TV 端使用可点击的搜索框
           Expanded(
@@ -164,15 +164,15 @@ class _SearchScreenState extends State<SearchScreen> {
           
           // QR Code Scan Button (TV only)
           if (isTV) ...[
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             TVFocusable(
               onSelect: _showQrSearchDialog,
               focusScale: 1.0,
               child: Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppTheme.getPrimaryColor(context).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: AppTheme.getPrimaryColor(context).withOpacity(0.3),
                     width: 1,
@@ -181,7 +181,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Icon(
                   Icons.qr_code_scanner_rounded,
                   color: AppTheme.getPrimaryColor(context),
-                  size: 22,
+                  size: 20,
                 ),
               ),
             ),
@@ -193,22 +193,23 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildTVSearchField() {
     return TVFocusable(
-      autofocus: true,
+      autofocus: false,  // 不自动聚焦到搜索框
       onSelect: () => _showTVSearchDialog(),
       focusScale: 1.02,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: AppTheme.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
             Icon(
               Icons.search_rounded,
               color: AppTheme.getTextMuted(context),
+              size: 20,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 _searchQuery.isEmpty 
@@ -218,7 +219,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   color: _searchQuery.isEmpty 
                       ? AppTheme.getTextMuted(context)
                       : AppTheme.getTextPrimary(context),
-                  fontSize: 16,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -231,6 +232,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Icon(
                   Icons.clear_rounded,
                   color: AppTheme.getTextMuted(context),
+                  size: 18,
                 ),
               ),
           ],

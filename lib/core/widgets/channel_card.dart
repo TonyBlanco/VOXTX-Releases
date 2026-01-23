@@ -92,7 +92,7 @@ class ChannelCard extends StatelessWidget {
           children: [
             // Logo area - 固定占60%高度
             Expanded(
-              flex: 60,
+              flex: 55,
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(AppTheme.radiusMedium),

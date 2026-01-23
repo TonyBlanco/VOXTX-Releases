@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../navigation/app_router.dart';
 import '../i18n/app_strings.dart';
 import 'tv_focusable.dart';
+import '../../features/settings/providers/settings_provider.dart';
 
 /// TV端共享侧边栏组件
 /// 失去焦点收起，获得焦点展开
@@ -62,8 +64,8 @@ class _TVSidebarState extends State<TVSidebar> {
     for (final node in _menuFocusNodes) {
       node.dispose();
     }
-    TVSidebar.menuFocusNodes = null;
-    TVSidebar.selectedMenuIndex = null;
+    // TVSidebar.menuFocusNodes = null;
+    // TVSidebar.selectedMenuIndex = null;
     super.dispose();
   }
 
@@ -97,14 +99,21 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   Widget build(BuildContext context) {
     final navItems = _getNavItems(context);
-    final width = _expanded ? 150.0 : 52.0;
+    // 实时读取简单菜单设置
+    final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
+    // 根据简单菜单设置决定是否展开
+    // 简单模式：始终收起，非简单模式：始终展开
+    final shouldExpand = !simpleMenu;
+    final width = shouldExpand ? 150.0 : 52.0;
 
     return Row(
       children: [
         // 侧边栏
         Focus(
           onFocusChange: (hasFocus) {
-            setState(() => _expanded = hasFocus);
+            // 根据简单菜单设置更新展开状态
+            setState(() => _expanded = shouldExpand);
+            
             // 当侧边栏获得焦点时，自动聚焦到当前选中的菜单项
             if (hasFocus && widget.selectedIndex < _menuFocusNodes.length) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -144,7 +153,7 @@ class _TVSidebarState extends State<TVSidebar> {
                 Expanded(
                   child: TVFocusTraversalGroup(
                     child: ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: _expanded ? 6 : 4),
+                      padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 6 : 4),
                       itemCount: navItems.length,
                       itemBuilder: (context, index) => _buildNavItem(index, navItems[index]),
                     ),
@@ -162,9 +171,13 @@ class _TVSidebarState extends State<TVSidebar> {
   }
 
   Widget _buildLogo() {
+    // 实时读取简单菜单设置
+    final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
+    final shouldExpand = !simpleMenu;
+    
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: _expanded ? 10 : 8),
-      child: _expanded
+      padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 10 : 8),
+      child: shouldExpand
           ? Row(
               children: [
                 ClipRRect(
@@ -192,6 +205,9 @@ class _TVSidebarState extends State<TVSidebar> {
   Widget _buildNavItem(int index, _NavItem item) {
     final isSelected = widget.selectedIndex == index;
     final focusNode = index < _menuFocusNodes.length ? _menuFocusNodes[index] : null;
+    // 实时读取简单菜单设置
+    final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
+    final shouldExpand = !simpleMenu;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -237,40 +253,44 @@ class _TVSidebarState extends State<TVSidebar> {
           }
           return KeyEventResult.ignored;
         },
-        child: GestureDetector(
-          onTap: () => _onNavItemTap(index, item.route),
-          child: Builder(
-            builder: (context) {
-              // 直接检查 FocusNode 的实际焦点状态
-              final isFocused = focusNode?.hasFocus ?? false;
-              // 只有当侧边栏展开时才显示焦点高亮
-              final showHighlight = isFocused && _expanded;
-              final showSelected = isSelected && !showHighlight;
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => _onNavItemTap(index, item.route),
+            child: Builder(
+              builder: (context) {
+                // 直接检查 FocusNode 的实际焦点状态
+                final isFocused = focusNode?.hasFocus ?? false;
+                // 当前选中的菜单项始终显示高亮（使用渐变背景）
+                // 如果有焦点但不是当前选中项，显示焦点高亮
+                final showSelectedHighlight = isSelected;
+                final showFocusHighlight = isFocused && !isSelected && shouldExpand;
 
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: _expanded ? 10 : 8, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: showHighlight ? AppTheme.getGradient(context) : null,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: _expanded
-                    ? Row(
-                        children: [
-                          Icon(item.icon, color: showHighlight ? Colors.white : (showSelected ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context)), size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(item.label,
-                                style: TextStyle(
-                                  color: showHighlight ? Colors.white : (showSelected ? AppTheme.getPrimaryColor(context) : AppTheme.getTextSecondary(context)),
-                                  fontSize: 12,
-                                  fontWeight: (showHighlight || showSelected) ? FontWeight.w600 : FontWeight.normal,
-                                )),
-                          ),
-                        ],
-                      )
-                    : Center(child: Icon(item.icon, color: showHighlight ? Colors.white : (showSelected ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context)), size: 18)),
-              );
-            },
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 10 : 8, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: (showSelectedHighlight || showFocusHighlight) ? AppTheme.getGradient(context) : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: shouldExpand
+                      ? Row(
+                          children: [
+                            Icon(item.icon, color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : AppTheme.getTextMuted(context), size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(item.label,
+                                  style: TextStyle(
+                                    color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : AppTheme.getTextSecondary(context),
+                                    fontSize: 12,
+                                    fontWeight: (showSelectedHighlight || showFocusHighlight) ? FontWeight.w600 : FontWeight.normal,
+                                  )),
+                            ),
+                          ],
+                        )
+                      : Center(child: Icon(item.icon, color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : (isSelected ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context)), size: 18)),
+                );
+              },
+            ),
           ),
         ),
       ),

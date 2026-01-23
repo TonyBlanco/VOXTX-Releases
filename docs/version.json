@@ -1,23 +1,23 @@
 {
-  "version": "1.4.4",
-  "build": 124,
-  "releaseDate": "2026-01-22",
+  "version": "1.4.5",
+  "build": 125,
+  "releaseDate": "2026-01-23",
   "assets": {
-    "windows": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-Windows-x64-Setup.exe",
+    "windows": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-Android-Mobile-arm64-v8a.apk",
-      "armeabi-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-Android-Mobile-armeabi-v7a.apk",
-      "x86_64": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-Android-Mobile-x86_64.apk"
+      "arm64-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-Android-Mobile-arm64-v8a.apk",
+      "armeabi-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-Android-Mobile-armeabi-v7a.apk",
+      "x86_64": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-Android-Mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-AndroidTV-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-AndroidTV-armeabi-v7a.apk",
-      "x86_64": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.4/flutteriptv-AndroidTV-x86_64.apk"
+      "arm64-v8a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-AndroidTV-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-AndroidTV-armeabi-v7a.apk",
+      "x86_64": "https://github.boki.moe/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.5/flutteriptv-AndroidTV-x86_64.apk"
     }
   },
   "changelog": {
-    "zh": "- 新增扫码导入播放列表功能，支持手机扫码快速导入\n- 新增扫码搜索功能，支持手机输入搜索内容\n- 优化搜索框高度，界面更紧凑\n- 修复明亮模式下收藏夹台标不显示的问题\n- 将导入和搜索服务合并到同一端口，通过URL路径区分\n- 扫码页面HTML分离并支持国际化（中英文自动切换）",
-    "en": "- Added QR code import feature for quick playlist import via mobile\n- Added QR code search feature for mobile input\n- Optimized search box height for more compact UI\n- Fixed channel logo display issue in light mode favorites\n- Merged import and search services to same port with URL path distinction\n- Separated QR code HTML pages with internationalization support (auto-detect Chinese/English)"
+    "zh": "- 新增简易菜单设置，支持菜单栏保持收起状态（默认启用）\n- 优化菜单栏展开/收起逻辑，非简易模式下始终展开\n- 修复搜索页面背景渐变色显示问题\n- 优化搜索栏高度，界面更紧凑\n- 修复首页和搜索页面自动聚焦问题\n- 新增菜单项鼠标悬停手型光标显示\n- 菜单项选中状态保持高亮显示，不随焦点移动消失",
+    "en": "- Added simple menu setting to keep menu collapsed (enabled by default)\n- Optimized menu expand/collapse logic, always expanded in non-simple mode\n- Fixed search page background gradient display issue\n- Optimized search bar height for more compact UI\n- Fixed autofocus issues on home and search pages\n- Added hand cursor on menu item hover\n- Menu item selection highlight persists regardless of focus movement"
   },
   "minVersion": "1.0.0"
 }

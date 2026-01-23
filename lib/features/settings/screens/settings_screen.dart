@@ -101,6 +101,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.text_fields_rounded,
                 onTap: () => _showFontFamilyDialog(context, settings),
               ),
+              _buildDivider(),
+              _buildSwitchTile(
+                context,
+                title: AppStrings.of(context)?.simpleMenu ?? 'Simple Menu',
+                subtitle: AppStrings.of(context)?.simpleMenuSubtitle ?? 'Keep menu collapsed (no auto-expand)',
+                icon: Icons.menu_rounded,
+                value: settings.simpleMenu,
+                onChanged: (value) {
+                  settings.setSimpleMenu(value);
+                  final strings = AppStrings.of(context);
+                  _showSuccess(context, value ? (strings?.simpleMenuEnabled ?? 'Simple menu enabled') : (strings?.simpleMenuDisabled ?? 'Simple menu disabled'));
+                },
+              ),
             ]),
 
             const SizedBox(height: 24),

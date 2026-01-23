@@ -34,6 +34,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyDarkColorScheme = 'dark_color_scheme';
   static const String _keyLightColorScheme = 'light_color_scheme';
   static const String _keyFontFamily = 'font_family';
+  static const String _keySimpleMenu = 'simple_menu';
 
   // Settings values
   String _themeMode = 'dark';
@@ -67,6 +68,7 @@ class SettingsProvider extends ChangeNotifier {
   String _darkColorScheme = 'ocean'; // 黑暗模式配色方案（默认海洋）
   String _lightColorScheme = 'sky'; // 明亮模式配色方案（默认天空）
   String _fontFamily = 'Arial'; // 字体设置（默认Arial，英文环境）
+  bool _simpleMenu = true; // 是否使用简单菜单栏（不展开）- 默认启用
 
   // Getters
   String get themeMode => _themeMode;
@@ -99,6 +101,7 @@ class SettingsProvider extends ChangeNotifier {
   String get darkColorScheme => _darkColorScheme;
   String get lightColorScheme => _lightColorScheme;
   String get fontFamily => _fontFamily;
+  bool get simpleMenu => _simpleMenu;
   
   /// 获取当前应该使用的配色方案
   String get currentColorScheme {
@@ -172,6 +175,9 @@ class SettingsProvider extends ChangeNotifier {
     // 加载字体设置
     _fontFamily = prefs.getString(_keyFontFamily) ?? 'System';
     
+    // 加载简单菜单设置
+    _simpleMenu = prefs.getBool(_keySimpleMenu) ?? true;
+    
     // 不在构造函数中调用 notifyListeners()，避免 build 期间触发重建
   }
 
@@ -221,6 +227,7 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setString(_keyDarkColorScheme, _darkColorScheme);
     await prefs.setString(_keyLightColorScheme, _lightColorScheme);
     await prefs.setString(_keyFontFamily, _fontFamily);
+    await prefs.setBool(_keySimpleMenu, _simpleMenu);
   }
 
   // Setters with persistence
@@ -452,6 +459,14 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setFontFamily(String fontFamily) async {
     debugPrint('SettingsProvider: 设置字体 - $fontFamily');
     _fontFamily = fontFamily;
+    await _saveSettings();
+    notifyListeners();
+  }
+
+  /// 设置简单菜单栏
+  Future<void> setSimpleMenu(bool value) async {
+    debugPrint('SettingsProvider: 设置简单菜单栏 - $value');
+    _simpleMenu = value;
     await _saveSettings();
     notifyListeners();
   }

@@ -378,6 +378,12 @@ class AppStrings {
   String get sendFailed => _localizedValues['sendFailed']!;
   String get networkError => _localizedValues['networkError']!;
   String get uploading => _localizedValues['uploading']!;
+  
+  // Simple menu
+  String get simpleMenu => _localizedValues['simpleMenu']!;
+  String get simpleMenuSubtitle => _localizedValues['simpleMenuSubtitle']!;
+  String get simpleMenuEnabled => _localizedValues['simpleMenuEnabled']!;
+  String get simpleMenuDisabled => _localizedValues['simpleMenuDisabled']!;
 
   // Map access for dynamic keys if needed
   String operator [](String key) => _localizedValues[key] ?? key;
@@ -759,6 +765,11 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'sendFailed': '发送失败',
     'networkError': '网络错误，请确保设备在同一局域网',
     'uploading': '正在上传...',
+    // Simple menu
+    'simpleMenu': '简易菜单',
+    'simpleMenuSubtitle': '菜单栏保持收起状态（不自动展开）',
+    'simpleMenuEnabled': '已启用简易菜单',
+    'simpleMenuDisabled': '已关闭简易菜单',
   };
 
   static const Map<String, String> _enValues = {
@@ -1115,5 +1126,10 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'sendFailed': 'Send failed',
     'networkError': 'Network error, please ensure devices are on the same network',
     'uploading': 'Uploading...',
+    // Simple menu
+    'simpleMenu': 'Simple Menu',
+    'simpleMenuSubtitle': 'Keep menu collapsed (no auto-expand)',
+    'simpleMenuEnabled': 'Simple menu enabled',
+    'simpleMenuDisabled': 'Simple menu disabled',
   };
 }
