@@ -61,16 +61,6 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   icon: const Icon(Icons.arrow_back_rounded),
                   onPressed: provider.isLoading ? null : () => Navigator.pop(context),
                 ),
-                actions: [
-                  IconButton(
-                    icon: Icon(
-                      provider.sortBy.contains('name') ? Icons.sort_by_alpha_rounded : Icons.calendar_month_rounded,
-                    ),
-                    tooltip: provider.sortBy.contains('name') ? 'Sort by Date' : 'Sort by Name',
-                    onPressed: provider.isLoading ? null : provider.toggleSortOrder,
-                  ),
-                  const SizedBox(width: 8),
-                ],
               ),
               body: Column(
                 children: [

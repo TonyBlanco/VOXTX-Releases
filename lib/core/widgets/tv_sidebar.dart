@@ -262,15 +262,22 @@ class _TVSidebarState extends State<TVSidebar> {
                 // 直接检查 FocusNode 的实际焦点状态
                 final isFocused = focusNode?.hasFocus ?? false;
                 // 当前选中的菜单项始终显示高亮（使用渐变背景）
-                // 如果有焦点但不是当前选中项，显示焦点高亮
+                // 如果有焦点但不是当前选中项，也显示焦点高亮
                 final showSelectedHighlight = isSelected;
-                final showFocusHighlight = isFocused && !isSelected && shouldExpand;
+                final showFocusHighlight = isFocused && !isSelected;
 
                 return Container(
                   padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 10 : 8, vertical: 10),
                   decoration: BoxDecoration(
                     gradient: (showSelectedHighlight || showFocusHighlight) ? AppTheme.getGradient(context) : null,
                     borderRadius: BorderRadius.circular(8),
+                    // 只要有焦点就显示边框（无论是否选中）
+                    border: isFocused
+                        ? Border.all(
+                            color: Colors.white.withOpacity(0.6),
+                            width: 2,
+                          )
+                        : null,
                   ),
                   child: shouldExpand
                       ? Row(

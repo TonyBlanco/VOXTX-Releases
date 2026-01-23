@@ -115,6 +115,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildSearchHeader() {
     final isTV = PlatformDetector.isTV || PlatformDetector.useDPadNavigation;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
       padding: EdgeInsets.only(
@@ -124,7 +125,21 @@ class _SearchScreenState extends State<SearchScreen> {
         bottom: 8,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.getSurfaceColor(context),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: isDark
+              ? [
+                  Colors.black.withOpacity(0.3),
+                  Colors.black.withOpacity(0.5),
+                  Colors.black.withOpacity(0.3),
+                ]
+              : [
+                  Colors.white.withOpacity(0.3),
+                  Colors.white.withOpacity(0.5),
+                  Colors.white.withOpacity(0.3),
+                ],
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -142,8 +157,16 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.getCardColor(context),
+                color: isDark 
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.black.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.2)
+                      : Colors.black.withOpacity(0.1),
+                  width: 1,
+                ),
               ),
               child: Icon(
                 Icons.arrow_back_rounded,
@@ -157,21 +180,25 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // Search Field - TV 端使用可点击的搜索框
           Expanded(
-            child: isTV 
-                ? _buildTVSearchField()
-                : _buildMobileSearchField(),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: isTV 
+                  ? _buildTVSearchField()
+                  : _buildMobileSearchField(),
+            ),
           ),
           
+          const SizedBox(width: 12),
+          
           // QR Code Scan Button (TV only)
-          if (isTV) ...[
-            const SizedBox(width: 10),
+          if (isTV)
             TVFocusable(
               onSelect: _showQrSearchDialog,
               focusScale: 1.0,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.getPrimaryColor(context).withOpacity(0.2),
+                  color: AppTheme.getPrimaryColor(context).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: AppTheme.getPrimaryColor(context).withOpacity(0.3),
@@ -185,13 +212,14 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-          ],
         ],
       ),
     );
   }
 
   Widget _buildTVSearchField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return TVFocusable(
       autofocus: false,  // 不自动聚焦到搜索框
       onSelect: () => _showTVSearchDialog(),
@@ -199,8 +227,16 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: AppTheme.getCardColor(context),
+          color: isDark 
+              ? const Color(0x14FFFFFF)  // 白色 8% 透明度
+              : const Color(0x08000000),  // 黑色 3% 透明度
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark
+                ? const Color(0x26FFFFFF)  // 白色 15% 透明度
+                : const Color(0x14000000),  // 黑色 8% 透明度
+            width: 1,
+          ),
         ),
         child: Row(
           children: [
