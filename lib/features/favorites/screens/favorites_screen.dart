@@ -124,7 +124,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
           ),
           child: TVSidebar(
-            selectedIndex: 2, // 收藏页
+            selectedIndex: 3, // 收藏页
             child: content,
           ),
         ),

@@ -16,6 +16,7 @@ import '../../../core/utils/card_size_calculator.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../channels/screens/channels_screen.dart';
 import '../../playlist/providers/playlist_provider.dart';
+import '../../playlist/widgets/add_playlist_dialog.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../favorites/screens/favorites_screen.dart';
 import '../../player/providers/player_provider.dart';
@@ -531,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     : null
               ),
               SizedBox(width: isMobile ? 6 : 10),
-              _buildHeaderButton(Icons.playlist_add_rounded, AppStrings.of(context)?.playlists ?? 'Playlists', false, () => Navigator.pushNamed(context, AppRouter.playlistManager)),
+              _buildHeaderButton(Icons.playlist_add_rounded, AppStrings.of(context)?.playlists ?? 'Playlists', false, () => _showAddPlaylistDialog()),
               SizedBox(width: isMobile ? 6 : 10),
               _buildHeaderButton(Icons.refresh_rounded, AppStrings.of(context)?.refresh ?? 'Refresh', false, activePlaylist != null ? () => _refreshCurrentPlaylist(playlistProvider, provider) : null),
               SizedBox(width: isMobile ? 6 : 10),
@@ -552,6 +553,20 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (lastChannel != null) {
       // 恢复单频道播放
       _playChannel(lastChannel);
+    }
+  }
+
+  /// 显示添加播放列表对话框
+  Future<void> _showAddPlaylistDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AddPlaylistDialog(),
+    );
+
+    // 如果成功添加了播放列表，刷新数据
+    if (result == true && mounted) {
+      _loadData();
     }
   }
 
@@ -1046,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
           TVFocusable(
             autofocus: false,
-            onSelect: () => Navigator.pushNamed(context, AppRouter.playlistManager),
+            onSelect: () => _showAddPlaylistDialog(),
             focusScale: 1.0,
             showFocusBorder: false,
             builder: (context, isFocused, child) {

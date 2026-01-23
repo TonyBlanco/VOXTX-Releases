@@ -479,7 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
           ),
           child: TVSidebar(
-            selectedIndex: 4, // 设置页
+            selectedIndex: 5, // 设置页
             child: content,
           ),
         ),

@@ -33,7 +33,6 @@ class TVSidebar extends StatefulWidget {
 }
 
 class _TVSidebarState extends State<TVSidebar> {
-  bool _expanded = false;
   final List<FocusNode> _menuFocusNodes = [];
   Timer? _navDelayTimer; // 延迟导航定时器
   int? _pendingNavIndex; // 待导航的菜单索引
@@ -41,8 +40,8 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   void initState() {
     super.initState();
-    // 创建5个菜单项的焦点节点
-    for (int i = 0; i < 5; i++) {
+    // 创建6个菜单项的焦点节点
+    for (int i = 0; i < 6; i++) {
       _menuFocusNodes.add(FocusNode());
     }
     // 暴露给外部
@@ -73,6 +72,7 @@ class _TVSidebarState extends State<TVSidebar> {
     return [
       _NavItem(icon: Icons.home_rounded, label: AppStrings.of(context)?.home ?? 'Home', route: null),
       _NavItem(icon: Icons.live_tv_rounded, label: AppStrings.of(context)?.channels ?? 'Channels', route: AppRouter.channels),
+      _NavItem(icon: Icons.playlist_play_rounded, label: AppStrings.of(context)?.playlistList ?? 'Playlist List', route: AppRouter.playlistList),
       _NavItem(icon: Icons.favorite_rounded, label: AppStrings.of(context)?.favorites ?? 'Favorites', route: AppRouter.favorites),
       _NavItem(icon: Icons.search_rounded, label: AppStrings.of(context)?.search ?? 'Search', route: AppRouter.search),
       _NavItem(icon: Icons.settings_rounded, label: AppStrings.of(context)?.settings ?? 'Settings', route: AppRouter.settings),
@@ -111,10 +111,7 @@ class _TVSidebarState extends State<TVSidebar> {
         // 侧边栏
         Focus(
           onFocusChange: (hasFocus) {
-            // 根据简单菜单设置更新展开状态
-            setState(() => _expanded = shouldExpand);
-            
-            // 当侧边栏获得焦点时，自动聚焦到当前选中的菜单项
+            // 当侧边栏获得焦点时,自动聚焦到当前选中的菜单项
             if (hasFocus && widget.selectedIndex < _menuFocusNodes.length) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 final targetNode = _menuFocusNodes[widget.selectedIndex];

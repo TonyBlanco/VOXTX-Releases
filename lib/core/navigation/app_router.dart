@@ -5,6 +5,7 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/player/screens/player_screen.dart';
 import '../../features/channels/screens/channels_screen.dart';
 import '../../features/playlist/screens/playlist_manager_screen.dart';
+import '../../features/playlist/screens/playlist_list_screen.dart';
 import '../../features/favorites/screens/favorites_screen.dart';
 import '../../features/search/screens/search_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
@@ -17,6 +18,7 @@ class AppRouter {
   static const String player = '/player';
   static const String channels = '/channels';
   static const String playlistManager = '/playlist-manager';
+  static const String playlistList = '/playlist-list';
   static const String favorites = '/favorites';
   static const String search = '/search';
   static const String settings = '/settings';
@@ -53,6 +55,9 @@ class AppRouter {
 
       case playlistManager:
         return _buildRoute(const PlaylistManagerScreen(), settings);
+
+      case playlistList:
+        return _buildRoute(const PlaylistListScreen(), settings);
 
       case favorites:
         return _buildRoute(const FavoritesScreen(), settings);

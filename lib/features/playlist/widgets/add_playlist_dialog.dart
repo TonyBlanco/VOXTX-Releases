@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 
-import 'package:flutter_iptv/features/playlist/widgets/qr_import_dialog.dart';
-
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/i18n/app_strings.dart';
@@ -13,15 +11,16 @@ import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
+import 'qr_import_dialog.dart';
 
-class PlaylistManagerScreen extends StatefulWidget {
-  const PlaylistManagerScreen({super.key});
+class AddPlaylistDialog extends StatefulWidget {
+  const AddPlaylistDialog({super.key});
 
   @override
-  State<PlaylistManagerScreen> createState() => _PlaylistManagerScreenState();
+  State<AddPlaylistDialog> createState() => _AddPlaylistDialogState();
 }
 
-class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
+class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _urlController = TextEditingController();
   late final FocusNode _nameFocusNode;
@@ -30,8 +29,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   @override
   void initState() {
     super.initState();
-    _nameFocusNode = FocusNode(debugLabel: 'playlist_name_field');
-    _urlFocusNode = FocusNode(debugLabel: 'playlist_url_field');
+    _nameFocusNode = FocusNode(debugLabel: 'dialog_playlist_name');
+    _urlFocusNode = FocusNode(debugLabel: 'dialog_playlist_url');
   }
 
   @override
@@ -47,164 +46,157 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
   Widget build(BuildContext context) {
     return Consumer<PlaylistProvider>(
       builder: (context, provider, _) {
-        return Stack(
-          children: [
-            Scaffold(
-              backgroundColor: AppTheme.getBackgroundColor(context),
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: provider.isLoading ? null : () => Navigator.pop(context),
-                ),
-              ),
-              body: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 600),
-                    child: _buildContent(provider),
-                  ),
-                ),
-              ),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+            decoration: BoxDecoration(
+              color: AppTheme.getBackgroundColor(context),
+              borderRadius: BorderRadius.circular(24),
             ),
-            if (provider.isLoading)
-              Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getSurfaceColor(context),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(color: AppTheme.primaryColor),
-                        const SizedBox(height: 20),
-                        Text(
-                          '${(provider.importProgress * 100).toInt()}%',
-                          style: TextStyle(
-                            color: AppTheme.getTextPrimary(context),
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.none,
-                          ),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.getGradient(context),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.getPrimaryColor(context).withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          AppStrings.of(context)?.processing ?? 'Processing, please wait...',
-                          style: TextStyle(
-                            color: AppTheme.getTextSecondary(context),
-                            fontSize: 14,
-                            decoration: TextDecoration.none,
+                        child: const Icon(
+                          Icons.playlist_add_rounded,
+                          size: 40,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Title
+                      Text(
+                        AppStrings.of(context)?.addNewPlaylist ?? 'Add New Playlist',
+                        style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        PlatformDetector.isTV
+                            ? (AppStrings.of(context)?.addFirstPlaylistTV ?? 'Import via USB or scan QR code')
+                            : (AppStrings.of(context)?.addPlaylistSubtitle ?? 'Import M3U/M3U8 playlist from URL or file'),
+                        style: TextStyle(
+                          color: AppTheme.getTextSecondary(context),
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Content
+                      PlatformDetector.isTV ? _buildTVContent(provider) : _buildDesktopContent(provider),
+                      
+                      // Error message
+                      if (provider.error != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: AppTheme.errorColor, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  provider.error!,
+                                  style: const TextStyle(color: AppTheme.errorColor, fontSize: 12),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-              ),
-          ],
+                
+                // Loading overlay
+                if (provider.isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getSurfaceColor(context),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(color: AppTheme.primaryColor),
+                              const SizedBox(height: 16),
+                              Text(
+                                '${(provider.importProgress * 100).toInt()}%',
+                                style: TextStyle(
+                                  color: AppTheme.getTextPrimary(context),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                AppStrings.of(context)?.processing ?? 'Processing...',
+                                style: TextStyle(
+                                  color: AppTheme.getTextSecondary(context),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                
+                // Close button
+                if (!provider.isLoading)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                      color: AppTheme.getTextMuted(context),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildContent(PlaylistProvider provider) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              gradient: AppTheme.getGradient(context),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.getPrimaryColor(context).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.playlist_add_rounded,
-              size: 40,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          AppStrings.of(context)?.addNewPlaylist ?? 'Add New Playlist',
-          style: TextStyle(
-            color: AppTheme.getTextPrimary(context),
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          PlatformDetector.isTV
-              ? (AppStrings.of(context)?.addFirstPlaylistTV ?? 'Import via USB or scan QR code')
-              : 'Import M3U/M3U8 playlist from URL or file',
-          style: TextStyle(
-            color: AppTheme.getTextSecondary(context),
-            fontSize: 14,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40),
-        Container(
-          padding: const EdgeInsets.all(48),
-          decoration: BoxDecoration(
-            color: AppTheme.getSurfaceColor(context),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: PlatformDetector.isTV ? _buildTVContent(provider) : _buildDesktopContent(provider),
-        ),
-        if (provider.error != null) ...[
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.errorColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.error_outline_rounded, color: AppTheme.errorColor, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(provider.error!, style: const TextStyle(color: AppTheme.errorColor, fontSize: 13)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  color: AppTheme.errorColor,
-                  onPressed: provider.clearError,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
     );
   }
 
@@ -216,15 +208,15 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           onPressed: () => _pickFile(provider),
           icon: Icons.folder_open_rounded,
           title: AppStrings.of(context)?.fromFile ?? 'From File',
-          subtitle: 'Import from USB or local storage',
+          subtitle: AppStrings.of(context)?.importFromUsb ?? 'Import from USB or local storage',
           isPrimary: true,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildImportCard(
           onPressed: () => _showQrImportDialog(context),
           icon: Icons.qr_code_scanner_rounded,
           title: AppStrings.of(context)?.scanToImport ?? 'Scan to Import',
-          subtitle: 'Use your phone to scan QR code',
+          subtitle: AppStrings.of(context)?.scanQrToImport ?? 'Use your phone to scan QR code',
           isPrimary: false,
         ),
       ],
@@ -242,14 +234,14 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           prefixIcon: Icons.label_outline_rounded,
           autofocus: true,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         _buildTextField(
           controller: _urlController,
           focusNode: _urlFocusNode,
-          hintText: AppStrings.of(context)?.playlistUrl ?? 'M3U/M3U8 URL',
+          hintText: AppStrings.of(context)?.playlistUrlHint ?? 'M3U/M3U8/TXT URL',
           prefixIcon: Icons.link_rounded,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _buildPrimaryButton(
           onPressed: provider.isLoading ? null : () => _addPlaylist(provider),
           icon: provider.isLoading ? null : Icons.add_rounded,
@@ -258,21 +250,21 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               : (AppStrings.of(context)?.addFromUrl ?? 'Add from URL'),
           isLoading: provider.isLoading,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(child: Divider(color: AppTheme.getTextMuted(context).withOpacity(0.3))),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 AppStrings.of(context)?.or ?? 'or',
-                style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 12),
+                style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 11),
               ),
             ),
             Expanded(child: Divider(color: AppTheme.getTextMuted(context).withOpacity(0.3))),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -320,18 +312,18 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             controller: controller,
             focusNode: focusNode,
             autofocus: autofocus,
-            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 15),
+            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 14),
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
-              prefixIcon: Icon(prefixIcon, color: isFocused ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context)),
+              prefixIcon: Icon(prefixIcon, color: isFocused ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context), size: 20),
               filled: true,
               fillColor: AppTheme.getCardColor(context),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
           ),
         );
@@ -353,7 +345,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.getPrimaryColor(context),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
         ),
@@ -362,14 +354,14 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           children: [
             if (isLoading)
               const SizedBox(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               )
             else if (icon != null)
-              Icon(icon, size: 20),
+              Icon(icon, size: 18),
             if (icon != null || isLoading) const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -389,15 +381,15 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppTheme.getPrimaryColor(context),
           side: BorderSide(color: AppTheme.getPrimaryColor(context).withOpacity(0.5)),
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 20),
+            Icon(icon, size: 18),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -418,7 +410,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
       builder: (context, isFocused, child) {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: isPrimary && isFocused ? AppTheme.getGradient(context) : null,
             color: isPrimary && !isFocused
@@ -440,8 +432,8 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: isPrimary ? Colors.white.withOpacity(0.2) : AppTheme.getPrimaryColor(context).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
@@ -449,10 +441,10 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
             child: Icon(
               icon,
               color: isPrimary ? Colors.white : AppTheme.getPrimaryColor(context),
-              size: 28,
+              size: 24,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,16 +453,16 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                   title,
                   style: TextStyle(
                     color: isPrimary ? Colors.white : AppTheme.getTextPrimary(context),
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   subtitle,
                   style: TextStyle(
                     color: isPrimary ? Colors.white.withOpacity(0.8) : AppTheme.getTextSecondary(context),
-                    fontSize: 12,
+                    fontSize: 11,
                   ),
                 ),
               ],
@@ -479,7 +471,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           Icon(
             Icons.arrow_forward_ios_rounded,
             color: isPrimary ? Colors.white : AppTheme.getTextMuted(context),
-            size: 16,
+            size: 14,
           ),
         ],
       ),
@@ -533,9 +525,6 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           }
         }
 
-        _nameController.clear();
-        _urlController.clear();
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -543,7 +532,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               backgroundColor: AppTheme.successColor,
             ),
           );
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       }
     } catch (e) {
@@ -571,7 +560,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           backgroundColor: AppTheme.successColor,
         ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     }
   }
 
@@ -628,9 +617,7 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 backgroundColor: AppTheme.successColor,
               ),
             );
-            _nameController.clear();
-            _urlController.clear();
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           }
         } catch (e) {
           if (mounted) {
@@ -641,15 +628,6 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
               ),
             );
           }
-        }
-      } else if (PlatformDetector.isTV) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppStrings.of(context)?.noFileSelected ?? 'No file selected'),
-              duration: const Duration(seconds: 4),
-            ),
-          );
         }
       }
     } catch (e) {

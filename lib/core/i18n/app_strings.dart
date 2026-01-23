@@ -14,6 +14,8 @@ class AppStrings {
   static const LocalizationsDelegate<AppStrings> delegate = _AppStringsDelegate();
 
   String get playlistManager => _localizedValues['playlistManager']!;
+  String get playlistList => _localizedValues['playlistList']!;
+  String get goToHomeToAdd => _localizedValues['goToHomeToAdd']!;
   String get addNewPlaylist => _localizedValues['addNewPlaylist']!;
   String get playlistName => _localizedValues['playlistName']!;
   String get playlistUrl => _localizedValues['playlistUrl']!;
@@ -195,6 +197,10 @@ class AppStrings {
   String get noFileSelected => _localizedValues['noFileSelected']!;
   String get epgAutoApplied => _localizedValues['epgAutoApplied']!;
   String get addFirstPlaylistTV => _localizedValues['addFirstPlaylistTV']!;
+  String get addPlaylistSubtitle => _localizedValues['addPlaylistSubtitle']!;
+  String get importFromUsb => _localizedValues['importFromUsb']!;
+  String get scanQrToImport => _localizedValues['scanQrToImport']!;
+  String get playlistUrlHint => _localizedValues['playlistUrlHint']!;
   String get qrStep1 => _localizedValues['qrStep1']!;
   String get qrStep2 => _localizedValues['qrStep2']!;
   String get qrStep3 => _localizedValues['qrStep3']!;
@@ -413,6 +419,8 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
 
   static const Map<String, String> _zhValues = {
     'playlistManager': '播放列表管理',
+    'playlistList': '直播源',
+    'goToHomeToAdd': '前往首页添加播放列表',
     'addNewPlaylist': '添加新播放列表',
     'playlistName': '播放列表名称',
     'playlistUrl': 'M3U/M3U8/TXT 链接',
@@ -589,7 +597,11 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'selectM3uFile': '请在文件管理器中选择播放列表文件（M3U/M3U8/TXT）',
     'noFileSelected': '未选择文件。请确保您的设备已连接USB存储设备或已配置网络存储。',
     'epgAutoApplied': '已自动应用EPG源',
-    'addFirstPlaylistTV': '添加您的第一个播放列表\n您可以通过USB设备导入或使用手机扫码导入',
+    'addFirstPlaylistTV': '通过USB设备导入或扫码导入',
+    'addPlaylistSubtitle': '导入 M3U/M3U8 播放列表，支持 URL 或本地文件',
+    'importFromUsb': '从USB或本地存储导入',
+    'scanQrToImport': '使用手机扫描二维码导入',
+    'playlistUrlHint': 'M3U/M3U8/TXT 链接',
     'qrStep1': '使用手机扫描左侧二维码',
     'qrStep2': '在网页中输入链接或上传文件',
     'qrStep3': '点击导入，电视自动接收',
@@ -774,6 +786,8 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
 
   static const Map<String, String> _enValues = {
     'playlistManager': 'Playlist Manager',
+    'playlistList': 'Sources',
+    'goToHomeToAdd': 'Go to Home to add playlists',
     'addNewPlaylist': 'Add New Playlist',
     'playlistName': 'Playlist Name',
     'playlistUrl': 'M3U/M3U8/TXT URL',
@@ -950,7 +964,11 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'selectM3uFile': 'Please select a playlist file (M3U/M3U8/TXT)',
     'noFileSelected': 'No file selected. Please ensure your device has USB storage or network storage configured.',
     'epgAutoApplied': 'EPG source auto-applied',
-    'addFirstPlaylistTV': 'Add your first playlist\nYou can import via USB or scan QR code',
+    'addFirstPlaylistTV': 'Import via USB or scan QR code',
+    'addPlaylistSubtitle': 'Import M3U/M3U8 playlist from URL or file',
+    'importFromUsb': 'Import from USB or local storage',
+    'scanQrToImport': 'Use your phone to scan QR code',
+    'playlistUrlHint': 'M3U/M3U8/TXT URL',
     'qrStep1': 'Scan the QR code with your phone',
     'qrStep2': 'Enter URL or upload file on the webpage',
     'qrStep3': 'Click import, TV receives automatically',
