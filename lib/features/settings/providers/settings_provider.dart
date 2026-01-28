@@ -494,7 +494,7 @@ class SettingsProvider extends ChangeNotifier {
 
   /// 设置日志级别
   Future<void> setLogLevel(String level) async {
-    ServiceLocator.log.d('SettingsProvider: 设置日志级别 - $level');
+    debugPrint('SettingsProvider: 开始设置日志级别 - $level');
     _logLevel = level;
     await _saveSettings();
     
@@ -505,7 +505,19 @@ class SettingsProvider extends ChangeNotifier {
       'off' => LogLevel.off,
       _ => LogLevel.release,
     };
+    
+    debugPrint('SettingsProvider: 调用 ServiceLocator.log.setLogLevel($logLevel)');
     await ServiceLocator.log.setLogLevel(logLevel);
+    
+    // 写入测试日志
+    debugPrint('SettingsProvider: 写入测试日志...');
+    ServiceLocator.log.d('测试日志：日志级别已切换到 $level');
+    ServiceLocator.log.i('测试日志：Info 级别');
+    ServiceLocator.log.w('测试日志：Warning 级别');
+    
+    // 强制刷新日志缓冲区
+    await ServiceLocator.log.flush();
+    debugPrint('SettingsProvider: 日志缓冲区已刷新');
     
     notifyListeners();
   }
@@ -540,6 +552,11 @@ class SettingsProvider extends ChangeNotifier {
     _fontFamily = 'Arial';
 
     await _saveSettings();
+    
+    // 重置日志级别为关闭（性能优化）
+    await ServiceLocator.prefs.setString('log_level', 'off');
+    await ServiceLocator.log.setLogLevel(LogLevel.off);
+    
     notifyListeners();
   }
 }

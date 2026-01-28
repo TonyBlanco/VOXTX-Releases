@@ -186,12 +186,24 @@ class PlaylistProvider extends ChangeNotifier {
       
       ServiceLocator.log.i('解析到 ${channels.length} 个频道', tag: 'PlaylistProvider');
 
-      // Use batch for much faster insertion
-      final batch = ServiceLocator.database.db.batch();
-      for (final channel in channels) {
-        batch.insert('channels', channel.toMap());
+      // Use batch for much faster insertion, split into chunks to avoid memory issues
+      const chunkSize = 500; // Insert 500 channels at a time
+      for (int i = 0; i < channels.length; i += chunkSize) {
+        final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+        final chunk = channels.sublist(i, end);
+        
+        final batch = ServiceLocator.database.db.batch();
+        for (final channel in chunk) {
+          batch.insert('channels', channel.toMap());
+        }
+        await batch.commit(noResult: true);
+        
+        // Update progress
+        _importProgress = 0.6 + (0.4 * (end / channels.length));
+        notifyListeners();
+        
+        ServiceLocator.log.d('已插入 $end/${channels.length} 个频道', tag: 'PlaylistProvider');
       }
-      await batch.commit(noResult: true);
 
       // Update playlist with last updated timestamp and counts
       await ServiceLocator.database.update(
@@ -212,6 +224,9 @@ class PlaylistProvider extends ChangeNotifier {
 
       final totalTime = DateTime.now().difference(startTime).inMilliseconds;
       ServiceLocator.log.i('播放列表添加成功，总耗时: ${totalTime}ms', tag: 'PlaylistProvider');
+      
+      // 刷新日志缓冲区
+      await ServiceLocator.log.flush();
 
       return _playlists.firstWhere((p) => p.id == playlistId);
     } catch (e) {
@@ -285,12 +300,22 @@ class PlaylistProvider extends ChangeNotifier {
         throw Exception('No channels found in playlist');
       }
 
-      // Use batch for much faster insertion
-      final batch = ServiceLocator.database.db.batch();
-      for (final channel in channels) {
-        batch.insert('channels', channel.toMap());
+      // Use batch for much faster insertion, split into chunks to avoid memory issues
+      const chunkSize = 500; // Insert 500 channels at a time
+      for (int i = 0; i < channels.length; i += chunkSize) {
+        final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+        final chunk = channels.sublist(i, end);
+        
+        final batch = ServiceLocator.database.db.batch();
+        for (final channel in chunk) {
+          batch.insert('channels', channel.toMap());
+        }
+        await batch.commit(noResult: true);
+        
+        // Update progress
+        _importProgress = 0.6 + (0.4 * (end / channels.length));
+        notifyListeners();
       }
-      await batch.commit(noResult: true);
 
       // Save the content as a temporary file for future refreshes
       final tempDir = await getTemporaryDirectory();
@@ -369,13 +394,22 @@ class PlaylistProvider extends ChangeNotifier {
       _importProgress = 0.6;
       notifyListeners();
 
-      // Insert channels
-      // Insert channels using batch for performance
-      final batch = ServiceLocator.database.db.batch();
-      for (final channel in channels) {
-        batch.insert('channels', channel.toMap());
+      // Insert channels using batch for performance, split into chunks
+      const chunkSize = 500; // Insert 500 channels at a time
+      for (int i = 0; i < channels.length; i += chunkSize) {
+        final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+        final chunk = channels.sublist(i, end);
+        
+        final batch = ServiceLocator.database.db.batch();
+        for (final channel in chunk) {
+          batch.insert('channels', channel.toMap());
+        }
+        await batch.commit(noResult: true);
+        
+        // Update progress
+        _importProgress = 0.6 + (0.4 * (end / channels.length));
+        notifyListeners();
       }
-      await batch.commit(noResult: true);
 
       // Update playlist channel count
       await ServiceLocator.database.update(
@@ -508,14 +542,20 @@ class PlaylistProvider extends ChangeNotifier {
         );
         ServiceLocator.log.d('DEBUG: 已删除 $deleteResult 个旧频道记录');
 
-        // Insert new channels - 使用批量插入以提高性能
-        final batch = txn.batch();
-        for (final channel in channels) {
-          final channelMap = channel.toMap();
-          batch.insert('channels', channelMap);
+        // Insert new channels - 使用批量插入以提高性能，分块处理避免内存问题
+        const chunkSize = 500;
+        for (int i = 0; i < channels.length; i += chunkSize) {
+          final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+          final chunk = channels.sublist(i, end);
+          
+          final batch = txn.batch();
+          for (final channel in chunk) {
+            final channelMap = channel.toMap();
+            batch.insert('channels', channelMap);
+          }
+          await batch.commit(noResult: true);
+          ServiceLocator.log.d('DEBUG: 已插入 $end/${channels.length} 个新频道记录');
         }
-        await batch.commit(noResult: true);
-        ServiceLocator.log.d('DEBUG: 已插入 ${channels.length} 个新频道记录');
       });
 
       // Update playlist timestamp and EPG URL

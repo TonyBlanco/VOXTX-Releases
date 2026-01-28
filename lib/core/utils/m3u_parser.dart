@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/channel.dart';
 import '../services/service_locator.dart';
@@ -46,7 +47,8 @@ class M3UParser {
       ServiceLocator.log.d('DEBUG: 成功获取播放列表内容，状态码: ${response.statusCode}');
       ServiceLocator.log.d('DEBUG: 内容大小: ${response.data.toString().length} 字符');
 
-      final channels = parse(response.data.toString(), playlistId);
+      // 使用 compute 在独立 isolate 中解析，避免阻塞主线程
+      final channels = await compute(_parseInIsolate, _ParseParams(response.data.toString(), playlistId));
       ServiceLocator.log.d('DEBUG: URL解析完成，共解析出 ${channels.length} 个频道');
 
       return channels;
@@ -84,7 +86,8 @@ class M3UParser {
       final content = await file.readAsString();
       ServiceLocator.log.d('DEBUG: 成功读取本地文件，内容大小: ${content.length} 字符');
 
-      final channels = parse(content, playlistId);
+      // 使用 compute 在独立 isolate 中解析，避免阻塞主线程
+      final channels = await compute(_parseInIsolate, _ParseParams(content, playlistId));
       ServiceLocator.log.d('DEBUG: 本地文件解析完成，共解析出 ${channels.length} 个频道');
 
       return channels;
@@ -94,20 +97,26 @@ class M3UParser {
     }
   }
 
+  /// Isolate 中执行的解析函数（必须是顶层函数或静态函数）
+  static List<Channel> _parseInIsolate(_ParseParams params) {
+    return parse(params.content, params.playlistId);
+  }
+
 
   /// Parse M3U content string
   /// Merges channels with same tvg-name/epgId into single channel with multiple sources
   static List<Channel> parse(String content, int playlistId) {
-    ServiceLocator.log.d('DEBUG: 开始解析M3U内容，播放列表ID: $playlistId');
+    // 注意：此方法可能在 isolate 中运行，不能使用 ServiceLocator.log
+    // ServiceLocator.log.d('DEBUG: 开始解析M3U内容，播放列表ID: $playlistId');
 
     final List<Channel> rawChannels = [];
     final lines = LineSplitter.split(content).toList();
     String? epgUrl;
 
-    ServiceLocator.log.d('DEBUG: 内容总行数: ${lines.length}');
+    // ServiceLocator.log.d('DEBUG: 内容总行数: ${lines.length}');
 
     if (lines.isEmpty) {
-      ServiceLocator.log.d('DEBUG: 内容为空，返回空频道列表');
+      // ServiceLocator.log.d('DEBUG: 内容为空，返回空频道列表');
       return rawChannels;
     }
 
@@ -121,14 +130,14 @@ class M3UParser {
         final extractedUrl = _extractEpgUrl(line);
         if (extractedUrl != null) {
           epgUrl = extractedUrl;
-          ServiceLocator.log.d('DEBUG: 从M3U头部提取到EPG URL: $epgUrl');
+          // ServiceLocator.log.d('DEBUG: 从M3U头部提取到EPG URL: $epgUrl');
           break;
         }
       }
     }
 
     if (!foundHeader) {
-      ServiceLocator.log.d('DEBUG: 警告 - 缺少M3U头部标记，尝试继续解析');
+      // ServiceLocator.log.d('DEBUG: 警告 - 缺少M3U头部标记，尝试继续解析');
     }
 
     String? currentName;
@@ -174,10 +183,10 @@ class M3UParser {
             validChannelCount++;
           } else {
             invalidUrlCount++;
-            ServiceLocator.log.d('DEBUG: 无效的URL在第${i + 1}行: $line');
+            // ServiceLocator.log.d('DEBUG: 无效的URL在第${i + 1}行: $line');
           }
         } else {
-          ServiceLocator.log.d('DEBUG: 找到URL但没有对应的频道名称在第${i + 1}行: $line');
+          // ServiceLocator.log.d('DEBUG: 找到URL但没有对应的频道名称在第${i + 1}行: $line');
         }
 
         // Reset for next entry
@@ -188,12 +197,12 @@ class M3UParser {
       }
     }
 
-    ServiceLocator.log.d('DEBUG: 原始解析完成 - 有效频道: $validChannelCount, 无效URL: $invalidUrlCount');
+    // ServiceLocator.log.d('DEBUG: 原始解析完成 - 有效频道: $validChannelCount, 无效URL: $invalidUrlCount');
 
     // Merge channels with same epgId (tvg-name) into single channel with multiple sources
     final List<Channel> mergedChannels = _mergeChannelSources(rawChannels);
     
-    ServiceLocator.log.d('DEBUG: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
+    // ServiceLocator.log.d('DEBUG: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
 
     // Save parse result with EPG URL
     _lastParseResult = M3UParseResult(channels: mergedChannels, epgUrl: epgUrl);
@@ -306,7 +315,7 @@ class M3UParser {
 
     // Debug logging for logo parsing
     if (logo != null && logo.isNotEmpty) {
-      ServiceLocator.log.d('DEBUG: 解析到台标URL: $logo, 频道: $name');
+      // ServiceLocator.log.d('DEBUG: 解析到台标URL: $logo, 频道: $name');
     }
 
     return {
@@ -346,13 +355,13 @@ class M3UParser {
            uri.scheme == 'rtmp' || uri.scheme == 'rtsp' || 
            uri.scheme == 'mms' || uri.scheme == 'mmsh' || uri.scheme == 'mmst');
 
-      if (!isValid) {
-        ServiceLocator.log.d('DEBUG: URL验证失败 - Scheme: ${uri.scheme}, Host: ${uri.host}');
-      }
+      // if (!isValid) {
+      //   ServiceLocator.log.d('DEBUG: URL验证失败 - Scheme: ${uri.scheme}, Host: ${uri.host}');
+      // }
 
       return isValid;
     } catch (e) {
-      ServiceLocator.log.d('DEBUG: URL解析错误: $url, 错误: $e');
+      // ServiceLocator.log.d('DEBUG: URL解析错误: $url, 错误: $e');
       return false;
     }
   }
@@ -401,4 +410,12 @@ class M3UParser {
 
     return buffer.toString();
   }
+}
+
+/// 用于传递参数到 isolate 的类
+class _ParseParams {
+  final String content;
+  final int playlistId;
+
+  _ParseParams(this.content, this.playlistId);
 }

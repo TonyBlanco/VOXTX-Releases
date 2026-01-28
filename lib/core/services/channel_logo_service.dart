@@ -44,11 +44,49 @@ class ChannelLogoService {
 
   /// Normalize channel name for matching
   String _normalizeChannelName(String name) {
-    // 先去除常见后缀，再去除空格、下划线（保留 + 号）
-    return name
-        .toUpperCase()
-        .replaceAll(RegExp(r'(综合|综艺|体育|新闻|音乐|戏曲|少儿|电影|电视剧|纪录|科教|农业|军事|财经|国防|赛事|中文|国际|社会|与法|农村|高清|HD|4K|8K|超清|标清|频道|卫视)'), '') // Remove common suffixes first
-        .replaceAll(RegExp(r'[-\s_]+'), ''); // Then remove spaces, dashes, underscores (keep + sign)
+    String normalized = name.toUpperCase();
+    
+    // 1. 特殊处理：CCTV-01 -> CCTV1, CCTV-1 -> CCTV1
+    normalized = normalized.replaceAllMapped(
+      RegExp(r'CCTV[-\s]*0*(\d+)'),
+      (match) => 'CCTV${match.group(1)}',
+    );
+    
+    // 2. 对于纯英文+数字的频道（如 CCTV1, CCTV5+），提取核心部分，去除后面的中文
+    // 匹配模式：字母+数字+可选符号（如+），然后是中文或其他后缀
+    final coreMatch = RegExp(r'^([A-Z0-9+]+)').firstMatch(normalized);
+    if (coreMatch != null) {
+      final core = coreMatch.group(1)!;
+      // 如果核心部分包含字母和数字，说明是英文频道，只保留核心部分
+      if (RegExp(r'[A-Z]').hasMatch(core) && RegExp(r'[0-9]').hasMatch(core)) {
+        normalized = core;
+        return normalized;
+      }
+    }
+    
+    // 3. 对于中文频道（如 湖南卫视高清），去除常见后缀
+    // 去除英文后缀
+    normalized = normalized.replaceAll(RegExp(r'(HD|4K|8K|FHD|UHD|SD)'), '');
+    
+    // 去除中文后缀（匹配末尾的修饰词）
+    normalized = normalized.replaceAll(
+      RegExp(r'(高清|超清|蓝光|高码率|低码率|标清|频道|卫视高清|卫视超清)$'),
+      '',
+    );
+    
+    // 特殊处理：保留"卫视"
+    if (!normalized.endsWith('卫视') && name.toUpperCase().contains('卫视')) {
+      // 如果原名包含卫视但被去掉了，加回来
+      final wsMatch = RegExp(r'(.+?)卫视').firstMatch(name.toUpperCase());
+      if (wsMatch != null) {
+        normalized = wsMatch.group(1)! + '卫视';
+      }
+    }
+    
+    // 4. 去除空格、横线、下划线（保留 + 号）
+    normalized = normalized.replaceAll(RegExp(r'[-\s_]+'), '');
+    
+    return normalized;
   }
 
   /// Find logo URL for a channel name with fuzzy matching
@@ -59,10 +97,11 @@ class ChannelLogoService {
 
     // Try exact match from cache first
     final normalized = _normalizeChannelName(channelName);
-    ServiceLocator.log.d('ChannelLogoService: 查询台标 "$channelName" → 规范化为 "$normalized"');
+    // 降低日志级别，避免大量输出
+    // ServiceLocator.log.d('ChannelLogoService: 查询台标 "$channelName" → 规范化为 "$normalized"');
     
     if (_logoCache.containsKey(normalized)) {
-      ServiceLocator.log.d('ChannelLogoService: 缓存命中 "$normalized"');
+      // ServiceLocator.log.d('ChannelLogoService: 缓存命中 "$normalized"');
       return _logoCache[normalized];
     }
 
@@ -70,22 +109,36 @@ class ChannelLogoService {
     try {
       final cleanName = _normalizeChannelName(channelName);
       
-      // Query with LIKE for fuzzy matching
-      final results = await _db.rawQuery('''
+      // 先尝试精确匹配（规范化后）
+      var results = await _db.rawQuery('''
         SELECT logo_url FROM $_tableName 
-        WHERE UPPER(REPLACE(REPLACE(REPLACE(channel_name, '-', ''), ' ', ''), '_', '')) LIKE ?
-           OR UPPER(REPLACE(REPLACE(REPLACE(search_keys, '-', ''), ' ', ''), '_', '')) LIKE ?
+        WHERE UPPER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+          REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            channel_name, 
+            '高码率', ''), '低码率', ''), '超清', ''), '蓝光', ''), 
+            '高清', ''), '标清', ''), 'HD', ''), '4K', ''), '8K', ''), 
+            'FHD', ''), 'UHD', ''), '-', ''), ' ', ''), '_', '')) = ?
         LIMIT 1
-      ''', ['%$cleanName%', '%$cleanName%']);
+      ''', [cleanName]);
+      
+      // 如果精确匹配失败，尝试模糊匹配
+      if (results.isEmpty) {
+        results = await _db.rawQuery('''
+          SELECT logo_url FROM $_tableName 
+          WHERE UPPER(REPLACE(REPLACE(REPLACE(channel_name, '-', ''), ' ', ''), '_', '')) LIKE ?
+             OR UPPER(REPLACE(REPLACE(REPLACE(search_keys, '-', ''), ' ', ''), '_', '')) LIKE ?
+          LIMIT 1
+        ''', ['%$cleanName%', '%$cleanName%']);
+      }
       
       if (results.isNotEmpty) {
         final logoUrl = results.first['logo_url'] as String;
-        ServiceLocator.log.d('ChannelLogoService: 数据库模糊匹配成功 "$channelName" → "$logoUrl"');
+        // ServiceLocator.log.d('ChannelLogoService: 数据库匹配成功 "$channelName" → "$logoUrl"');
         // Cache the result
         _logoCache[normalized] = logoUrl;
         return logoUrl;
       } else {
-        ServiceLocator.log.w('ChannelLogoService: 未找到台标 "$channelName" (规范化: "$normalized")');
+        // ServiceLocator.log.w('ChannelLogoService: 未找到台标 "$channelName" (规范化: "$normalized")');
       }
     } catch (e) {
       ServiceLocator.log.w('ChannelLogoService: 查询失败: $e');

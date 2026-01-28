@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/channel.dart';
 import '../services/service_locator.dart';
@@ -31,7 +32,8 @@ class TXTParser {
       ServiceLocator.log.d('DEBUG: 成功获取TXT播放列表内容，状态码: ${response.statusCode}');
       ServiceLocator.log.d('DEBUG: 内容大小: ${response.data.toString().length} 字符');
 
-      final channels = parse(response.data.toString(), playlistId);
+      // 使用 compute 在独立 isolate 中解析，避免阻塞主线程
+      final channels = await compute(_parseInIsolate, _ParseParams(response.data.toString(), playlistId));
       ServiceLocator.log.d('DEBUG: TXT URL解析完成，共解析出 ${channels.length} 个频道');
 
       return channels;
@@ -68,7 +70,8 @@ class TXTParser {
       final content = await file.readAsString();
       ServiceLocator.log.d('DEBUG: 成功读取TXT本地文件，内容大小: ${content.length} 字符');
 
-      final channels = parse(content, playlistId);
+      // 使用 compute 在独立 isolate 中解析，避免阻塞主线程
+      final channels = await compute(_parseInIsolate, _ParseParams(content, playlistId));
       ServiceLocator.log.d('DEBUG: TXT本地文件解析完成，共解析出 ${channels.length} 个频道');
 
       return channels;
@@ -83,15 +86,16 @@ class TXTParser {
   ///         Channel Name,URL
   /// Merges channels with same name into single channel with multiple sources
   static List<Channel> parse(String content, int playlistId) {
-    ServiceLocator.log.d('DEBUG: 开始解析TXT内容，播放列表ID: $playlistId');
+    // 注意：此方法可能在 isolate 中运行，不能使用 ServiceLocator.log
+    // ServiceLocator.log.d('DEBUG: 开始解析TXT内容，播放列表ID: $playlistId');
 
     final List<Channel> rawChannels = [];
     final lines = LineSplitter.split(content).toList();
 
-    ServiceLocator.log.d('DEBUG: TXT内容总行数: ${lines.length}');
+    // ServiceLocator.log.d('DEBUG: TXT内容总行数: ${lines.length}');
 
     if (lines.isEmpty) {
-      ServiceLocator.log.d('DEBUG: TXT内容为空，返回空频道列表');
+      // ServiceLocator.log.d('DEBUG: TXT内容为空，返回空频道列表');
       return rawChannels;
     }
 
@@ -110,7 +114,7 @@ class TXTParser {
         if (currentGroup.isEmpty) {
           currentGroup = 'Uncategorized';
         }
-        ServiceLocator.log.d('DEBUG: 找到分类: $currentGroup');
+        // ServiceLocator.log.d('DEBUG: 找到分类: $currentGroup');
         continue;
       }
 
@@ -132,24 +136,24 @@ class TXTParser {
           validChannelCount++;
         } else {
           invalidLineCount++;
-          if (name.isEmpty) {
-            ServiceLocator.log.d('DEBUG: 第${i + 1}行频道名称为空: $line');
-          } else {
-            ServiceLocator.log.d('DEBUG: 第${i + 1}行URL无效: $url');
-          }
+          // if (name.isEmpty) {
+          //   ServiceLocator.log.d('DEBUG: 第${i + 1}行频道名称为空: $line');
+          // } else {
+          //   ServiceLocator.log.d('DEBUG: 第${i + 1}行URL无效: $url');
+          // }
         }
       } else {
         invalidLineCount++;
-        ServiceLocator.log.d('DEBUG: 第${i + 1}行格式不正确: $line');
+        // ServiceLocator.log.d('DEBUG: 第${i + 1}行格式不正确: $line');
       }
     }
 
-    ServiceLocator.log.d('DEBUG: TXT原始解析完成 - 有效频道: $validChannelCount, 无效行: $invalidLineCount');
+    // ServiceLocator.log.d('DEBUG: TXT原始解析完成 - 有效频道: $validChannelCount, 无效行: $invalidLineCount');
 
     // Merge channels with same name into single channel with multiple sources
     final List<Channel> mergedChannels = _mergeChannelSources(rawChannels);
     
-    ServiceLocator.log.d('DEBUG: TXT合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
+    // ServiceLocator.log.d('DEBUG: TXT合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
 
     return mergedChannels;
   }
@@ -244,4 +248,17 @@ class TXTParser {
 
     return buffer.toString();
   }
+}
+
+/// 用于传递参数到 isolate 的类
+class _ParseParams {
+  final String content;
+  final int playlistId;
+
+  _ParseParams(this.content, this.playlistId);
+}
+
+/// Isolate 中执行的解析函数（必须是顶层函数或静态函数）
+List<Channel> _parseInIsolate(_ParseParams params) {
+  return TXTParser.parse(params.content, params.playlistId);
 }

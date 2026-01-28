@@ -1,23 +1,23 @@
 {
-  "version": "1.4.17",
-  "build": 137,
+  "version": "1.4.18",
+  "build": 138,
   "releaseDate": "2026-01-28",
   "assets": {
-    "windows": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-Windows-x64-Setup.exe",
+    "windows": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-Android-Mobile-arm64-v8a.apk",
-      "armeabi-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-Android-Mobile-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-Android-Mobile-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-Android-Mobile-arm64-v8a.apk",
+      "armeabi-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-Android-Mobile-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-Android-Mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-AndroidTV-arm64-v8a.apk",
-      "armeabi-v7a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-AndroidTV-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.17/flutteriptv-AndroidTV-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-AndroidTV-arm64-v8a.apk",
+      "armeabi-v7a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-AndroidTV-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.18/flutteriptv-AndroidTV-x86_64.apk"
     }
   },
   "changelog": {
-    "zh": "- 优化：台标模糊匹配算法，新增支持\"财经\"、\"国防\"、\"赛事\"、\"中文\"、\"国际\"、\"社会\"、\"与法\"、\"农村\"等后缀\n- 优化：台标匹配规则，支持更多频道名称变体\n- 修复：CCTV-2财经、CCTV-12社会与法、CCTV-17农业农村等频道台标匹配问题\n- 修复：江苏卫视等卫视频道台标匹配问题\n- 新增：台标查询日志，方便调试",
-    "en": "- Improved: Logo fuzzy matching algorithm with more suffix support\n- Improved: Logo matching rules for more channel name variants\n- Fixed: Logo matching for CCTV-2, CCTV-12, CCTV-17 and other channels\n- Fixed: Logo matching for provincial satellite TV channels\n- Added: Logo query logging for debugging"
+    "zh": "- 性能优化：M3U 台标超时时间缩短至 3 秒，快速回退到数据库台标\n- 性能优化：M3U/TXT 解析使用 Isolate，避免主线程阻塞\n- 性能优化：数据库分块批量插入（每 500 条），大幅提升导入速度\n- 性能优化：台标延迟加载，只在需要时才查询数据库\n- 性能优化：日志批量写入（缓冲 100 条），减少磁盘 I/O\n- 性能优化：台标加载并发控制（最多 10 个），避免大量频道时卡死\n- 优化：导入大型播放列表（5000+ 频道）速度提升 10 倍以上\n- 优化：实时显示导入进度（60%-100%）\n- 优化：台标状态全局缓存，避免重复加载\n- 优化：智能频道名称匹配（CCTV-01高码率 → CCTV1）\n- 修复：M3U 台标加载等待时间过长（从 20 秒降至 3 秒）\n- 修复：台标加载后变回默认图标的问题\n- 修复：导入大型播放列表时界面卡死的问题\n- 修复：日志级别切换后不生效的问题\n- 新增：自定义缓存管理器，优化台标加载性能\n- 新增：日志自动刷新机制（每 30 秒）\n- 新增：重置设置时自动关闭日志",
+    "en": "- Performance: M3U logo timeout reduced to 3 seconds, fast fallback to database\n- Performance: M3U/TXT parsing in Isolate to avoid blocking UI\n- Performance: Database batch insert in chunks (500 per batch)\n- Performance: Lazy loading for channel logos\n- Performance: Batch log writing (buffer 100 entries)\n- Performance: Logo loading concurrency control (max 10), prevent freeze with many channels\n- Improved: 10x faster import for large playlists (5000+ channels)\n- Improved: Real-time import progress display (60%-100%)\n- Improved: Global logo state cache to avoid duplicate loading\n- Improved: Smart channel name matching (CCTV-01高码率 → CCTV1)\n- Fixed: M3U logo loading timeout too long (from 20s to 3s)\n- Fixed: Logo reverting to default after loading\n- Fixed: UI freeze when importing large playlists\n- Fixed: Log level not taking effect after switching\n- Added: Custom cache manager for optimized logo loading\n- Added: Auto-flush logs every 30 seconds\n- Added: Auto-disable logs when resetting settings"
   },
   "minVersion": "1.0.0"
 }

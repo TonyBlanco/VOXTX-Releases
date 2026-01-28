@@ -24,6 +24,12 @@ class LogService {
   LogLevel _currentLevel = LogLevel.release;
   String? _logFilePath;
   bool _initialized = false;
+  
+  // 批量写入缓冲区
+  final List<String> _logBuffer = [];
+  static const int _bufferSize = 100; // 缓冲区大小
+  DateTime? _lastFlushTime; // 上次刷新时间
+  static const Duration _autoFlushInterval = Duration(seconds: 30); // 自动刷新间隔
 
   /// 初始化日志服务
   Future<void> init({SharedPreferences? prefs}) async {
@@ -32,8 +38,12 @@ class LogService {
     try {
       // 从设置中读取日志级别
       final preferences = prefs ?? ServiceLocator.prefs;
-      final levelString = preferences.getString('log_level') ?? 'off';
+      
+      String levelString = preferences.getString('log_level') ?? 'off';
+      debugPrint('LogService: 从 SharedPreferences 读取日志级别: $levelString');
+      
       _currentLevel = _parseLogLevel(levelString);
+      debugPrint('LogService: 解析后的日志级别: ${_currentLevel.name}');
 
       if (_currentLevel == LogLevel.off) {
         debugPrint('LogService: 日志已关闭');
@@ -45,6 +55,9 @@ class LogService {
       _logFilePath = await _getLogFilePath();
       
       if (_logFilePath != null) {
+        // 创建日志文件引用
+        _file = File(_logFilePath!);
+        
         // 创建日志目录
         final logDir = Directory(path.dirname(_logFilePath!));
         if (!await logDir.exists()) {
@@ -54,12 +67,13 @@ class LogService {
         // 清理旧日志（保留最近7天）
         await _cleanOldLogs(logDir);
 
-        // 创建 Logger 实例
+        // 创建 Logger 实例（使用批量输出）
+        // 注意：Logger 的 level 参数设置为 all，让我们的 Filter 来控制
         _logger = Logger(
           filter: _LogFilter(_currentLevel),
           printer: _LogPrinter(),
-          output: _FileOutput(_logFilePath!),
-          level: _currentLevel == LogLevel.debug ? Level.debug : Level.warning,
+          output: _BatchFileOutput(this),
+          level: Level.all, // 允许所有级别，由 Filter 控制
         );
 
         debugPrint('LogService: 初始化成功，日志文件: $_logFilePath');
@@ -70,6 +84,9 @@ class LogService {
         _logger?.i('应用启动 - ${DateTime.now()}');
         _logger?.i('日志级别: ${_currentLevel.name}');
         _logger?.i('========================================');
+        
+        // 立即刷新启动日志
+        await flush();
       }
 
       _initialized = true;
@@ -154,12 +171,18 @@ class LogService {
 
   /// 设置日志级别
   Future<void> setLogLevel(LogLevel level) async {
+    debugPrint('LogService: 开始设置日志级别为 ${level.name}');
+    
+    // 先刷新当前缓冲区
+    await flush();
+    
     _currentLevel = level;
     
     // 保存到设置
     try {
       final prefs = ServiceLocator.prefs;
       await prefs.setString('log_level', level.name);
+      debugPrint('LogService: 日志级别已保存到 SharedPreferences');
     } catch (e) {
       debugPrint('LogService: 保存日志级别失败 - $e');
     }
@@ -167,7 +190,10 @@ class LogService {
     // 重新初始化
     _initialized = false;
     _logger = null;
+    _file = null;
+    debugPrint('LogService: 开始重新初始化...');
     await init();
+    debugPrint('LogService: 重新初始化完成，_logger = $_logger, _file = $_file');
   }
 
   /// 获取当前日志级别
@@ -178,15 +204,29 @@ class LogService {
 
   /// Debug 日志
   void d(String message, {String? tag, dynamic error, StackTrace? stackTrace}) {
-    if (_currentLevel == LogLevel.off) return;
+    if (_currentLevel == LogLevel.off) return; // 只有 off 时才不记录
+    if (_currentLevel != LogLevel.debug) return; // 只有 debug 级别才记录 debug 日志
+    
+    if (_logger == null) {
+      debugPrint('LogService: Logger 未初始化，无法写入日志');
+      return;
+    }
+    
     final msg = tag != null ? '[$tag] $message' : message;
     _logger?.d(msg, error: error, stackTrace: stackTrace);
-    if (kDebugMode) debugPrint('DEBUG: $msg');
+    // 在调试模式下，只在非批量导入时输出到控制台
+    // if (kDebugMode) debugPrint('DEBUG: $msg');
   }
 
   /// Info 日志
   void i(String message, {String? tag, dynamic error, StackTrace? stackTrace}) {
     if (_currentLevel == LogLevel.off) return;
+    
+    if (_logger == null) {
+      debugPrint('LogService: Logger 未初始化 (Info)');
+      return;
+    }
+    
     final msg = tag != null ? '[$tag] $message' : message;
     _logger?.i(msg, error: error, stackTrace: stackTrace);
     if (kDebugMode) debugPrint('INFO: $msg');
@@ -207,6 +247,40 @@ class LogService {
     _logger?.e(msg, error: error, stackTrace: stackTrace);
     if (kDebugMode) debugPrint('ERROR: $msg');
   }
+  
+  /// 刷新日志缓冲区（强制写入所有缓存的日志）
+  Future<void> flush() async {
+    if (_logBuffer.isEmpty) return;
+    
+    try {
+      if (_file != null) {
+        await _file!.writeAsString(
+          _logBuffer.join('\n') + '\n',
+          mode: FileMode.append,
+          flush: true,
+        );
+        _logBuffer.clear();
+        _lastFlushTime = DateTime.now();
+      }
+    } catch (e) {
+      debugPrint('LogService: 刷新日志缓冲区失败 - $e');
+    }
+  }
+  
+  /// 检查是否需要自动刷新
+  void _checkAutoFlush() {
+    if (_lastFlushTime == null) {
+      _lastFlushTime = DateTime.now();
+      return;
+    }
+    
+    final now = DateTime.now();
+    if (now.difference(_lastFlushTime!) >= _autoFlushInterval) {
+      flush();
+    }
+  }
+  
+  File? _file;
 
   /// 获取日志目录
   Future<Directory?> getLogDirectory() async {
@@ -294,9 +368,9 @@ class _LogFilter extends LogFilter {
   @override
   bool shouldLog(LogEvent event) {
     if (logLevel == LogLevel.off) return false;
-    if (logLevel == LogLevel.debug) return true;
-    // Release 模式只记录 warning 和 error
-    return event.level.index >= Level.warning.index;
+    if (logLevel == LogLevel.debug) return true; // Debug 模式记录所有
+    // Release 模式记录 info, warning 和 error
+    return event.level.index >= Level.info.index;
   }
 }
 
@@ -325,34 +399,34 @@ class _LogPrinter extends LogPrinter {
   }
 }
 
-/// 文件输出
-class _FileOutput extends LogOutput {
-  final String filePath;
-  File? _file;
+/// 批量文件输出（性能优化版）
+class _BatchFileOutput extends LogOutput {
+  final LogService logService;
 
-  _FileOutput(this.filePath);
-
-  @override
-  Future<void> init() async {
-    _file = File(filePath);
-  }
+  _BatchFileOutput(this.logService);
 
   @override
   void output(OutputEvent event) {
-    if (_file == null) return;
+    if (logService._file == null) return;
 
     try {
-      final buffer = StringBuffer();
       for (final line in event.lines) {
-        buffer.writeln(line);
+        logService._logBuffer.add(line);
       }
       
-      // 追加写入文件
-      _file!.writeAsStringSync(
-        buffer.toString(),
-        mode: FileMode.append,
-        flush: true,
-      );
+      // 检查是否需要自动刷新（基于时间）
+      logService._checkAutoFlush();
+      
+      // 当缓冲区达到一定大小时，批量写入
+      if (logService._logBuffer.length >= LogService._bufferSize) {
+        logService._file!.writeAsStringSync(
+          logService._logBuffer.join('\n') + '\n',
+          mode: FileMode.append,
+          flush: false, // 不立即刷新，提高性能
+        );
+        logService._logBuffer.clear();
+        logService._lastFlushTime = DateTime.now();
+      }
     } catch (e) {
       debugPrint('LogService: 写入日志失败 - $e');
     }
