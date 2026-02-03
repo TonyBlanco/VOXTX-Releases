@@ -41,7 +41,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedNavIndex = 0;
-  List<Channel> _recommendedChannels = [];
+  List<Channel> _watchHistoryChannels = [];
   int? _lastPlaylistId; // 跟踪上次的播放列表ID
   int _lastChannelCount = 0; // 跟踪上次的频道数量
   String _appVersion = '';
@@ -73,6 +73,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       ServiceLocator.log.i('应用从后台恢复，检查数据状态', tag: 'HomeScreen');
       _checkAndReloadIfNeeded();
+      // 刷新观看记录
+      _refreshWatchHistory();
     }
   }
 
@@ -119,9 +121,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (!channelProvider.isLoading && channelProvider.channels.isNotEmpty) {
       // 频道数量变化或首次加载时刷新
       if (channelProvider.channels.length != _lastChannelCount ||
-          _recommendedChannels.isEmpty) {
+          _watchHistoryChannels.isEmpty) {
         _lastChannelCount = channelProvider.channels.length;
-        _refreshRecommendedChannels();
+        _refreshWatchHistory();
       }
     }
   }
@@ -131,10 +133,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final playlistProvider = context.read<PlaylistProvider>();
     final currentPlaylistId = playlistProvider.activePlaylist?.id;
 
-    // 播放列表ID变化时清空推荐频道并重新加载
+    // 播放列表ID变化时清空观看记录并重新加载
     if (_lastPlaylistId != currentPlaylistId) {
       _lastPlaylistId = currentPlaylistId;
-      _recommendedChannels = [];
+      _watchHistoryChannels = [];
       _lastChannelCount = 0;
 
       // 播放列表切换时，重新加载频道
@@ -148,17 +150,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // 这样可以确保刷新 M3U 后首页能正确更新
     if (!playlistProvider.isLoading && playlistProvider.hasPlaylists) {
       final channelProvider = context.read<ChannelProvider>();
-      // 如果频道 provider 不在加载中，且推荐频道为空，则重新加载
-      if (!channelProvider.isLoading && _recommendedChannels.isEmpty) {
-        _refreshRecommendedChannels();
+      // 如果频道 provider 不在加载中，且观看记录为空，则重新加载
+      if (!channelProvider.isLoading && _watchHistoryChannels.isEmpty) {
+        _refreshWatchHistory();
       }
     }
   }
 
   void _onFavoritesProviderChanged() {
     if (!mounted) return;
-    // 收藏状态变化时刷新推荐频道
-    _refreshRecommendedChannels();
+    // 收藏状态变化时刷新观看记录
+    _refreshWatchHistory();
   }
 
   @override
@@ -217,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
       ServiceLocator.log.d('加载收藏列表', tag: 'HomeScreen');
       await favoritesProvider.loadFavorites();
-      _refreshRecommendedChannels();
+      _refreshWatchHistory();
 
       final loadTime = DateTime.now().difference(startTime).inMilliseconds;
       ServiceLocator.log.i(
@@ -286,44 +288,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _refreshRecommendedChannels() {
+  void _refreshWatchHistory() async {
     if (!mounted) return;
 
-    final channelProvider = context.read<ChannelProvider>();
-    final favoritesProvider = context.read<FavoritesProvider>();
-
-    // 如果频道列表为空，清空推荐列表
-    if (channelProvider.channels.isEmpty) {
-      if (_recommendedChannels.isNotEmpty) {
+    final playlistProvider = context.read<PlaylistProvider>();
+    final activePlaylist = playlistProvider.activePlaylist;
+    
+    if (activePlaylist?.id == null) {
+      if (_watchHistoryChannels.isNotEmpty) {
         setState(() {
-          _recommendedChannels = [];
+          _watchHistoryChannels = [];
         });
       }
       return;
     }
 
-    // 分离收藏和非收藏频道
-    final favoriteChannels = <Channel>[];
-    final nonFavoriteChannels = <Channel>[];
-
-    for (final channel in channelProvider.channels) {
-      if (favoritesProvider.isFavorite(channel.id ?? 0)) {
-        favoriteChannels.add(channel);
-      } else {
-        nonFavoriteChannels.add(channel);
+    // 异步加载观看记录
+    ServiceLocator.watchHistory.getWatchHistory(activePlaylist!.id!, limit: 20).then((history) {
+      if (mounted) {
+        setState(() {
+          _watchHistoryChannels = history;
+        });
       }
-    }
-
-    // 打乱非收藏频道顺序
-    nonFavoriteChannels.shuffle();
-
-    // 优先显示收藏频道，不够再补充非收藏频道
-    _recommendedChannels = [
-      ...favoriteChannels,
-      ...nonFavoriteChannels,
-    ].take(20).toList();
-
-    setState(() {});
+    }).catchError((e) {
+      ServiceLocator.log.e('加载观看记录失败: $e', tag: 'HomeScreen');
+      if (mounted) {
+        setState(() {
+          _watchHistoryChannels = [];
+        });
+      }
+    });
   }
 
   List<_NavItem> _getNavItems(BuildContext context) {
@@ -353,6 +347,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     clearLogoLoadingQueue();
 
     setState(() => _selectedNavIndex = index);
+    
+    // 切换到首页时刷新观看记录
+    if (index == 0) {
+      _refreshWatchHistory();
+    }
   }
 
   @override
@@ -538,6 +537,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildMainContent(BuildContext context) {
+    // 每次构建首页内容时刷新观看记录
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _refreshWatchHistory();
+      }
+    });
+    
     return Consumer2<PlaylistProvider, ChannelProvider>(
       builder: (context, playlistProvider, channelProvider, _) {
         if (!playlistProvider.hasPlaylists) return _buildEmptyState();
@@ -590,13 +596,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         horizontal: PlatformDetector.isMobile ? 12 : 24),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        _buildChannelRow(
-                            AppStrings.of(context)?.recommendedChannels ??
-                                'Recommended',
-                            _recommendedChannels,
-                            showRefresh: true,
-                            onRefresh: _refreshRecommendedChannels),
-                        SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
+                        // 只有当观看记录不为空时才显示
+                        if (_watchHistoryChannels.isNotEmpty)
+                          _buildChannelRow(
+                              AppStrings.of(context)?.watchHistory ?? 'Watch History',
+                              _watchHistoryChannels),
+                        if (_watchHistoryChannels.isNotEmpty)
+                          SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ...channelProvider.groups.take(5).map((group) {
                           // 取足够多的频道，实际显示数量由宽度决定
                           final channels = channelProvider.channels
@@ -901,8 +907,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // 刷新成功，重新加载频道
       if (activePlaylist.id != null) {
         await channelProvider.loadChannels(activePlaylist.id!);
-        // 刷新推荐列表
-        _refreshRecommendedChannels();
+        // 刷新观看记录
+        _refreshWatchHistory();
 
         // 重新加载 EPG（使用播放列表的 EPG URL，如果失败则使用设置中的兜底 URL）
         final epgProvider = context.read<EpgProvider>();
@@ -1213,10 +1219,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildChannelRow(String title, List<Channel> channels,
       {bool showMore = false,
-      bool showRefresh = false,
-      VoidCallback? onMoreTap,
-      VoidCallback? onRefresh}) {
-    if (channels.isEmpty && !showRefresh) return const SizedBox.shrink();
+      VoidCallback? onMoreTap}) {
+    if (channels.isEmpty) return const SizedBox.shrink();
     final isMobile = PlatformDetector.isMobile;
 
     return Column(
@@ -1229,29 +1233,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     color: AppTheme.getTextPrimary(context),
                     fontSize: isMobile ? 14 : 16,
                     fontWeight: FontWeight.w600)),
-            if (showRefresh) ...[
-              const SizedBox(width: 10),
-              TVFocusable(
-                onSelect: onRefresh,
-                focusScale: 1.0,
-                showFocusBorder: false,
-                builder: (context, isFocused, child) {
-                  return Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: isFocused
-                          ? AppTheme.getPrimaryColor(context)
-                          : AppTheme.getGlassColor(context),
-                      shape: BoxShape.circle,
-                    ),
-                    child: child,
-                  );
-                },
-                child: Icon(Icons.refresh_rounded,
-                    color: AppTheme.getTextPrimary(context),
-                    size: isMobile ? 12 : 14),
-              ),
-            ],
             const Spacer(),
             if (showMore)
               TVFocusable(

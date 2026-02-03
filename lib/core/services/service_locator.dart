@@ -8,6 +8,7 @@ import 'update_service.dart';
 import 'log_service.dart';
 import 'channel_logo_service.dart';
 import 'redirect_cache_service.dart';
+import 'watch_history_service.dart';
 import '../managers/update_manager.dart';
 
 /// Service Locator for dependency injection
@@ -20,6 +21,7 @@ class ServiceLocator {
   static late LogService _logService;
   static late ChannelLogoService _channelLogoService;
   static late RedirectCacheService _redirectCache;
+  static late WatchHistoryService _watchHistory;
 
   static SharedPreferences get prefs => _prefs;
   static DatabaseHelper get database => _database;
@@ -29,11 +31,12 @@ class ServiceLocator {
   static LogService get log => _logService;
   static ChannelLogoService get channelLogo => _channelLogoService;
   static RedirectCacheService get redirectCache => _redirectCache;
+  static WatchHistoryService get watchHistory => _watchHistory;
   
   /// Check if log service is initialized
   static bool get isLogInitialized {
     try {
-      return _logService != null;
+      return true; // _logService is always initialized after initPrefs()
     } catch (e) {
       return false;
     }
@@ -65,6 +68,9 @@ class ServiceLocator {
     _channelLogoService.initialize().catchError((e) {
       log.e('Failed to initialize channel logo service: $e');
     });
+
+    // Initialize watch history service (after database)
+    _watchHistory = WatchHistoryService();
   }
 
   static Future<void> init() async {

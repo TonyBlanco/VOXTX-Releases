@@ -540,6 +540,11 @@ class PlaylistProvider extends ChangeNotifier {
       _importProgress = 0.5;
       notifyListeners();
 
+      // 在删除旧频道之前，先保存观看记录的频道信息（名称和URL）
+      ServiceLocator.log.d('DEBUG: 保存观看记录的频道信息...');
+      final savedChannelInfo = await ServiceLocator.watchHistory.saveWatchHistoryChannelInfo(playlist.id!);
+      ServiceLocator.log.d('DEBUG: 已保存 ${savedChannelInfo.length} 条观看记录的频道信息');
+
       // 使用事务确保数据一致性：先删除旧数据，再插入新数据
       // 如果插入失败，事务会回滚，旧数据不会丢失
       await ServiceLocator.database.db.transaction((txn) async {
@@ -591,6 +596,11 @@ class PlaylistProvider extends ChangeNotifier {
       _importProgress = 1.0;
       ServiceLocator.log.d('DEBUG: 刷新完成，进度: 100%');
       notifyListeners();
+
+      // 更新观看记录的频道ID（通过名称和URL匹配新的频道ID）
+      ServiceLocator.log.d('DEBUG: 开始更新观看记录的频道ID...');
+      await ServiceLocator.watchHistory.updateChannelIdsAfterRefresh(playlist.id!, savedChannelInfo);
+      ServiceLocator.log.d('DEBUG: 观看记录频道ID更新完成');
 
       // 清除重定向缓存（因为播放列表已更新，URL可能已变化）
       ServiceLocator.redirectCache.clearAllCache();

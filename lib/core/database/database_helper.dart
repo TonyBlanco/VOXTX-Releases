@@ -9,7 +9,7 @@ import '../services/service_locator.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _databaseName = 'flutter_iptv.db';
-  static const int _databaseVersion = 5; // Upgraded for channel_logos table
+  static const int _databaseVersion = 6; // Watch history with playlist_id
 
   Future<void> initialize() async {
     ServiceLocator.log.d('DatabaseHelper: 开始初始化数据库');
@@ -111,9 +111,13 @@ class DatabaseHelper {
       CREATE TABLE watch_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         channel_id INTEGER NOT NULL,
+        channel_name TEXT,
+        channel_url TEXT,
+        playlist_id INTEGER NOT NULL,
         watched_at INTEGER NOT NULL,
         duration_seconds INTEGER DEFAULT 0,
-        FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
+        FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE,
+        FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
       )
     ''');
 
@@ -136,6 +140,7 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_channels_group ON channels(group_name)');
     await db.execute('CREATE INDEX idx_favorites_channel ON favorites(channel_id)');
     await db.execute('CREATE INDEX idx_history_channel ON watch_history(channel_id)');
+    await db.execute('CREATE INDEX idx_history_playlist ON watch_history(playlist_id)');
     await db.execute('CREATE INDEX idx_epg_channel ON epg_data(channel_epg_id)');
     await db.execute('CREATE INDEX idx_epg_time ON epg_data(start_time, end_time)');
 
@@ -240,6 +245,26 @@ class DatabaseHelper {
         
         // Import channel logos data
         await _importChannelLogos(db);
+      } catch (e) {
+        ServiceLocator.log.d('Migration error (ignored): $e');
+      }
+    }
+    if (oldVersion < 6) {
+      // Add playlist_id column to watch_history table
+      try {
+        await db.execute('ALTER TABLE watch_history ADD COLUMN playlist_id INTEGER');
+        await db.execute('CREATE INDEX IF NOT EXISTS idx_history_playlist ON watch_history(playlist_id)');
+        
+        // Update existing records to use the first available playlist_id
+        final playlists = await db.query('playlists', limit: 1);
+        if (playlists.isNotEmpty) {
+          final firstPlaylistId = playlists.first['id'];
+          await db.update(
+            'watch_history',
+            {'playlist_id': firstPlaylistId},
+            where: 'playlist_id IS NULL',
+          );
+        }
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }

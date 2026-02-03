@@ -193,6 +193,7 @@ class AppStrings {
 
   // Home screen
   String get recommendedChannels => _localizedValues['recommendedChannels']!;
+  String get watchHistory => _localizedValues['watchHistory']!;
   String get myFavorites => _localizedValues['myFavorites']!;
   String get continueWatching => _localizedValues['continueWatching']!;
   String get channelStats => _localizedValues['channelStats']!;
@@ -675,6 +676,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'localFile': '本地文件',
     // Home screen
     'recommendedChannels': '推荐频道',
+    'watchHistory': '观看记录',
     'myFavorites': '我的收藏',
     'continueWatching': '继续观看',
     'channelStats': '{channels} 频道 · {categories} 分类 · {favorites} 收藏',
@@ -1087,6 +1089,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'localFile': 'Local File',
     // Home screen
     'recommendedChannels': 'Recommended',
+    'watchHistory': 'Watch History',
     'myFavorites': 'My Favorites',
     'continueWatching': 'Continue Watching',
     'channelStats':

@@ -561,6 +561,11 @@ class PlayerProvider extends ChangeNotifier {
         notifyListeners();
       }
       
+      // 记录观看历史
+      if (channel.id != null && channel.playlistId != null) {
+        await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId!);
+      }
+      
       final playerInitTime = DateTime.now().difference(playerInitStartTime).inMilliseconds;
       final totalTime = DateTime.now().difference(playStartTime).inMilliseconds;
       ServiceLocator.log.i('播放器初始化完成，耗时: ${playerInitTime}ms', tag: 'PlayerProvider');
