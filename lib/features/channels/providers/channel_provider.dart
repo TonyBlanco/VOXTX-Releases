@@ -102,15 +102,27 @@ class ChannelProvider extends ChangeNotifier {
     final result = <String, List<Channel>>{};
     final groups = _allGroups.take(maxGroups);
     
+    ServiceLocator.log.d(
+        'getHomeChannelsByGroup: _allGroups.length=${_allGroups.length}, _allChannels.length=${_allChannels.length}',
+        tag: 'ChannelProvider');
+    
     for (final group in groups) {
       final channels = _allChannels
           .where((c) => c.groupName == group.name)
           .take(channelsPerGroup)
           .toList();
-      if (channels.isNotEmpty) {
-        result[group.name] = channels;
-      }
+      
+      // ServiceLocator.log.d(
+      //     'getHomeChannelsByGroup: group=${group.name}, channels.length=${channels.length}',
+      //     tag: 'ChannelProvider');
+      
+      // ✅ 即使没有频道也要包含分类（确保首页显示完整）
+      result[group.name] = channels;
     }
+    
+    ServiceLocator.log.d(
+        'getHomeChannelsByGroup: result.length=${result.length}',
+        tag: 'ChannelProvider');
     
     return result;
   }
@@ -171,11 +183,11 @@ class ChannelProvider extends ChangeNotifier {
       _allChannels = results.map((r) => Channel.fromMap(r)).toList();
       
       ServiceLocator.log.i(
-          '缓存加载完成: ${_allChannels.length} 个频道',
+          '数据库查询完成: ${_allChannels.length} 个频道',
           tag: 'ChannelProvider');
 
-      // 从缓存中统计分类
-      _updateGroups();
+      // ✅ 统一处理缓存加载完成（统计分类等）
+      _onCacheLoadComplete();
 
       // ✅ 初始显示第一批频道
       _loadMoreToDisplay(isInitial: true);
@@ -196,7 +208,7 @@ class ChannelProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
-    _immediateNotify(); // 立即通知加载完成
+    _immediateNotify(); // ✅ 加载完成，立即通知（重要状态变化）
   }
 
   // ✅ 从缓存中加载更多到UI显示
@@ -266,11 +278,11 @@ class ChannelProvider extends ChangeNotifier {
       _allChannels = results.map((r) => Channel.fromMap(r)).toList();
       
       ServiceLocator.log.i(
-          '缓存加载完成: ${_allChannels.length} 个频道',
+          '数据库查询完成: ${_allChannels.length} 个频道',
           tag: 'ChannelProvider');
 
-      // 从缓存中统计分类
-      _updateGroups();
+      // ✅ 统一处理缓存加载完成（统计分类等）
+      _onCacheLoadComplete();
 
       // ✅ 初始显示第一批频道
       _loadMoreToDisplay(isInitial: true);
@@ -290,7 +302,7 @@ class ChannelProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
-    _immediateNotify(); // 立即通知加载完成
+    _immediateNotify(); // ✅ 加载完成，立即通知（重要状态变化）
   }
 
   void _updateGroups() {
@@ -322,6 +334,43 @@ class ChannelProvider extends ChangeNotifier {
       _allGroups.add(ChannelGroup(
           name: unavailableGroupName, channelCount: unavailableCount));
     }
+    
+    ServiceLocator.log.d('分类统计完成: ${_allGroups.length} 个分类', tag: 'ChannelProvider');
+  }
+
+  // ✅ 统一的缓存加载完成处理（确保数据完整性）
+  void _onCacheLoadComplete() {
+    ServiceLocator.log.d(
+        '_onCacheLoadComplete: 开始处理，_allChannels.length=${_allChannels.length}',
+        tag: 'ChannelProvider');
+    
+    // 1. 统计分类
+    _updateGroups();
+    
+    ServiceLocator.log.d(
+        '_onCacheLoadComplete: _updateGroups完成，_allGroups.length=${_allGroups.length}',
+        tag: 'ChannelProvider');
+    
+    // 2. 确保分类数据完整（防御性检查）
+    if (_allGroups.isEmpty && _allChannels.isNotEmpty) {
+      ServiceLocator.log.w('分类数据异常，重新统计', tag: 'ChannelProvider');
+      _updateGroups();
+      ServiceLocator.log.d(
+          '_onCacheLoadComplete: 重新统计后，_allGroups.length=${_allGroups.length}',
+          tag: 'ChannelProvider');
+    }
+    
+    // 3. 输出前几个分类的详细信息
+    if (_allGroups.isNotEmpty) {
+      final groupNames = _allGroups.take(5).map((g) => '${g.name}(${g.channelCount})').join(', ');
+      ServiceLocator.log.d(
+          '_onCacheLoadComplete: 前5个分类: $groupNames',
+          tag: 'ChannelProvider');
+    }
+    
+    ServiceLocator.log.i(
+        '缓存处理完成: ${_allChannels.length} 个频道, ${_allGroups.length} 个分类',
+        tag: 'ChannelProvider');
   }
 
   // Select a group filter
