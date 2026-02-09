@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       // 启动时强制检查一次更新（忽略24小时限制）
       final update = await updateService.checkForUpdates(forceCheck: true);
       if (mounted && update != null) {
-        throttledSetState(() {
+        setState(() {
           _availableUpdate = update;
         });
       }
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) {
-        throttledSetState(() {
+        setState(() {
           _appVersion = packageInfo.version;
         });
       }
@@ -801,9 +801,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                       const SizedBox(width: 8),
                       Text('v$_appVersion',
                           style: TextStyle(
-                              fontSize: isLandscape ? 10 : 11,
+                              fontSize: isLandscape ? 10 : (isMobile ? 11 : 11),
                               fontWeight: FontWeight.normal,
-                              color: Colors.white70)), // 横屏10，竖屏11
+                              color: Colors.white70)), // 横屏12，竖屏13，桌面14
                       if (_availableUpdate != null) ...[
                         const SizedBox(width: 8),
                         TVFocusable(

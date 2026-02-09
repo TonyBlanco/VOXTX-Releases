@@ -1209,7 +1209,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       context.read<ChannelProvider>();
                                   final favoritesProvider =
                                       context.read<FavoritesProvider>();
-                                  final channels = channelProvider.channels;
+                                  // ✅ 使用全部频道而不是分页显示的频道
+                                  final channels = channelProvider.allChannels;
 
                                   // 设置 providers 用于收藏功能
                                   NativePlayerChannel.setProviders(

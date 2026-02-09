@@ -229,7 +229,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
         // 获取频道列表
         final channelProvider = context.read<ChannelProvider>();
-        final channels = channelProvider.channels;
+        // ✅ 使用全部频道而不是分页显示的频道
+        final channels = channelProvider.allChannels;
 
         // 设置 providers 用于收藏功能和状态保存
         final favoritesProvider = context.read<FavoritesProvider>();

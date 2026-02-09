@@ -45,7 +45,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       // TV 端使用原生分屏播放器
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         final channelProvider = context.read<ChannelProvider>();
-        final channels = channelProvider.channels;
+        // ✅ 使用全部频道而不是分页显示的频道
+        final channels = channelProvider.allChannels;
         
         // 找到当前点击频道的索引
         final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
