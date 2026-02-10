@@ -35,17 +35,25 @@ Lotus IPTV 是一款基于 Flutter 开发的现代化高性能 IPTV 播放器（
     <td align="center"><img src="assets/screenshots/channels_screen.jpg" width="100%" alt="频道列表"><br><sub>📡 频道列表</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/screenshots/player_screen.png" width="100%" alt="播放界面"><br><sub>▶️ 播放界面</sub></td>
-    <td align="center"><img src="assets/screenshots/fav_screen.jpg" width="100%" alt="收藏夹"><br><sub>❤️ 收藏夹</sub></td>
+    <td align="center"><img src="assets/screenshots/s5.jpg" width="100%" alt="播放界面"><br><sub>▶️ 播放界面</sub></td>
+    <td align="center"><img src="assets/screenshots/s3.jpg" width="100%" alt="收藏夹"><br><sub>❤️ 收藏夹</sub></td>
     <td align="center"><img src="assets/screenshots/setting_screen.jpg" width="100%" alt="设置"><br><sub>⚙️ 设置</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="assets/screenshots/s12.jpg" width="100%" alt="播放列表管理"><br><sub>📂 播放列表管理</sub></td>
     <td align="center"><img src="assets/screenshots/mini.jpg" width="100%" alt="Mini播放页面"><br><sub>📺 Mini播放页面</sub></td>
-    <td align="center"><img src="assets/screenshots/s7.jpg" width="100%" alt="分屏播放"><br><sub>📺 分屏播放</sub></td>
+    <td align="center"><img src="assets/screenshots/s8.jpg" width="100%" alt="分屏播放"><br><sub>📺 分屏播放</sub></td>
   </tr>
   </tr>
 </table>
+
+## ⚠️ 免责声明
+
+1. 本应用程序仅为通用媒体播放器工具，本身不提供、不存储、不分发任何音视频内容或播放源。
+2. 本应用不内置任何 M3U / M3U8 播放列表，所有播放内容均由用户自行添加。
+3. 用户应确保其所使用的播放源及内容来源合法，并已获得相关权利人的授权。
+4. 对于用户通过本应用播放的任何内容，其版权及合法性责任均由内容提供方及用户自行承担。
+
 
 ## ✨ 功能特性
 
@@ -188,12 +196,6 @@ flutter build apk --release
 
 欢迎提交 Pull Request！
 
-## ⚠️ 免责声明
-
-1. 本应用程序仅为通用媒体播放器工具，本身不提供、不存储、不分发任何音视频内容或播放源。
-2. 本应用不内置任何 M3U / M3U8 播放列表，所有播放内容均由用户自行添加。
-3. 用户应确保其所使用的播放源及内容来源合法，并已获得相关权利人的授权。
-4. 对于用户通过本应用播放的任何内容，其版权及合法性责任均由内容提供方及用户自行承担。
 
 
 ## 📄 许可证

@@ -45,7 +45,12 @@ Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Feature
     <td align="center"><img src="assets/screenshots/s8.jpg" width="100%" alt="Multi-Screen"><br><sub>📺 Split Screen</sub></td>    
   </tr>
 </table>
+## ⚠️ Disclaimer
 
+1. This application is provided solely as a general-purpose media player and does not provide, host, store, or distribute any audio or video content.
+2. This application does not include any built-in M3U / M3U8 playlists or media sources. All media content and playlists are added by users themselves.
+3. Users are solely responsible for ensuring that the media content and playlists they use are obtained from legal and authorized sources.
+4. The developer does not assume any responsibility for the legality, copyright, or licensing of any content played through this application.
 
 ## 🚀 Getting Started
 
@@ -206,12 +211,7 @@ flutter build apk --release
 
 Pull requests are welcome!
 
-## ⚠️ Disclaimer
 
-1. This application is provided solely as a general-purpose media player and does not provide, host, store, or distribute any audio or video content.
-2. This application does not include any built-in M3U / M3U8 playlists or media sources. All media content and playlists are added by users themselves.
-3. Users are solely responsible for ensuring that the media content and playlists they use are obtained from legal and authorized sources.
-4. The developer does not assume any responsibility for the legality, copyright, or licensing of any content played through this application.
 
 ## 📄 License
 
