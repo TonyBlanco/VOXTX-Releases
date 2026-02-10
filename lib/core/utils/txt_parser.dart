@@ -13,7 +13,7 @@ import '../services/service_locator.dart';
 /// Channel Name,URL
 class TXTParser {
   /// Parse TXT content from a URL
-  static Future<List<Channel>> parseFromUrl(String url, int playlistId) async {
+  static Future<List<Channel>> parseFromUrl(String url, int playlistId, {String? mergeRule}) async {
     try {
       ServiceLocator.log.d('DEBUG: 开始从URL获取TXT播放列表内容: $url');
 
@@ -41,10 +41,10 @@ class TXTParser {
       final List<Channel> channels;
       if (useIsolate) {
         channels = await compute(
-            _parseInIsolate, _ParseParams(response.data.toString(), playlistId));
+            _parseInIsolate, _ParseParams(response.data.toString(), playlistId, mergeRule));
       } else {
         // Parse directly in main thread for small files
-        channels = parse(response.data.toString(), playlistId);
+        channels = parse(response.data.toString(), playlistId, mergeRule: mergeRule);
       }
 
       ServiceLocator.log.d('DEBUG: TXT URL解析完成，共解析出 ${channels.length} 个频道');
@@ -74,7 +74,7 @@ class TXTParser {
 
   /// Parse TXT content from a local file
   static Future<List<Channel>> parseFromFile(
-      String filePath, int playlistId) async {
+      String filePath, int playlistId, {String? mergeRule}) async {
     try {
       ServiceLocator.log.d('DEBUG: 开始从本地文件读取TXT播放列表: $filePath');
       final file = File(filePath);
@@ -94,10 +94,10 @@ class TXTParser {
 
       final List<Channel> channels;
       if (useIsolate) {
-        channels = await compute(_parseInIsolate, _ParseParams(content, playlistId));
+        channels = await compute(_parseInIsolate, _ParseParams(content, playlistId, mergeRule));
       } else {
         // Parse directly in main thread for small files
-        channels = parse(content, playlistId);
+        channels = parse(content, playlistId, mergeRule: mergeRule);
       }
 
       ServiceLocator.log.d('DEBUG: TXT本地文件解析完成，共解析出 ${channels.length} 个频道');
@@ -113,9 +113,9 @@ class TXTParser {
   /// Format: Category,#genre#
   ///         Channel Name,URL
   /// Merges channels with same name into single channel with multiple sources
-  static List<Channel> parse(String content, int playlistId) {
+  static List<Channel> parse(String content, int playlistId, {String? mergeRule}) {
     // 注意：此方法可能在 isolate 中运行，不能使用 ServiceLocator.log
-    print('TXT Parser: 开始解析，播放列表ID: $playlistId');
+    print('TXT Parser: 开始解析，播放列表ID: $playlistId, 合并规则: ${mergeRule ?? "name_group"}');
 
     final List<Channel> rawChannels = [];
     final lines = LineSplitter.split(content).toList();
@@ -166,26 +166,36 @@ class TXTParser {
     print('TXT Parser: 原始解析完成，有效频道: ${rawChannels.length}');
 
     // Merge channels with same name into single channel with multiple sources
-    final List<Channel> mergedChannels = _mergeChannelSources(rawChannels);
+    final List<Channel> mergedChannels = _mergeChannelSources(rawChannels, mergeRule: mergeRule);
 
     print('TXT Parser: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
 
     return mergedChannels;
   }
 
-  /// Merge channels with same name into single channel with multiple sources
+  /// Merge channels with same name AND group into single channel with multiple sources
   /// Preserves the order of first occurrence, but prefers non-special groups
   /// Optimized using Map for better performance
-  static List<Channel> _mergeChannelSources(List<Channel> channels) {
+  static List<Channel> _mergeChannelSources(List<Channel> channels, {String? mergeRule}) {
     // Use Map to maintain insertion order while providing O(1) lookup
     final Map<String, Channel> mergedMap = {};
 
     // Special groups that should not be the primary group
     final specialGroups = {'🕘️更新时间', '更新时间', 'update', 'info'};
 
+    // Default to 'name_group' if not specified
+    final rule = mergeRule ?? 'name_group';
+
     for (final channel in channels) {
-      // Use channel name as merge key (TXT format doesn't have epgId)
-      final mergeKey = channel.name;
+      // Choose merge key based on rule
+      final String mergeKey;
+      if (rule == 'name') {
+        // Merge by name only (across all groups)
+        mergeKey = channel.name;
+      } else {
+        // Merge by name + group (default: 'name_group')
+        mergeKey = '${channel.name}_${channel.groupName ?? ""}';
+      }
 
       if (mergedMap.containsKey(mergeKey)) {
         // Add source to existing channel
@@ -273,11 +283,12 @@ class TXTParser {
 class _ParseParams {
   final String content;
   final int playlistId;
+  final String? mergeRule;
 
-  _ParseParams(this.content, this.playlistId);
+  _ParseParams(this.content, this.playlistId, this.mergeRule);
 }
 
 /// Isolate 中执行的解析函数（必须是顶层函数或静态函数）
 List<Channel> _parseInIsolate(_ParseParams params) {
-  return TXTParser.parse(params.content, params.playlistId);
+  return TXTParser.parse(params.content, params.playlistId, mergeRule: params.mergeRule);
 }

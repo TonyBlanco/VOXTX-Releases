@@ -173,6 +173,13 @@ class AppStrings {
       _localizedValues['decodingModeHardwareDesc']!;
   String get decodingModeSoftwareDesc =>
       _localizedValues['decodingModeSoftwareDesc']!;
+  String get channelMergeRule => _localizedValues['channelMergeRule']!;
+  String get channelMergeRuleSubtitle => _localizedValues['channelMergeRuleSubtitle']!;
+  String get channelMergeRuleSet => _localizedValues['channelMergeRuleSet']!;
+  String get mergeByName => _localizedValues['mergeByName']!;
+  String get mergeByNameDesc => _localizedValues['mergeByNameDesc']!;
+  String get mergeByNameGroup => _localizedValues['mergeByNameGroup']!;
+  String get mergeByNameGroupDesc => _localizedValues['mergeByNameGroupDesc']!;
   String get volumeBoostLow => _localizedValues['volumeBoostLow']!;
   String get volumeBoostSlightLow => _localizedValues['volumeBoostSlightLow']!;
   String get volumeBoostNormal => _localizedValues['volumeBoostNormal']!;
@@ -668,6 +675,13 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'decodingModeAutoDesc': '自动选择最佳方式，推荐',
     'decodingModeHardwareDesc': '强制硬解，部分设备可能报错',
     'decodingModeSoftwareDesc': '使用CPU解码，兼容性好但耗电',
+    'channelMergeRule': '频道合并规则',
+    'channelMergeRuleSubtitle': '控制如何合并重复频道',
+    'channelMergeRuleSet': '频道合并规则已设置为：{rule}',
+    'mergeByName': '按名称合并',
+    'mergeByNameDesc': '合并所有组中同名的频道',
+    'mergeByNameGroup': '按名称+组名合并',
+    'mergeByNameGroupDesc': '仅合并同名且同组的频道',
     'volumeBoostLow': '大幅降低音量',
     'volumeBoostSlightLow': '略微降低音量',
     'volumeBoostNormal': '保持原始音量',
@@ -1090,6 +1104,13 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
         'Force MediaCodec. May cause errors on some devices.',
     'decodingModeSoftwareDesc':
         'Use CPU decoding. More compatible but uses more power.',
+    'channelMergeRule': 'Channel Merge Rule',
+    'channelMergeRuleSubtitle': 'Control how duplicate channels are merged',
+    'channelMergeRuleSet': 'Channel merge rule set to: {rule}',
+    'mergeByName': 'Merge by Name',
+    'mergeByNameDesc': 'Merge channels with same name across all groups',
+    'mergeByNameGroup': 'Merge by Name + Group',
+    'mergeByNameGroupDesc': 'Only merge channels with same name AND group',
     'volumeBoostLow': 'Significantly lower volume',
     'volumeBoostSlightLow': 'Slightly lower volume',
     'volumeBoostNormal': 'Keep original volume',

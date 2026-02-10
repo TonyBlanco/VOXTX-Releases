@@ -2,12 +2,14 @@ import 'dart:io';
 import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/models/playlist.dart';
 import '../../../core/models/channel.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/utils/m3u_parser.dart';
 import '../../../core/utils/txt_parser.dart';
 import '../../favorites/providers/favorites_provider.dart';
+import '../../settings/providers/settings_provider.dart';
 
 class PlaylistProvider extends ChangeNotifier {
   List<Playlist> _playlists = [];
@@ -139,6 +141,7 @@ class PlaylistProvider extends ChangeNotifier {
     String? url,
     String? content,
     String? filePath,
+    String? mergeRule, // Add merge rule parameter
   }) async {
     ServiceLocator.log.i('导入播放列表: $name', tag: 'PlaylistProvider');
     if (url != null) ServiceLocator.log.d('URL: $url', tag: 'PlaylistProvider');
@@ -173,6 +176,10 @@ class PlaylistProvider extends ChangeNotifier {
       final List<Channel> channels;
       String? epgUrl;
       
+      // Use provided merge rule or default to 'name_group'
+      final effectiveMergeRule = mergeRule ?? 'name_group';
+      ServiceLocator.log.d('使用频道合并规则: $effectiveMergeRule', tag: 'PlaylistProvider');
+      
       if (url != null) {
         // From URL
         final format = _detectPlaylistFormat(url);
@@ -182,9 +189,9 @@ class PlaylistProvider extends ChangeNotifier {
         notifyListeners();
         
         if (format == 'txt') {
-          channels = await TXTParser.parseFromUrl(url, playlistId!);
+          channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromUrl(url, playlistId!);
+          channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
           epgUrl = M3UParser.lastParseResult?.epgUrl;
         }
       } else if (content != null) {
@@ -196,9 +203,9 @@ class PlaylistProvider extends ChangeNotifier {
         notifyListeners();
         
         if (format == 'txt') {
-          channels = TXTParser.parse(content, playlistId!);
+          channels = TXTParser.parse(content, playlistId!, mergeRule: effectiveMergeRule);
         } else {
-          channels = M3UParser.parse(content, playlistId!);
+          channels = M3UParser.parse(content, playlistId!, mergeRule: effectiveMergeRule);
           epgUrl = M3UParser.lastParseResult?.epgUrl;
         }
         
@@ -223,9 +230,9 @@ class PlaylistProvider extends ChangeNotifier {
         notifyListeners();
         
         if (format == 'txt') {
-          channels = await TXTParser.parseFromFile(filePath, playlistId!);
+          channels = await TXTParser.parseFromFile(filePath, playlistId!, mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromFile(filePath, playlistId!);
+          channels = await M3UParser.parseFromFile(filePath, playlistId!, mergeRule: effectiveMergeRule);
           epgUrl = M3UParser.lastParseResult?.epgUrl;
         }
       } else {
@@ -392,23 +399,23 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // Add a new playlist from URL
-  Future<Playlist?> addPlaylistFromUrl(String name, String url) async {
-    return _importPlaylist(name: name, url: url);
+  Future<Playlist?> addPlaylistFromUrl(String name, String url, {String? mergeRule}) async {
+    return _importPlaylist(name: name, url: url, mergeRule: mergeRule);
   }
 
   // Add a new playlist from M3U content directly (for QR import)
-  Future<Playlist?> addPlaylistFromContent(String name, String content) async {
-    return _importPlaylist(name: name, content: content);
+  Future<Playlist?> addPlaylistFromContent(String name, String content, {String? mergeRule}) async {
+    return _importPlaylist(name: name, content: content, mergeRule: mergeRule);
   }
 
   // Add a new playlist from local file
-  Future<Playlist?> addPlaylistFromFile(String name, String filePath) async {
-    return _importPlaylist(name: name, filePath: filePath);
+  Future<Playlist?> addPlaylistFromFile(String name, String filePath, {String? mergeRule}) async {
+    return _importPlaylist(name: name, filePath: filePath, mergeRule: mergeRule);
   }
 
   // Refresh a playlist from its source
   // If silent=true, runs in background without blocking UI
-  Future<bool> refreshPlaylist(Playlist playlist, {bool silent = false}) async {
+  Future<bool> refreshPlaylist(Playlist playlist, {bool silent = false, String? mergeRule}) async {
     if (playlist.id == null) return false;
 
     ServiceLocator.log.d('开始刷新播放列表: ${playlist.name} (ID: ${playlist.id}), 静默模式: $silent', tag: 'PlaylistProvider');
@@ -441,6 +448,10 @@ class PlaylistProvider extends ChangeNotifier {
 
       List<Channel> channels;
 
+      // Use provided merge rule or default to 'name_group'
+      final effectiveMergeRule = mergeRule ?? 'name_group';
+      ServiceLocator.log.d('使用频道合并规则: $effectiveMergeRule', tag: 'PlaylistProvider');
+
       ServiceLocator.log.d('播放列表源类型: ${freshPlaylist.isRemote ? "远程URL" : freshPlaylist.isLocal ? "本地文件" : "未知"}', tag: 'PlaylistProvider');
       ServiceLocator.log.d('播放列表源路径: ${freshPlaylist.sourcePath}', tag: 'PlaylistProvider');
 
@@ -452,9 +463,9 @@ class PlaylistProvider extends ChangeNotifier {
         ServiceLocator.log.d('检测到播放列表格式: $format', tag: 'PlaylistProvider');
         
         if (format == 'txt') {
-          channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!);
+          channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!);
+          channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
         }
         
         // Check for EPG URL in M3U header (only for M3U format)
@@ -479,9 +490,9 @@ class PlaylistProvider extends ChangeNotifier {
         ServiceLocator.log.d('检测到播放列表格式: $format', tag: 'PlaylistProvider');
         
         if (format == 'txt') {
-          channels = await TXTParser.parseFromFile(freshPlaylist.filePath!, playlist.id!);
+          channels = await TXTParser.parseFromFile(freshPlaylist.filePath!, playlist.id!, mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromFile(freshPlaylist.filePath!, playlist.id!);
+          channels = await M3UParser.parseFromFile(freshPlaylist.filePath!, playlist.id!, mergeRule: effectiveMergeRule);
         }
         
         // Check for EPG URL in M3U header (only for M3U format)
@@ -847,8 +858,12 @@ class PlaylistProvider extends ChangeNotifier {
       );
     }
 
+    // Get merge rule from settings
+    final settings = context.read<SettingsProvider>();
+    final mergeRule = settings.channelMergeRule;
+
     // Execute refresh
-    final success = await refreshPlaylist(playlist, silent: silent);
+    final success = await refreshPlaylist(playlist, silent: silent, mergeRule: mergeRule);
     
     final refreshTime = DateTime.now().difference(startTime).inMilliseconds;
 

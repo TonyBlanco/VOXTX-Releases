@@ -214,7 +214,11 @@ Pull requests are welcome!
 
 ## ⚠️ Disclaimer
 
-This application is a player only and does not provide any content. Users must provide their own M3U playlists. Developers are not responsible for the content played through this application.
+1. This application is provided solely as a general-purpose media player and does not provide, host, store, or distribute any audio or video content.
+2. This application does not include any built-in M3U / M3U8 playlists or media sources. All media content and playlists are added by users themselves.
+3. Users are solely responsible for ensuring that the media content and playlists they use are obtained from legal and authorized sources.
+4. The developer does not assume any responsibility for the legality, copyright, or licensing of any content played through this application.
+5. If any copyright holder believes that content accessed through this application infringes their rights, please contact the developer, and we will cooperate within a reasonable scope.
 
 ## 📄 License
 

@@ -808,7 +808,8 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     }
 
     try {
-      final playlist = await provider.addPlaylistFromUrl(name, url);
+      final settings = context.read<SettingsProvider>();
+      final playlist = await provider.addPlaylistFromUrl(name, url, mergeRule: settings.channelMergeRule);
 
       if (playlist != null && mounted) {
         provider.setActivePlaylist(playlist, favoritesProvider: context.read<FavoritesProvider>());
@@ -893,7 +894,8 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
         final fileName = result.files.single.name.replaceAll(RegExp(r'\.(m3u8?|txt)$'), '');
 
         try {
-          final playlist = await provider.addPlaylistFromFile(fileName, filePath);
+          final settings = context.read<SettingsProvider>();
+          final playlist = await provider.addPlaylistFromFile(fileName, filePath, mergeRule: settings.channelMergeRule);
 
           if (mounted) {
             if (playlist != null) {

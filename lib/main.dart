@@ -339,6 +339,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
     try {
       final playlistProvider = context.read<PlaylistProvider>();
+      final settings = context.read<SettingsProvider>();
       final playlists = playlistProvider.playlists;
 
       if (playlists.isEmpty) {
@@ -357,7 +358,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
           try {
             ServiceLocator.log
                 .d('刷新播放列表: ${playlist.name}', tag: 'AutoRefresh');
-            final success = await playlistProvider.refreshPlaylist(playlist);
+            final success = await playlistProvider.refreshPlaylist(playlist, mergeRule: settings.channelMergeRule);
             if (success) {
               successCount++;
             } else {

@@ -11,6 +11,7 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyDefaultQuality = 'default_quality';
   static const String _keyHardwareDecoding = 'hardware_decoding';
   static const String _keyDecodingMode = 'decoding_mode'; // New: auto, hardware, software
+  static const String _keyChannelMergeRule = 'channel_merge_rule'; // New: name, name_group
   static const String _keyBufferSize = 'buffer_size';
   static const String _keyLastPlaylistId = 'last_playlist_id';
   static const String _keyEnableEpg = 'enable_epg';
@@ -52,6 +53,7 @@ class SettingsProvider extends ChangeNotifier {
   String _defaultQuality = 'auto';
   bool _hardwareDecoding = true;
   String _decodingMode = 'auto'; // New: auto, hardware, software
+  String _channelMergeRule = 'name_group'; // New: name, name_group
   int _bufferSize = 30; // seconds
   int? _lastPlaylistId;
   bool _enableEpg = true;
@@ -92,6 +94,7 @@ class SettingsProvider extends ChangeNotifier {
   String get defaultQuality => _defaultQuality;
   bool get hardwareDecoding => _hardwareDecoding;
   String get decodingMode => _decodingMode;
+  String get channelMergeRule => _channelMergeRule;
   int get bufferSize => _bufferSize;
   int? get lastPlaylistId => _lastPlaylistId;
   bool get enableEpg => _enableEpg;
@@ -147,6 +150,7 @@ class SettingsProvider extends ChangeNotifier {
     _defaultQuality = prefs.getString(_keyDefaultQuality) ?? 'auto';
     _hardwareDecoding = prefs.getBool(_keyHardwareDecoding) ?? true;
     _decodingMode = prefs.getString(_keyDecodingMode) ?? 'auto';
+    _channelMergeRule = prefs.getString(_keyChannelMergeRule) ?? 'name_group';
     _bufferSize = prefs.getInt(_keyBufferSize) ?? 30;
     _lastPlaylistId = prefs.getInt(_keyLastPlaylistId);
     _enableEpg = prefs.getBool(_keyEnableEpg) ?? true;
@@ -253,6 +257,7 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setString(_keyDefaultQuality, _defaultQuality);
     await prefs.setBool(_keyHardwareDecoding, _hardwareDecoding);
     await prefs.setString(_keyDecodingMode, _decodingMode);
+    await prefs.setString(_keyChannelMergeRule, _channelMergeRule);
     await prefs.setInt(_keyBufferSize, _bufferSize);
     if (_lastPlaylistId != null) {
       await prefs.setInt(_keyLastPlaylistId, _lastPlaylistId!);
@@ -334,6 +339,12 @@ class SettingsProvider extends ChangeNotifier {
     _decodingMode = mode;
     // Also update hardwareDecoding based on mode for backward compatibility
     _hardwareDecoding = mode != 'software';
+    await _saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> setChannelMergeRule(String rule) async {
+    _channelMergeRule = rule;
     await _saveSettings();
     notifyListeners();
   }
@@ -617,6 +628,7 @@ class SettingsProvider extends ChangeNotifier {
     _refreshInterval = 24;
     _defaultQuality = 'auto';
     _hardwareDecoding = true;
+    _channelMergeRule = 'name_group';
     _bufferSize = 30;
     _enableEpg = true;
     _epgUrl = null;

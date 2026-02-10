@@ -200,6 +200,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.memory_rounded,
                 onTap: () => _showDecodingModeDialog(context, settings),
               ),
+              _buildDivider(),
+              _buildSelectTile(
+                context,
+                title: AppStrings.of(context)?.channelMergeRule ?? 'Channel Merge Rule',
+                subtitle: _getChannelMergeRuleLabel(context, settings.channelMergeRule),
+                icon: Icons.merge_rounded,
+                onTap: () => _showChannelMergeRuleDialog(context, settings),
+              ),
               // 缓冲大小 - 暂时隐藏（未实现）
               // _buildDivider(),
               // _buildSelectTile(
@@ -870,6 +878,100 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'auto':
       default:
         return strings?.decodingModeAutoDesc ?? 'Automatically choose best option. Recommended.';
+    }
+  }
+
+  String _getChannelMergeRuleLabel(BuildContext context, String rule) {
+    final strings = AppStrings.of(context);
+    switch (rule) {
+      case 'name':
+        return strings?.mergeByName ?? 'Merge by Name';
+      case 'name_group':
+      default:
+        return strings?.mergeByNameGroup ?? 'Merge by Name + Group';
+    }
+  }
+
+  void _showChannelMergeRuleDialog(BuildContext context, SettingsProvider settings) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+    final options = ['name_group', 'name'];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.getSurfaceColor(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(isLandscape ? 12 : 16),
+          ),
+          contentPadding: EdgeInsets.all(isLandscape ? 12 : 20),
+          titlePadding: EdgeInsets.fromLTRB(
+            isLandscape ? 16 : 24,
+            isLandscape ? 12 : 20,
+            isLandscape ? 16 : 24,
+            isLandscape ? 8 : 16,
+          ),
+          title: Text(
+            AppStrings.of(context)?.channelMergeRule ?? 'Channel Merge Rule',
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
+              fontSize: isLandscape ? 14 : 18,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options.map((rule) {
+                return RadioListTile<String>(
+                  title: Text(
+                    _getChannelMergeRuleLabel(context, rule),
+                    style: TextStyle(
+                      color: AppTheme.getTextPrimary(context),
+                      fontSize: isLandscape ? 12 : 14,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _getChannelMergeRuleDescription(context, rule),
+                    style: TextStyle(
+                      color: AppTheme.getTextMuted(context),
+                      fontSize: isLandscape ? 9 : 11,
+                    ),
+                  ),
+                  value: rule,
+                  groupValue: settings.channelMergeRule,
+                  onChanged: (value) {
+                    if (value != null) {
+                      settings.setChannelMergeRule(value);
+                      Navigator.pop(dialogContext);
+                      final strings = AppStrings.of(context);
+                      _showSuccess(context, (strings?.channelMergeRuleSet ?? 'Channel merge rule set to: {rule}').replaceFirst('{rule}', _getChannelMergeRuleLabel(context, value)));
+                    }
+                  },
+                  activeColor: AppTheme.getPrimaryColor(dialogContext),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: isLandscape ? 8 : 16,
+                    vertical: isLandscape ? 0 : 4,
+                  ),
+                  visualDensity: isLandscape ? VisualDensity.compact : null,
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getChannelMergeRuleDescription(BuildContext context, String rule) {
+    final strings = AppStrings.of(context);
+    switch (rule) {
+      case 'name':
+        return strings?.mergeByNameDesc ?? 'Merge channels with same name across all groups';
+      case 'name_group':
+      default:
+        return strings?.mergeByNameGroupDesc ?? 'Only merge channels with same name AND group';
     }
   }
 

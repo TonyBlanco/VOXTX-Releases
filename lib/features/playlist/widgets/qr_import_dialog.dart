@@ -82,8 +82,9 @@ class _QrImportDialogState extends State<QrImportDialog> {
 
     try {
       final provider = context.read<PlaylistProvider>();
+      final settings = context.read<SettingsProvider>();
       ServiceLocator.log.d('开始通过URL添加播放列表...');
-      final playlist = await provider.addPlaylistFromUrl(name, url);
+      final playlist = await provider.addPlaylistFromUrl(name, url, mergeRule: settings.channelMergeRule);
 
       if (playlist != null && mounted) {
         ServiceLocator.log.d('播放列表添加成功: ${playlist.name} (ID: ${playlist.id})');
@@ -158,8 +159,9 @@ class _QrImportDialogState extends State<QrImportDialog> {
 
     try {
       final provider = context.read<PlaylistProvider>();
+      final settings = context.read<SettingsProvider>();
       ServiceLocator.log.d('开始通过内容添加播放列表...');
-      final playlist = await provider.addPlaylistFromContent(name, content);
+      final playlist = await provider.addPlaylistFromContent(name, content, mergeRule: settings.channelMergeRule);
 
       if (playlist != null && mounted) {
         ServiceLocator.log.d('播放列表添加成功: ${playlist.name} (ID: ${playlist.id})');

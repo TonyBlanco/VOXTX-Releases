@@ -1,23 +1,23 @@
 {
-  "version": "1.4.37",
-  "build": 157,
+  "version": "1.4.38",
+  "build": 158,
   "releaseDate": "2026-02-10",
   "assets": {
-    "windows": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-Windows-x64-Setup.exe",
+    "windows": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-Android-Mobile-arm64-v8a.apk",
-      "armeabi-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-Android-Mobile-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-Android-Mobile-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-Android-Mobile-arm64-v8a.apk",
+      "armeabi-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-Android-Mobile-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-Android-Mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-AndroidTV-arm64-v8a.apk",
-      "armeabi-v7a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-AndroidTV-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.37/flutteriptv-AndroidTV-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-AndroidTV-arm64-v8a.apk",
+      "armeabi-v7a": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-AndroidTV-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/shnulaa/FlutterIPTV/releases/download/v1.4.38/flutteriptv-AndroidTV-x86_64.apk"
     }
   },
   "changelog": {
-    "zh": "- 新增：数据库添加 fallback_logo_url 字段，导入/刷新时预先查询备用台标\n- 优化：台标加载性能，M3U 台标失败时立即显示备用台标\n- 修复：刷新播放列表后收藏夹丢失的问题\n- 修复：多屏选择页面频道列表为空的问题\n- 优化：使用节流 setState 避免大量台标失败时消息队列爆炸",
-    "en": "- Added: fallback_logo_url field in database, pre-query backup logos on import/refresh\n- Improved: Logo loading performance, show backup logo immediately when M3U logo fails\n- Fixed: Favorites lost after refreshing playlist\n- Fixed: Empty channel list in multi-screen selector\n- Improved: Use throttled setState to avoid message queue overflow when many logos fail"
+    "zh": "- 新增：频道合并规则设置（按名称/按名称+组名）\n- 新增：GitHub Issue 模板，规范问题反馈\n- 优化：台标加载性能，预先查询备用台标\n- 修复：刷新播放列表后收藏夹丢失的问题\n- 修复：多屏选择页面频道列表为空的问题",
+    "en": "- Added: Channel merge rule setting (by name / by name+group)\n- Added: GitHub Issue templates for standardized feedback\n- Improved: Logo loading performance with pre-queried backup logos\n- Fixed: Favorites lost after refreshing playlist\n- Fixed: Empty channel list in multi-screen selector"
   },
   "minVersion": "1.0.0"
 }
