@@ -30,6 +30,18 @@ object RedirectResolver {
         // 清理URL：去掉 $ 及其后面的内容（通常是源标签/备注）
         val cleanUrl = url.split('$').firstOrNull()?.trim() ?: url
         
+        // 检查协议：只有 HTTP/HTTPS 才进行302检测
+        if (!isHttpProtocol(cleanUrl)) {
+            NativeLogger.d(TAG, "✓ 非HTTP协议，跳过302检查: $cleanUrl")
+            return cleanUrl
+        }
+        
+        // 检查是否是 udpxy URL（udpxy 不支持 HEAD 方法）
+        if (isUdpxyUrl(cleanUrl)) {
+            NativeLogger.d(TAG, "✓ 检测到udpxy URL，跳过302检查: $cleanUrl")
+            return cleanUrl
+        }
+        
         // 检查是否是直接的流媒体URL，如果是则跳过302检查
         if (isDirectStreamUrl(cleanUrl)) {
             NativeLogger.d(TAG, "✓ 检测到直接流媒体URL，跳过302检查: $cleanUrl")
@@ -61,6 +73,50 @@ object RedirectResolver {
         }
         
         return realUrl
+    }
+    
+    /**
+     * 检查URL是否是HTTP或HTTPS协议
+     * 只有HTTP/HTTPS协议才需要进行302重定向检测
+     */
+    private fun isHttpProtocol(url: String): Boolean {
+        return try {
+            val urlObj = java.net.URL(url)
+            val protocol = urlObj.protocol.lowercase()
+            protocol == "http" || protocol == "https"
+        } catch (e: Exception) {
+            // 如果URL解析失败，保守起见返回false（不检测302）
+            false
+        }
+    }
+    
+    /**
+     * 检查URL是否是 udpxy 代理地址
+     * udpxy 是将 UDP 组播流转换为 HTTP 流的代理服务器
+     * 特征：
+     * - path 格式: /rtp/IPv4:Port 或 /udp/IPv4:Port
+     * - 不支持 HEAD 方法
+     * - 不支持 Range 请求
+     * - 不返回 Content-Length
+     * 
+     * 示例：
+     * - http://192.168.1.1:4022/rtp/225.1.2.142:10870
+     * - http://lysj.aylzline.top:8899/rtp/225.1.2.142:10870
+     */
+    private fun isUdpxyUrl(url: String): Boolean {
+        return try {
+            val urlObj = java.net.URL(url)
+            val path = urlObj.path
+            
+            // udpxy 的 path 格式：/rtp/IPv4:Port 或 /udp/IPv4:Port
+            // IPv4 格式：xxx.xxx.xxx.xxx (每段 0-255)
+            // Port 格式：1-65535
+            val udpxyRegex = Regex("^/(rtp|udp)/\\d{1,3}(\\.\\d{1,3}){3}:\\d+$", RegexOption.IGNORE_CASE)
+            
+            udpxyRegex.matches(path)
+        } catch (e: Exception) {
+            false
+        }
     }
     
     /**
