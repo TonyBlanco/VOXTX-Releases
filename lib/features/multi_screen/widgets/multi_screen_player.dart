@@ -149,7 +149,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             },
             child: Stack(
               children: [
-                // 2x2 缃戞牸
+                // 2x2 网格
                 Container(
                   color: Colors.black,
                   child: Column(
@@ -174,7 +174,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
                 ),
 
-                // 椤堕儴鎺у埗鏍忥紙闈濵ini妯″紡锛?
+                // 顶部儴控制埗栏（紙非濵ini模式紡（?
                 if (_showControls && !isMiniMode)
                   Positioned(
                     top: 0,
@@ -184,7 +184,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
 
 
-                // Mini妯″紡鎺у埗鎸夐挳锛堝彸涓婅锛屽缁堟樉绀猴級
+                // Mini模式紡控制埗按挳（最彸上婅（屽终堟樉绀猴級
                 if (isMiniMode)
                   Positioned(
                     top: 4,
@@ -227,7 +227,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                     ),
                   ),
 
-                // 棰戦亾閫夋嫨鍣?
+                // 频道选择器
                 if (_showChannelSelector)
                   _buildChannelSelector(context, multiScreenProvider),
               ],
@@ -250,7 +250,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
 
   Widget _buildTopControls(BuildContext context) {
     return Container(
-      // 璋冩暣椤堕儴闂磋窛鏈?30锛屼娇鎸夐挳涓嬬Щ锛屼笌鍙充笂瑙掍俊鎭獥鍙ｉ敊寮€骞堕綈骞?
+      // 调整顶部间距为 30，使按钮向上移动，减少与右上角信息窗口的距离并齐平
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -626,7 +626,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
       color: Colors.black.withOpacity(0.95),
       child: Row(
         children: [
-          // 宸︿晶鍒嗙被鍒楄〃
+          // 左侧晶制嗙被制楄〃
           Container(
             width: 200,
             decoration: BoxDecoration(
@@ -656,7 +656,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 鏍囬鏍?
+                // 栏囬栏?
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -702,7 +702,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                     ],
                   ),
                 ),
-                // 鍏ㄩ儴棰戦亾閫夐」
+                // 全ㄩ儴频道亾选夐」
                 _buildCategoryItem(
                   context,
                   name: AppStrings.of(context)?.allChannels ?? 'All Channels',
@@ -711,7 +711,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   onTap: () => setState(() => _selectedCategory = null),
                 ),
                 Divider(color: AppTheme.getCardColor(context), height: 1),
-                // 鍒嗙被鍒楄〃
+                // 制嗙被制楄〃
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -732,7 +732,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
               ],
             ),
           ),
-          // 鍙充晶棰戦亾缃戞牸
+          // 监充晶频道亾网格
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -849,7 +849,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
       BuildContext context,
       ChannelProvider channelProvider,
       MultiScreenProvider multiScreenProvider) {
-    // 鉁?浣跨敤 allChannels 鑾峰彇鍏ㄩ儴棰戦亾锛岃€屼笉鏄垎椤电殑 channels
+    // 使用 allChannels 获取全部频道，而不是分页的 channels
     List channels;
     if (_selectedCategory == null) {
       channels = channelProvider.allChannels;
@@ -862,7 +862,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 椤堕儴鏍囬
+        // 顶部儴栏囬
         Container(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -895,7 +895,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             ],
           ),
         ),
-        // 棰戦亾缃戞牸
+        // 频道亾网格
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -936,7 +936,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo鍖哄煙 - 鍥哄畾楂樺害
+              // Logo区定煙 - 鍥定畾高度害
               Expanded(
                 flex: 3,
                 child: ClipRRect(
@@ -960,7 +960,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
                 ),
               ),
-              // 棰戦亾鍚嶅尯鍩?
+              // 频道亾名嶅尯域?
               Expanded(
                 flex: 1,
                 child: Container(
@@ -1053,7 +1053,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
       return const SizedBox.shrink();
     }
 
-    // 鉁?浣跨敤 select 鍙洃鍚綋鍓嶅睆骞曢閬撶殑 EPG 鏁版嵁
+    // 使用 select 只监听当前屏幕频道的 EPG 数据
     final currentProgram = screen.channel != null
         ? context.select<EpgProvider, EpgProgram?>(
             (provider) => provider.getCurrentProgram(

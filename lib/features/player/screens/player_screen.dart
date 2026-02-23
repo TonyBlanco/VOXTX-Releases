@@ -244,7 +244,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         NativePlayerChannel.setProviders(
             favoritesProvider, channelProvider, settingsProvider);
 
-        // DLNA 妯″紡涓嬩笉浣跨敤棰戦亾鍒楄〃锛岀洿鎺ユ挱鏀句紶鍏ョ殑 URL
+        // DLNA 模式下不使用频道列表，直接播放传入的 URL
         List<String> urls;
         List<String> names;
         List<String> groups;
@@ -296,7 +296,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           }
         }
 
-        // 鑾峰彇缂撳啿寮哄害璁剧疆鍜屾樉绀鸿缃?
+        // 获取缓冲强度设置和显示设置
         final bufferStrength = settingsProvider.bufferStrength;
         final showFps = settingsProvider.showFps;
         final showClock = settingsProvider.showClock;
@@ -321,12 +321,12 @@ class _PlayerScreenState extends State<PlayerScreen>
           showClock: showClock,
           showNetworkSpeed: showNetworkSpeed,
           showVideoInfo: showVideoInfo,
-          progressBarMode: settingsProvider.progressBarMode, // 浼犻€掕繘搴︽潯鏄剧ず妯″紡
+          progressBarMode: settingsProvider.progressBarMode, // 传递€掕繘搴︽潯显示模式紡
           showChannelName:
-              settingsProvider.showMultiScreenChannelName, // 浼犻€掑灞忛閬撳悕绉版樉绀鸿缃?
+              settingsProvider.showMultiScreenChannelName, // 传递多屏频道名称显示设置
           onClosed: () {
             ServiceLocator.log.d('PlayerScreen: Native player closed callback');
-            // 鍋滄 DLNA 鍚屾瀹氭椂鍣?
+            // 停止 DLNA 同步定时器
             _dlnaSyncTimer?.cancel();
             _dlnaSyncTimer = null;
 
@@ -377,7 +377,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Hide system UI for immersive experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    // 鎵嬫満绔畾鏈熷埛鏂皐akelock锛岄槻姝㈡煇浜涜澶囦笂wakelock澶辨晥
+    // 手机端定期刷新 wakelock，防止某些设备上 wakelock 失效
     if (PlatformDetector.isMobile) {
       _wakelockTimer?.cancel();
       _wakelockTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
@@ -387,7 +387,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     }
 
-    // 涓嶅啀浣跨敤鎸佺画鐩戝惉锛屾敼涓轰竴娆℃€ч敊璇鏌?
+    // 不再使用持续监听，改为一次错误检查
   }
 
   /// 为 Android TV 原生播放器启用 DLNA 状态同步
@@ -395,8 +395,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     try {
       final dlnaProvider = context.read<DlnaProvider>();
       // 注意：不检查 isActiveSession，因为在 TV 端接收 DLNA 投屏时，
-      // 杩欎釜鏂规硶鍙兘鍦?isActiveSession 璁剧疆涔嬪墠灏辫璋冪敤浜?
-      // 鍙 DLNA 鏈嶅姟鍦ㄨ繍琛岋紝灏卞惎鍔ㄥ悓姝ュ畾鏃跺櫒
+      // 这个方法可能在 isActiveSession 设置之前就被调用了
+      // 只要 DLNA 服务在运行，就启动同步定时器
       if (!dlnaProvider.isRunning) {
         ServiceLocator.log
             .d('PlayerScreen: DLNA service not running, skip sync timer');
@@ -406,7 +406,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       ServiceLocator.log
           .d('PlayerScreen: Starting DLNA sync timer for native player');
 
-      // 姣忕鍚屾涓€娆℃挱鏀剧姸鎬?
+      // 每秒同步一次播放状态
       _dlnaSyncTimer?.cancel();
       _dlnaSyncTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
         if (!mounted) {
@@ -450,7 +450,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _errorShown = true;
       provider.clearError();
 
-      // 鍏堝彇娑堜箣鍓嶇殑瀹氭椂鍣?
+      // 先取消之前的定时器
       _errorHideTimer?.cancel();
 
       // 清除之前的 SnackBar
@@ -467,7 +467,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         content: Text(
             '${AppStrings.of(context)?.playbackError ?? "Error"}: $errorMessage'),
         backgroundColor: AppTheme.errorColor,
-        duration: const Duration(days: 365), // 璁剧疆寰堥暱鐨勬椂闂达紝鎵嬪姩鎺у埗闅愯棌
+        duration: const Duration(days: 365), // 设置很长的时间，手动控制易隐藏
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: AppStrings.of(context)?.retry ?? 'Retry',
@@ -483,7 +483,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
       scaffoldMessenger.showSnackBar(snackBar);
 
-      // 3绉掑悗鎵嬪姩闅愯棌
+      // 3绉掑后手前姩闅愯棌
       _errorHideTimer = Timer(const Duration(seconds: 3), () {
         if (mounted) {
           try {
@@ -624,12 +624,12 @@ class _PlayerScreenState extends State<PlayerScreen>
       unawaited(_multiScreenProvider!.clearAllScreens());
     }
 
-    // 閲嶇疆浜害鍒扮郴缁熼粯璁?
+    // 重置亮度到系统默认
     try {
       ScreenBrightness.instance.resetApplicationScreenBrightness();
     } catch (_) {}
 
-    // 鍏抽棴灞忓箷甯镐寒
+    // 全抽棴屏箷甯镐寒
     if (PlatformDetector.isMobile) {
       PlatformDetector.setKeepScreenOn(false);
     } else {
@@ -648,7 +648,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// 保存分屏状态（Windows 平台）
   void _saveMultiScreenState() {
-    // 閬垮厤閲嶅淇濆瓨
+    // 避免重复保存
     if (_multiScreenStateSaved) {
       ServiceLocator.log
           .d('PlayerScreen: Multi-screen state already saved, skipping');
@@ -662,7 +662,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         return;
       }
 
-      // 鑾峰彇姣忎釜灞忓箷鐨勯閬揑D
+      // 获取每个屏幕的频道ID
       final List<int?> channelIds = [];
       final List<int> sourceIndexes = [];
       for (int i = 0; i < 4; i++) {
@@ -688,22 +688,22 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
-  /// 鏄剧ず婧愬垏鎹㈡寚绀哄櫒 (宸茬Щ闄わ紝鍥犱负椤堕儴宸叉湁鏄剧ず)
+  /// 显示源切换指示器 (已移除，因为顶部已有显示)
   void _showSourceSwitchIndicator(PlayerProvider provider) {
-    // 涓嶅啀鏄剧ず SnackBar锛岄《閮ㄥ凡鏈夋簮鎸囩ず鍣?
+    // 不再显示 SnackBar，顶部已有源指示器
   }
 
   void _saveLastChannelId(Channel? channel) {
     if (channel == null || channel.id == null) return;
     if (_settingsProvider != null && _settingsProvider!.rememberLastChannel) {
-      // 淇濆瓨鍗曢閬撴挱鏀剧姸鎬?
+      // 保存单频道播放状态
       _settingsProvider!.saveLastSingleChannel(channel.id);
     }
   }
 
-  // ============ 鎵嬫満绔墜鍔挎帶鍒?============
+  // ============ 手机端手动控制============
 
-  // 绠€鍖栨墜鍔挎帶鍒?
+  // 简化手动控制
   Offset? _panStartPosition;
   String?
       _currentGestureType; // 'volume', 'brightness', 'channel', 'horizontal'
@@ -716,7 +716,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _initialVolume = playerProvider.volume;
     _gestureStartY = details.globalPosition.dy;
 
-    // 寮傛鑾峰彇褰撳墠浜害
+    // 异步获取当前亮度
     _loadCurrentBrightness();
   }
 
@@ -734,15 +734,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     final dx = details.globalPosition.dx - _panStartPosition!.dx;
     final dy = details.globalPosition.dy - _panStartPosition!.dy;
 
-    // 棣栨绉诲姩瓒呰繃闃堝€兼椂鍐冲畾鎵嬪娍绫诲瀷
+    // 首次移动超过阈值时确定手势类型
     if (_currentGestureType == null) {
-      const threshold = 10.0; // 闄嶄綆闃堝€硷紝鏇寸伒鏁?
+      const threshold = 10.0; // 降低阈值，更灵敏
       if (dx.abs() > threshold || dy.abs() > threshold) {
         final screenWidth = MediaQuery.of(context).size.width;
         final x = _panStartPosition!.dx;
 
         if (dy.abs() > dx.abs()) {
-          // 鍨傜洿婊戝姩
+          // 垂直滑动
           if (x < screenWidth * 0.35) {
             _currentGestureType = 'volume';
             _gestureValue = _initialVolume;
@@ -760,13 +760,13 @@ class _PlayerScreenState extends State<PlayerScreen>
       return;
     }
 
-    // 澶勭悊鍨傜洿婊戝姩
+    // 处理垂直滑动
     final screenHeight = MediaQuery.of(context).size.height;
     final deltaY = _gestureStartY - details.globalPosition.dy;
 
     if (_currentGestureType == 'volume') {
       final volumeChange =
-          (deltaY / (screenHeight * 0.5)) * 1.0; // 婊戝姩鍗婂睆鏀瑰彉100%闊抽噺
+          (deltaY / (screenHeight * 0.5)) * 1.0; // 滑动半屏改变100%音量
       final newVolume = (_initialVolume + volumeChange).clamp(0.0, 1.0);
       (_playerProvider ?? context.read<PlayerProvider>()).setVolume(newVolume);
       setState(() {
@@ -785,7 +785,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         _gestureValue = newBrightness;
       });
     } else if (_currentGestureType == 'channel') {
-      // 涓棿鍖哄煙鏄剧ず婊戝姩鎸囩ず
+      // 个棿鍖哄煙显示婊戝姩鎸囩ず
       setState(() {
         _showGestureIndicator = true;
         _gestureValue = dy.clamp(-100.0, 100.0) / 100.0; // 用于显示方向
@@ -804,11 +804,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 澶勭悊棰戦亾鍒囨崲
+    // 处理频道切换
     if (_currentGestureType == 'channel') {
-      final threshold = screenHeight * 0.08; // 婊戝姩瓒呰繃灞忓箷8%鍗冲彲鍒囨崲
+      final threshold = screenHeight * 0.08; // 婊戝姩瓒呰繃屏箷8%启冲彲切囨崲
       if (dy.abs() > threshold) {
-        _errorShown = false; // 鍒囨崲棰戦亾鏃堕噸缃敊璇爣璁?
+        _errorShown = false; // 切囨崲棰戦亾时堕噸缃敊璇爣璁?
         _errorHideTimer?.cancel(); // 取消错误提示隐藏定时器
         // 隐藏错误提示
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -817,30 +817,30 @@ class _PlayerScreenState extends State<PlayerScreen>
             _playerProvider ?? context.read<PlayerProvider>();
         final channelProvider = context.read<ChannelProvider>();
         if (dy > 0) {
-          // 涓嬫粦 -> 涓婁竴涓閬?
+          // 下滑 -> 上一个频道
           playerProvider.playPrevious(channelProvider.filteredChannels);
           _saveLastChannelId(playerProvider.currentChannel);
         } else {
-          // 涓婃粦 -> 涓嬩竴涓閬?
+          // 上滑 -> 下一个频道
           playerProvider.playNext(channelProvider.filteredChannels);
           _saveLastChannelId(playerProvider.currentChannel);
         }
-        // 寮哄埗鍒锋柊 UI
+        // 强制刷新 UI
         setState(() {});
       }
     }
 
-    // 澶勭悊姘村钩婊戝姩 - 鏄剧ず/闅愯棌鍒嗙被鑿滃崟
+    // 处理水平滑动 - 显示/隐藏分类菜单
     if (_currentGestureType == 'horizontal') {
-      final threshold = screenWidth * 0.15; // 婊戝姩瓒呰繃灞忓箷15%
+      final threshold = screenWidth * 0.15; // 婊戝姩瓒呰繃屏箷15%
       if (dx < -threshold && !_showCategoryPanel) {
-        // 宸︽粦鏄剧ず鍒嗙被鑿滃崟
+        // 宸︽粦显示切嗙被鑿滃崟
         setState(() {
           _showCategoryPanel = true;
           _showControls = false;
         });
       } else if (dx > threshold && _showCategoryPanel) {
-        // 鍙虫粦鍏抽棴鍒嗙被鑿滃崟
+        // 只虫粦全抽棴切嗙被鑿滃崟
         setState(() {
           _showCategoryPanel = false;
           _selectedCategory = null;
@@ -872,7 +872,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       icon = _gestureValue > 0.5 ? Icons.brightness_high : Icons.brightness_low;
       label = '${(_gestureValue * 100).toInt()}%';
     } else if (_currentGestureType == 'channel') {
-      // 棰戦亾鍒囨崲鎸囩ず
+      // 棰戦亾切囨崲鎸囩ず
       if (_gestureValue < 0) {
         icon = Icons.keyboard_arrow_up;
         label = AppStrings.of(context)?.nextChannel ?? 'Next channel';
@@ -911,7 +911,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   DateTime? _lastSelectKeyDownTime;
   DateTime? _lastLeftKeyDownTime; // 用于检测长按左键
-  Timer? _longPressTimer; // 闀挎寜瀹氭椂鍣?
+  Timer? _longPressTimer; // 长按定时器
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     _showControlsTemporarily();
@@ -972,16 +972,16 @@ class _PlayerScreenState extends State<PlayerScreen>
       return KeyEventResult.handled;
     }
 
-    // Left key - 鍒囨崲涓婁竴涓簮 / 闀挎寜鎵撳紑鍒嗙被闈㈡澘
+    // Left key - 切囨崲个婁竴个簮 / 闀挎寜手撳紑切嗙被闈㈡澘
     if (key == LogicalKeyboardKey.arrowLeft) {
       if (event is KeyDownEvent) {
         if (event is KeyRepeatEvent) return KeyEventResult.handled;
         _lastLeftKeyDownTime = DateTime.now();
-        // 鍚姩闀挎寜瀹氭椂鍣?
+        // 启动长按定时器
         _longPressTimer?.cancel();
         _longPressTimer = Timer(const Duration(milliseconds: 500), () {
           if (mounted && _lastLeftKeyDownTime != null) {
-            // 闀挎寜锛氭墦寮€鍒嗙被闈㈡澘骞跺畾浣嶅埌褰撳墠棰戦亾
+            // 闀挎寜锛氭墦开切嗙被闈㈡澘骞跺畾浣嶅埌当前前棰戦亾
             final playerProvider = context.read<PlayerProvider>();
             final channelProvider = context.read<ChannelProvider>();
             final currentChannel = playerProvider.currentChannel;
@@ -992,14 +992,14 @@ class _PlayerScreenState extends State<PlayerScreen>
               if (currentChannel != null && currentChannel.groupName != null) {
                 _selectedCategory = currentChannel.groupName;
                 
-                // 寤惰繜婊氬姩鍒板綋鍓嶉閬撲綅缃?
+                // 延迟滚动到当前频道位置
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (_selectedCategory != null) {
                     final channels = channelProvider.getChannelsByGroup(_selectedCategory!);
                     final currentIndex = channels.indexWhere((ch) => ch.id == currentChannel.id);
                     
                     if (currentIndex >= 0 && _channelScrollController.hasClients) {
-                      // 璁＄畻婊氬姩浣嶇疆锛堟瘡涓閬撻」绾?44 鍍忕礌楂橈級
+                      // 计算滚动位置（每个频道项高 44 像素高）
                       final itemHeight = 44.0;
                       final scrollOffset = currentIndex * itemHeight;
                       
@@ -1024,7 +1024,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (event is KeyUpEvent) {
         _longPressTimer?.cancel();
         if (_lastLeftKeyDownTime != null) {
-          // 鐭寜锛氬垏鎹笂涓€涓簮鎴栧叧闂垎绫婚潰鏉?
+          // 短按：切换上一个源或重新显示分类面板
           _lastLeftKeyDownTime = null;
 
           if (_showCategoryPanel) {
@@ -1041,7 +1041,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             return KeyEventResult.handled;
           }
 
-          // 鍒囨崲鍒颁笂涓€涓簮
+          // 切囨崲切颁笂个€个簮
           final channel = playerProvider.currentChannel;
           if (channel != null && channel.hasMultipleSources) {
             playerProvider.switchToPreviousSource();
@@ -1053,7 +1053,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       return KeyEventResult.handled;
     }
 
-    // Right key - 鍒囨崲涓嬩竴涓簮
+    // Right key - 切囨崲个嬩竴个簮
     if (key == LogicalKeyboardKey.arrowRight) {
       if (_showCategoryPanel) {
         // 如果在分类面板，按键不做任何事
@@ -1061,7 +1061,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
 
       if (event is KeyDownEvent && event is! KeyRepeatEvent) {
-        // 鍒囨崲鍒颁笅涓€涓簮
+        // 切囨崲切颁笅个€个簮
         final channel = playerProvider.currentChannel;
         if (channel != null && channel.hasMultipleSources) {
           playerProvider.switchToNextSource();
@@ -1079,7 +1079,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Previous Channel (Up)
     if (key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.channelUp) {
-      _errorShown = false; // 鍒囨崲棰戦亾鏃堕噸缃敊璇爣璁?
+      _errorShown = false; // 切囨崲棰戦亾时堕噸缃敊璇爣璁?
       _errorHideTimer?.cancel(); // 取消错误提示隐藏定时器
       // 隐藏错误提示
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -1094,7 +1094,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Next Channel (Down)
     if (key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.channelDown) {
-      _errorShown = false; // 鍒囨崲棰戦亾鏃堕噸缃敊璇爣璁?
+      _errorShown = false; // 切囨崲棰戦亾时堕噸缃敊璇爣璁?
       _errorHideTimer?.cancel(); // 取消错误提示隐藏定时器
       // 隐藏错误提示
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -1108,11 +1108,11 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // Back/Exit
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
-      // 杩蜂綘妯″紡涓嬪厛閫€鍑鸿糠浣犳ā寮?
+      // 沉浸模式下先退出迷你模式
       if (WindowsPipChannel.isInPipMode) {
         WindowsPipChannel.exitPipMode();
         setState(() {});
-        // 鎭㈠鐒︾偣鍒版挱鏀惧櫒
+        // 恢复焦点到播放器
         _playerFocusNode.requestFocus();
         return KeyEventResult.handled;
       }
@@ -1123,7 +1123,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       ScaffoldMessenger.of(context).clearSnackBars();
 
       // 不需要手动调用 stop()，dispose 会自动处理
-      // 鐩存帴杩斿洖鍗冲彲锛宒ispose 浼氬湪椤甸潰閿€姣佹椂璋冪敤
+      // 直接返回即可，dispose 会在页面销毁时调用
 
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
@@ -1131,7 +1131,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       return KeyEventResult.handled;
     }
 
-    // Mute - 鍙湪TV绔鐞?
+    // Mute - 只在 TV 端处理
     if (key == LogicalKeyboardKey.keyM ||
         (key == LogicalKeyboardKey.audioVolumeMute &&
             !PlatformDetector.isMobile)) {
@@ -1140,7 +1140,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     // Explicit Volume Keys (for TV remotes with dedicated buttons)
-    // 鎵嬫満绔绯荤粺澶勭悊闊抽噺閿?
+    // 手机端让系统处理音量键
     if (!PlatformDetector.isMobile) {
       if (key == LogicalKeyboardKey.audioVolumeUp) {
         playerProvider.setVolume(playerProvider.volume + 0.1);
@@ -1193,7 +1193,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          // 椤甸潰宸茬粡 pop锛岀珛鍗虫竻闄ら敊璇彁绀?
+          // 椤甸潰宸茬粡 pop锛岀珛启虫竻闄ら敊璇彁绀?
           _errorHideTimer?.cancel();
           _errorShown = false;
           try {
@@ -1234,7 +1234,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             },
             child: GestureDetector(
-              // 浣跨敤 translucent 璁╁瓙缁勪欢涔熻兘鎺ユ敹鐐瑰嚮浜嬩欢
+              // 使用 translucent 让子组件也能接收点击事件
               behavior: HitTestBehavior.translucent,
               onTap: () {
                 if (_showCategoryPanel) {
@@ -1249,13 +1249,13 @@ class _PlayerScreenState extends State<PlayerScreen>
               onDoubleTap: () {
                 context.read<PlayerProvider>().togglePlayPause();
               },
-              // 鎵嬫満绔墜鍔挎帶鍒?- 浣跨敤 Pan 鎵嬪娍缁熶竴澶勭悊
+              // 手机端手动控制 - 使用 Pan 手势统一处理
               onPanStart: PlatformDetector.isMobile ? _onPanStart : null,
               onPanUpdate: PlatformDetector.isMobile ? _onPanUpdate : null,
               onPanEnd: PlatformDetector.isMobile ? _onPanEnd : null,
               child: Stack(
                 children: [
-                  // 鍏ㄥ睆鑳屾櫙锛岀‘淇濇墜鍔垮彲浠ュ湪鏁翠釜灞忓箷鍝嶅簲
+                  // 全屏背景，确保手势可以在整个屏幕响应
                   const Positioned.fill(
                     child: ColoredBox(color: Colors.transparent),
                   ),
@@ -1263,7 +1263,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   // Video Player
                   _buildVideoPlayer(),
 
-                  // Controls Overlay - 鍒嗗睆妯″紡涓嬩笉鏄剧ず鍏ㄥ眬鎺у埗鏍?
+                  // Controls Overlay - 分屏模式下不显示全局控制栏
                   if (!_isMultiScreenMode())
                     AnimatedOpacity(
                       opacity: _showControls ? 1.0 : 0.0,
@@ -1276,16 +1276,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ),
                     ),
 
-                  // Category Panel (Left side) - 杩蜂綘妯″紡鍜屽垎灞忔ā寮忎笅涓嶆樉绀?
+                  // Category Panel (Left side) - 沉浸模式和分屏模式不显示
                   if (_showCategoryPanel &&
                       !WindowsPipChannel.isInPipMode &&
                       !_isMultiScreenMode())
                     _buildCategoryPanel(),
 
-                  // 鎵嬪娍鎸囩ず鍣?鎵嬫満绔?
+                  // 手前娍鎸囩ず器?手嬫満绔?
                   if (_showGestureIndicator) _buildGestureIndicator(),
 
-                  // Loading Indicator - 鍒嗗睆妯″紡涓嬩笉鏄剧ず鍏ㄥ眬鍔犺浇鎸囩ず鍣?
+                  // Loading Indicator - 切嗗睆模式紡个嬩笉显示全ㄥ眬加浇鎸囩ず器?
                   if (_isLoading && !_isMultiScreenMode())
                     Center(
                       child: Transform.scale(
@@ -1296,7 +1296,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ),
                     ),
 
-                  // FPS 鏄剧ず - 鍙充笂瑙掔孩鑹诧紙杩蜂綘妯″紡鍗曠嫭鏄剧ず锛?
+                  // FPS 显示 - 只充笂视掔孩鑹诧紙杩蜂綘模式紡启曠嫭显示锛?
                   Builder(
                     builder: (context) {
                       final settings = context.watch<SettingsProvider>();
@@ -1340,13 +1340,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ),
 
                       // Windows 播放器信息显示 - 右上角（网速、时间、FPS、分辨率等）
-                  // 鍒嗗睆妯″紡涓嬩笉鏄剧ず鍏ㄥ眬淇℃伅锛堟瘡涓垎灞忔湁鑷繁鐨勪俊鎭樉绀猴級
+                  // 分屏模式下不显示全局信息（每个分屏有自己的信息显示）
                   Builder(
                     builder: (context) {
                       final settings = context.watch<SettingsProvider>();
                       final player = context.watch<PlayerProvider>();
 
-                      // 鍒嗗睆妯″紡銆佽糠浣犳ā寮忔垨闈炴挱鏀剧姸鎬佷笉鏄剧ず
+                      // 分屏模式、迷你模式或非播放状态不显示
                       if (_isMultiScreenMode() ||
                           WindowsPipChannel.isInPipMode ||
                           player.state != PlayerState.playing) {
@@ -1369,7 +1369,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // 缃戦€熸樉绀?- 缁胯壊 (浠?TV 绔樉绀猴紝Windows 绔笉鏄剧ず)
+                              // 缃戦€熸樉绀?- 已胯壊 (浠?TV 绔樉绀猴紝Windows 绔笉显示)
                               if (settings.showNetworkSpeed &&
                                   player.downloadSpeed > 0 &&
                                   PlatformDetector.isTV)
@@ -1390,7 +1390,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     ),
                                   ),
                                 ),
-                              // 鏃堕棿鏄剧ず - 榛戣壊
+                              // 时堕棿显示 - 榛戣壊
                               if (settings.showClock)
                                 Container(
                                   margin: const EdgeInsets.only(left: 6),
@@ -1416,7 +1416,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     },
                                   ),
                                 ),
-                              // FPS 鏄剧ず - 绾㈣壊
+                              // FPS 显示 - 绾㈣壊
                               if (settings.showFps && fps > 0)
                                 Container(
                                   margin: const EdgeInsets.only(left: 6),
@@ -1435,7 +1435,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     ),
                                   ),
                                 ),
-                              // 鍒嗚鲸鐜囨樉绀?- 钃濊壊
+                              // 分辨率显示 - 蓝色
                               if (settings.showVideoInfo &&
                                   player.videoWidth > 0 &&
                                   player.videoHeight > 0)
@@ -1483,7 +1483,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     return Consumer<PlayerProvider>(
       builder: (context, provider, _) {
-        // 缁熶竴浣跨敤 media_kit
+        // 已熶竴使用敤 media_kit
         if (provider.videoController == null) {
           return const SizedBox.expand(
             child: Center(
@@ -1504,14 +1504,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   Widget _buildMultiScreenPlayer() {
     return MultiScreenPlayer(
       onExitMultiScreen: () {
-        // 閫€鍑哄垎灞忔ā寮忥紝浣跨敤娲诲姩灞忓箷鐨勯閬撳叏灞忔挱鏀撅紙涓嶄慨鏀硅缃級
+        // 退出分屏模式，使用活动屏幕的频道全屏播放（不修改设置）
         final multiScreenProvider = context.read<MultiScreenProvider>();
         final activeChannel = multiScreenProvider.activeChannel;
 
         // 切回单屏前：释放多屏播放器，但保留每屏频道状态，方便再次进入
         multiScreenProvider.pauseAllScreens();
 
-        // 鍒囨崲鍒板父瑙勬ā寮?
+        // 切换到常规模式
         setState(() {
           _localMultiScreenMode = false;
         });
@@ -1522,9 +1522,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
       },
       onBack: () async {
-        // 鍏堜繚瀛樺垎灞忕姸鎬侊紝鍐嶆竻绌?
+        // 先保存分屏状态，再清空
         _saveMultiScreenState();
-        // 杩斿洖鏃舵竻绌烘墍鏈夊垎灞忥紙绛夊緟瀹屾垚锛?
+        // 返回时清空所有分屏（等待完成）
         final multiScreenProvider = context.read<MultiScreenProvider>();
         await multiScreenProvider.clearAllScreens();
         if (mounted) {
@@ -1534,7 +1534,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 鍒囨崲鍒板垎灞忔ā寮?
+  // 切换到分屏模式
 
   Future<void> _resumeSingleFromMultiScreen(Channel activeChannel) async {
     final playerProvider = context.read<PlayerProvider>();
@@ -1575,14 +1575,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     final settingsProvider = context.read<SettingsProvider>();
     final currentChannel = playerProvider.currentChannel;
 
-    // 鍒囨崲鍒板灞忓墠鍏堝仠姝㈠崟灞忔挱鏀?
+    // 切换到多屏前先暂停单屏播放
     unawaited(playerProvider.stop(silent: true));
 
-    // 璁剧疆闊抽噺澧炲己鍒板垎灞廝rovider
+    // 设置音噺澧炲己切板垎灞廝rovider
     multiScreenProvider.setVolumeSettings(
         playerProvider.volume, settingsProvider.volumeBoost);
 
-    // 鍒囨崲鍒板垎灞忔ā寮?
+    // 切换到分屏模式
     setState(() {
       _localMultiScreenMode = true;
     });
@@ -1603,10 +1603,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
-  // 杩蜂綘妯″紡涓嬬殑绠€鍖栨帶鍒?
+  // 杩蜂綘模式紡个嬬殑绠€鍖栨帶切?
   Widget _buildMiniControlsOverlay() {
     return GestureDetector(
-      // 鏁翠釜鍖哄煙鍙嫋鍔?
+      // 整个区域可拖动
       onPanStart: (_) => windowManager.startDragging(),
       child: Container(
         decoration: BoxDecoration(
@@ -1623,7 +1623,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         ),
         child: Column(
           children: [
-            // 椤堕儴锛氬彧淇濈暀鎭㈠鍜屽叧闂寜閽紝涓嶆樉绀烘爣棰?
+            // 顶部：只保留恢复和关闭，不显示标题文字和退出按钮
             Padding(
               padding: const EdgeInsets.all(6),
               child: Row(
@@ -1639,7 +1639,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         _isFullScreen = await windowManager.isFullScreen();
                       }
                       setState(() {});
-                      // 鎭㈠鐒︾偣鍒版挱鏀惧櫒
+                      // 恢复焦点到播放器
                       _playerFocusNode.requestFocus();
                     },
                     child: Container(
@@ -1653,7 +1653,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     ),
                   ),
                   const SizedBox(width: 4),
-                  // 鍏抽棴鎸夐挳
+                  // 全抽棴按挳
                   GestureDetector(
                     onTap: () {
                       WindowsPipChannel.exitPipMode();
@@ -1682,7 +1682,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 闈欓煶鎸夐挳
+                      // 闈欓煶按挳
                       GestureDetector(
                         onTap: provider.toggleMute,
                         child: Container(
@@ -1790,7 +1790,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   Widget _buildTopBar() {
     return Padding(
-      // 璋冩暣椤堕儴闂磋窛涓?30锛屼娇鎸夐挳鍚戜笂绉诲姩锛屽噺灏戜笌淇℃伅绐楀彛鐨勮窛绂伙紝鍚屾椂淇濇寔涓嶉噸鍙?
+      // 调整顶部间距为 30，使按钮向上移动，减少与信息窗口的距离，同时保持不重叠
       padding: const EdgeInsets.fromLTRB(24, 30, 24, 16),
       child: Row(
         children: [
@@ -1814,7 +1814,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
               // 不需要手动调用 stop()，dispose 会自动处理
 
-              // 鏈€鍚庡鑸繑鍥?
+              // 最后导航返回
               if (mounted) {
                 Navigator.of(context).pop();
               }
@@ -2006,7 +2006,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             _buildPipButton(),
           ],
 
-          // 鍒嗗睆妯″紡鎸夐挳 - 浠呮闈㈠钩鍙?
+          // 切嗗睆模式紡按挳 - 浠呮闈㈠钩只?
           if (PlatformDetector.isDesktop) ...[
             const SizedBox(width: 8),
             _buildMultiScreenButton(),
@@ -2016,7 +2016,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 鍒嗗睆妯″紡鍒囨崲鎸夐挳
+  // 切嗗睆模式紡切囨崲按挳
   Widget _buildMultiScreenButton() {
     return TVFocusable(
       onSelect: _switchToMultiScreenMode,
@@ -2058,7 +2058,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // PiP 鍒囨崲鎸夐挳
+            // PiP 切囨崲按挳
             TVFocusable(
               onSelect: () async {
                 await WindowsPipChannel.togglePipMode();
@@ -2098,7 +2098,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 size: 18,
               ),
             ),
-            // 缃《鎸夐挳 - 浠呭湪杩蜂綘妯″紡涓嬫樉绀?
+            // 缃《按挳 - 浠呭湪杩蜂綘模式紡个嬫樉绀?
             if (isInPip) ...[
               const SizedBox(width: 8),
               TVFocusable(
@@ -2150,7 +2150,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // EPG 褰撳墠鑺傜洰鍜屼笅涓€涓妭鐩?
+              // EPG 当前节目和下一个节目
               Consumer<EpgProvider>(
                 builder: (context, epgProvider, _) {
                   final channel = provider.currentChannel;
@@ -2260,7 +2260,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 },
               ),
 
-              // Progress bar for seekable content (VOD, Replay) - EPG 淇℃伅涓嬫柟
+              // Progress bar for seekable content (VOD, Replay) - EPG 淇℃伅个嬫柟
               Consumer<SettingsProvider>(
                 builder: (context, settings, _) {
                   if (!provider
@@ -2272,14 +2272,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Column(
                       children: [
-                        // 杩涘害鏉★紙鏇村皬鐨勯珮搴︼級
+                        // 进度条（更小的高度）
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2, // 鍑忓皬杞ㄩ亾楂樺害
+                            trackHeight: 2, // 减小轨道高度
                             thumbShape: const RoundSliderThumbShape(
                                 enabledThumbRadius: 5), // 减小滑块大小
                             overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 10), // 鍑忓皬瑙︽懜鍖哄煙
+                                overlayRadius: 10), // 减皬视︽懜鍖哄煙
                             activeTrackColor: AppTheme.getPrimaryColor(context),
                             inactiveTrackColor: const Color(0x33FFFFFF),
                             thumbColor: Colors.white,
@@ -2297,7 +2297,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                             },
                           ),
                         ),
-                        // 鏃堕棿鏄剧ず锛堟洿灏忕殑瀛椾綋鍜岄棿璺濓級
+                        // 时堕棿显示锛堟洿宽忕殑瀛椾綋鍜岄棿璺濓級
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Row(
@@ -2331,7 +2331,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
                   const SizedBox(width: 16),
 
-                  // 鎵嬫満绔簮鍒囨崲鎸夐挳 - 涓婁竴涓簮
+                  // 手嬫満绔簮切囨崲按挳 - 个婁竴个簮
                   if (PlatformDetector.isMobile &&
                       provider.currentChannel != null &&
                       provider.currentChannel!.hasMultipleSources)
@@ -2408,7 +2408,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     ),
                   ),
 
-                  // 鎵嬫満绔簮鍒囨崲鎸夐挳 - 涓嬩竴涓簮
+                  // 手嬫満绔簮切囨崲按挳 - 个嬩竴个簮
                   if (PlatformDetector.isMobile &&
                       provider.currentChannel != null &&
                       provider.currentChannel!.hasMultipleSources)
@@ -2534,14 +2534,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                           if (currentChannel != null && currentChannel.groupName != null) {
                             _selectedCategory = currentChannel.groupName;
                             
-                            // 寤惰繜婊氬姩鍒板綋鍓嶉閬撲綅缃?
+                            // 延迟滚动到当前频道位置
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (_selectedCategory != null) {
                                 final channels = channelProvider.getChannelsByGroup(_selectedCategory!);
                                 final currentIndex = channels.indexWhere((ch) => ch.id == currentChannel.id);
                                 
                                 if (currentIndex >= 0 && _channelScrollController.hasClients) {
-                                  // 璁＄畻婊氬姩浣嶇疆锛堟瘡涓閬撻」绾?44 鍍忕礌楂橈級
+                                  // 计算滚动位置（每个频道项高 44 像素高）
                                   final itemHeight = 44.0;
                                   final scrollOffset = currentIndex * itemHeight;
                                   
@@ -2583,7 +2583,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         color: Colors.white, size: 18),
                   ),
 
-                  // Windows 鍏ㄥ睆鎸夐挳
+                  // Windows 全ㄥ睆按挳
                   if (PlatformDetector.isWindows) ...[
                     const SizedBox(width: 16),
                     TVFocusable(
@@ -2643,7 +2643,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildVolumeControl(PlayerProvider provider) {
-    // 纭繚闊抽噺鍊煎湪 0-1 鑼冨洿鍐?
+    // 确保音量值在 0-1 范围内
     final volume = provider.volume.clamp(0.0, 1.0);
 
     return Row(
@@ -2708,11 +2708,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 鍒囨崲鍏ㄥ睆妯″紡 (浠?Windows)
+  // 切囨崲全ㄥ睆模式紡 (浠?Windows)
   void _toggleFullScreen() {
     if (!PlatformDetector.isWindows) return;
 
-    // 绠€鍗曠殑闃叉姈
+    // 绠€启曠殑闃叉姈
     final now = DateTime.now();
     if (_lastFullScreenToggle != null &&
         now.difference(_lastFullScreenToggle!).inMilliseconds < 200) {
@@ -2720,7 +2720,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _lastFullScreenToggle = now;
 
-    // 浣跨敤鍘熺敓 Windows API 鍒囨崲鍏ㄥ睆
+    // 使用敤压熺敓 Windows API 切囨崲全ㄥ睆
     final success = WindowsFullscreenNative.toggleFullScreen();
 
     if (success) {
@@ -2830,7 +2830,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       bottom: 0,
       child: Row(
         children: [
-          // 鍒嗙被鍒楄〃
+          // 切嗙被切楄〃
           Container(
             width: 180,
             decoration: const BoxDecoration(
@@ -2921,7 +2921,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               ),
             ),
           ),
-          // 棰戦亾鍒楄〃锛堝綋閫変腑鍒嗙被鏃舵樉绀猴級
+          // 棰戦亾切楄〃锛堝綋閫変腑切嗙被时舵樉绀猴級
           if (_selectedCategory != null) _buildChannelList(),
         ],
       ),
@@ -2995,9 +2995,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                         settingsProvider.setLastChannelId(channel.id);
                       }
 
-                      // 鍒囨崲鍒拌棰戦亾
+                      // 切囨崲切拌棰戦亾
                       playerProvider.playChannel(channel);
-                      // 鍏抽棴闈㈡澘
+                      // 全抽棴闈㈡澘
                       setState(() {
                         _showCategoryPanel = false;
                         _selectedCategory = null;
