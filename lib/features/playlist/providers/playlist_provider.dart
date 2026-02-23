@@ -115,6 +115,30 @@ class PlaylistProvider extends ChangeNotifier {
         }
       }
       
+      // 🔍 列出备份目录中的所有文件（用于调试）
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        final backupDir = Directory('${appDir.path}/playlists/backups');
+        if (await backupDir.exists()) {
+          final backupFiles = await backupDir.list().toList();
+          ServiceLocator.log.d('📁 备份目录文件列表 (共 ${backupFiles.length} 个):', tag: 'PlaylistProvider');
+          for (final file in backupFiles) {
+            if (file is File) {
+              try {
+                final stat = await file.stat();
+                ServiceLocator.log.d('  - ${file.path.split('/').last} (${stat.size} bytes)', tag: 'PlaylistProvider');
+              } catch (e) {
+                ServiceLocator.log.d('  - ${file.path.split('/').last} (无法读取大小)', tag: 'PlaylistProvider');
+              }
+            }
+          }
+        } else {
+          ServiceLocator.log.d('📁 备份目录不存在', tag: 'PlaylistProvider');
+        }
+      } catch (e) {
+        ServiceLocator.log.w('列出备份文件失败: $e', tag: 'PlaylistProvider');
+      }
+      
       // 后台异步创建缺失的备份（不阻塞UI）
       if (_playlistsNeedingBackup.isNotEmpty) {
         ServiceLocator.log.i('发现 ${_playlistsNeedingBackup.length} 个播放列表需要创建备份，开始后台处理', tag: 'PlaylistProvider');
@@ -149,13 +173,49 @@ class PlaylistProvider extends ChangeNotifier {
     // Check by content if available
     if (content != null) {
       final trimmed = content.trim();
-      // TXT format typically starts with category or has ,#genre# pattern
+      
+      // M3U format starts with #EXTM3U or #EXTINF (优先检查，因为特征更明显)
+      if (trimmed.startsWith('#EXTM3U') || trimmed.startsWith('#EXTINF')) {
+        return 'm3u';
+      }
+      
+      // TXT format characteristics:
+      // 1. Contains ,#genre# pattern (category marker)
       if (trimmed.contains(',#genre#')) {
         return 'txt';
       }
-      // M3U format starts with #EXTM3U
-      if (trimmed.startsWith('#EXTM3U') || trimmed.startsWith('#EXTINF')) {
-        return 'm3u';
+      
+      // 2. Lines with comma-separated format: name,url
+      // Check first few non-empty lines
+      final lines = trimmed.split('\n').where((line) => line.trim().isNotEmpty).take(10);
+      int txtFormatLines = 0;
+      int totalLines = 0;
+      
+      for (final line in lines) {
+        totalLines++;
+        final trimmedLine = line.trim();
+        // Skip comment lines
+        if (trimmedLine.startsWith('#')) continue;
+        
+        // TXT format: name,url (comma-separated, and second part looks like URL)
+        if (trimmedLine.contains(',')) {
+          final parts = trimmedLine.split(',');
+          if (parts.length >= 2) {
+            final secondPart = parts[1].trim();
+            // Check if second part looks like a URL or contains #genre#
+            if (secondPart.startsWith('http') || 
+                secondPart.startsWith('rtmp') || 
+                secondPart.startsWith('rtsp') ||
+                secondPart.contains('#genre#')) {
+              txtFormatLines++;
+            }
+          }
+        }
+      }
+      
+      // If more than 50% of lines match TXT format, it's TXT
+      if (totalLines > 0 && txtFormatLines > totalLines / 2) {
+        return 'txt';
       }
     }
 
@@ -263,11 +323,13 @@ class PlaylistProvider extends ChangeNotifier {
         await _cleanupOldPlaylistFiles(playlistDir, playlistId!);
         
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final playlistFile = File('${playlistDir.path}/playlist_${playlistId}_$timestamp.m3u');
+        // ✅ 根据检测到的格式使用正确的扩展名
+        final extension = format == 'txt' ? 'txt' : 'm3u';
+        final playlistFile = File('${playlistDir.path}/playlist_${playlistId}_$timestamp.$extension');
         await playlistFile.writeAsString(content);
         tempFilePath = playlistFile.path;
         
-        ServiceLocator.log.d('保存播放列表文件到永久存储: $tempFilePath', tag: 'PlaylistProvider');
+        ServiceLocator.log.d('保存播放列表文件到永久存储: $tempFilePath (格式: $format)', tag: 'PlaylistProvider');
       } else if (filePath != null) {
         // From local file
         final format = _detectPlaylistFormat(filePath);
@@ -449,7 +511,8 @@ class PlaylistProvider extends ChangeNotifier {
   Future<void> _cleanupOldPlaylistFiles(Directory playlistDir, int playlistId) async {
     try {
       final files = playlistDir.listSync();
-      final pattern = RegExp('playlist_${playlistId}_\\d+\\.m3u');
+      // ✅ 支持 .m3u 和 .txt 两种扩展名
+      final pattern = RegExp('playlist_${playlistId}_\\d+\\.(m3u|txt)');
       
       for (final file in files) {
         if (file is File && pattern.hasMatch(file.path)) {
@@ -470,7 +533,8 @@ class PlaylistProvider extends ChangeNotifier {
   Future<void> _cleanupOldTempFiles(Directory tempDir, int playlistId) async {
     try {
       final files = tempDir.listSync();
-      final pattern = RegExp('playlist_${playlistId}_\\d+\\.m3u');
+      // ✅ 支持 .m3u 和 .txt 两种扩展名
+      final pattern = RegExp('playlist_${playlistId}_\\d+\\.(m3u|txt)');
       
       for (final file in files) {
         if (file is File && pattern.hasMatch(file.path)) {
@@ -782,6 +846,22 @@ class PlaylistProvider extends ChangeNotifier {
         final playlistDir = Directory('${appDir.path}/playlists');
         if (await playlistDir.exists()) {
           await _cleanupOldPlaylistFiles(playlistDir, playlistId);
+        }
+        
+        // ✅ Clean up backup file
+        final backupDir = Directory('${appDir.path}/playlists/backups');
+        if (await backupDir.exists()) {
+          final backupFiles = [
+            File('${backupDir.path}/playlist_${playlistId}_backup.m3u'),
+            File('${backupDir.path}/playlist_${playlistId}_backup.txt'),
+          ];
+          
+          for (final backupFile in backupFiles) {
+            if (await backupFile.exists()) {
+              await backupFile.delete();
+              ServiceLocator.log.d('已删除备份文件: ${backupFile.path}', tag: 'PlaylistProvider');
+            }
+          }
         }
       } catch (e) {
         ServiceLocator.log.w('清理播放列表文件时出错: $e', tag: 'PlaylistProvider');

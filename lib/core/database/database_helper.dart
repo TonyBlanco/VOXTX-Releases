@@ -75,7 +75,9 @@ class DatabaseHelper {
         is_active INTEGER DEFAULT 1,
         last_updated INTEGER,
         channel_count INTEGER DEFAULT 0,
-        created_at INTEGER NOT NULL
+        created_at INTEGER NOT NULL,
+        backup_path TEXT,
+        last_backup_time INTEGER
       )
     ''');
 
