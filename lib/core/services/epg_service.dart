@@ -239,21 +239,22 @@ class EpgService {
       final result = await compute(_parseXmlTvInBackground, computeData);
 
       if (result != null) {
-        // Use scheduleMicrotask to ensure we're on the main thread
-        scheduleMicrotask(() {
-          _programs.clear();
-          _channelNames.clear();
-          _nameIndex.clear();
-          _lookupCache.clear();
+        // compute() already ran in a background isolate and returned on the
+        // main thread, so we can assign the data synchronously here — no need
+        // for scheduleMicrotask (which would create a race where data isn't
+        // available yet when notifyListeners() fires in EpgProvider).
+        _programs.clear();
+        _channelNames.clear();
+        _nameIndex.clear();
+        _lookupCache.clear();
 
-          _programs.addAll(result['programs'] as Map<String, List<EpgProgram>>);
-          _channelNames.addAll(result['channelNames'] as Map<String, String>);
-          _nameIndex.addAll(result['nameIndex'] as Map<String, String>);
+        _programs.addAll(result['programs'] as Map<String, List<EpgProgram>>);
+        _channelNames.addAll(result['channelNames'] as Map<String, String>);
+        _nameIndex.addAll(result['nameIndex'] as Map<String, String>);
 
-          _lastUpdate = DateTime.now();
-          ServiceLocator.log.d(
-              'EPG: Loaded ${_programs.length} channels, ${_programs.values.fold(0, (sum, list) => sum + list.length)} programs');
-        });
+        _lastUpdate = DateTime.now();
+        ServiceLocator.log.d(
+            'EPG: Loaded ${_programs.length} channels, ${_programs.values.fold(0, (sum, list) => sum + list.length)} programs');
         return true;
       }
       return false;

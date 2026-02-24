@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.21] - 2026-02-24
+
+### Added
+- **Guía de Programas (EPG Screen)**: Pantalla completa reemplazando el placeholder "Coming Soon"
+  - Vista móvil: mini player + lista de canales lateral + programación del día
+  - Vista escritorio/TV: sidebar de canales (220px) + player 16:9 + lista de programas
+  - Programa actual resaltado con badge "EN VIVO", barra de progreso y tiempo restante
+  - Descripción, categorías y horarios de cada programa
+  - Reloj en tiempo real actualizado cada minuto
+- **Mini player real en panel de previsualización TV**: El panel lateral de LIVE ahora reproduce el stream en vivo al navegar sobre un canal (debounce 500ms)
+- **EPG en sidebar TV**: Acceso directo a Guía de Programas desde la barra lateral
+
+### Fixed
+- **EPG no aparecía en tarjetas de canales LIVE**: Race condition en `epg_service.dart` — los datos se asignaban dentro de `scheduleMicrotask` pero `return true` ocurría antes de que el microtask se ejecutara
+- **EPG nunca notificaba actualizaciones en background**: `EpgProvider.loadEpg(silent: true)` nunca llamaba `notifyListeners()` al terminar, por lo que la UI no se reconstruía con los datos EPG
+
 ## [1.5.20] - 2026-02-24
 
 ### Changed
