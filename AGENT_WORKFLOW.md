@@ -55,7 +55,13 @@ version: 1.5.XX+YYY   # increment both
 - ...
 ```
 
-**docs/version.json** — this is what the app checks to detect a new version. **Must be updated on every release or the app will never show the update notification.**
+**version.json (repo root)** — this is what the app checks to detect a new version. The app fetches:
+```
+https://raw.githubusercontent.com/TonyBlanco/VOXTX-Releases/main/version.json
+```
+**Must be updated on every release or the app will never show the update notification.**
+
+Also keep `docs/version.json` in sync (used by the GitHub Pages website).
 ```json
 {
   "version": "1.5.XX",
@@ -110,7 +116,8 @@ git push voxtx v1.5.XX
 
 ### 6. Push to public releases repo
 ```bash
-git push releases master
+# VOXTX-Releases default branch is 'main', not 'master'
+git push releases master:main --force-with-lease
 git push releases v1.5.XX
 ```
 
@@ -155,6 +162,8 @@ Ignore **info/warning** lines (unused imports, lint hints) unless they are new a
 | Using `--notes` with multi-line text | Write to a file, use `--notes-file` |
 | Forgetting to increment BUILD number | `version: X.Y.Z+BUILD` — both must increment |
 | **Forgetting to update `docs/version.json`** | **App will never detect the new version — update it on EVERY release** |
+| **Forgetting to update root `version.json`** | **Same — the app fetches the root one; `docs/version.json` is for the website** |
+| Pushing `releases master` instead of `releases master:main` | `VOXTX-Releases` default branch is `main` — always use `git push releases master:main` |
 | `git push` fails (rejected) | Run `git pull --rebase voxtx master` first |
 
 ---
