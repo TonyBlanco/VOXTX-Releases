@@ -31,9 +31,10 @@ class AppUpdate {
     final assets = json['assets'] as Map<String, dynamic>? ?? {};
     final changelog = json['changelog'] as Map<String, dynamic>? ?? {};
     
-    // 根据当前语言选择更新日志，默认中文
-    final locale = Platform.localeName.startsWith('zh') ? 'zh' : 'en';
-    final releaseNotes = changelog[locale] ?? changelog['zh'] ?? changelog['en'] ?? '';
+    // 根据当前语言选择更新日志（优先西语，其次英语）
+    final locale = Platform.localeName.toLowerCase();
+    final preferred = locale.startsWith('es') ? 'es' : 'en';
+    final releaseNotes = changelog[preferred] ?? changelog['en'] ?? changelog['es'] ?? '';
     
     // 根据平台和架构选择下载链接
     final downloadUrl = await _getDownloadUrl(assets);
@@ -54,9 +55,10 @@ class AppUpdate {
     final assets = json['assets'] as Map<String, dynamic>? ?? {};
     final changelog = json['changelog'] as Map<String, dynamic>? ?? {};
     
-    // 根据当前语言选择更新日志，默认中文
-    final locale = Platform.localeName.startsWith('zh') ? 'zh' : 'en';
-    final releaseNotes = changelog[locale] ?? changelog['zh'] ?? changelog['en'] ?? '';
+    // 根据当前语言选择更新日志（优先西语，其次英语）
+    final locale = Platform.localeName.toLowerCase();
+    final preferred = locale.startsWith('es') ? 'es' : 'en';
+    final releaseNotes = changelog[preferred] ?? changelog['en'] ?? changelog['es'] ?? '';
     
     // 根据平台和架构选择下载链接（同步版本）
     final downloadUrl = _getDownloadUrlSync(assets);
