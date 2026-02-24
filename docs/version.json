@@ -1,24 +1,24 @@
 {
-  "version": "1.5.19",
-  "build": 179,
+  "version": "1.5.20",
+  "build": 180,
   "releaseDate": "2026-02-24",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-mobile-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-mobile-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-tv-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-tv-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.20/voxtx-android-tv-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Failover con backoff exponencial al fallar un stream\n- Continue watching: reanuda VOD desde donde lo dejaste\n- Selección de calidad de vídeo en el reproductor\n- Controles parentales funcionales con PIN\n- Barra de progreso en tarjetas VOD",
-    "zh": "- 指数退避故障转移\n- 继续观看：从上次停止的地方恢复VOD\n- 播放器中的视频质量选择\n- 带PIN码的家长控制\n- VOD卡片进度条",
-    "en": "- Exponential backoff failover on stream errors\n- Continue watching: resumes VOD from where you left off\n- Video quality track selection in player\n- Functional parental controls with PIN\n- VOD card progress bar"
+    "es": "- Limpieza de textos en chino del fork original\n- Lista B1G Smasters precargada al primer inicio\n- Fix de cadena de log rota",
+    "zh": "- Removed Chinese text residue from original fork\n- B1G Smarters playlist pre-seeded on first launch\n- Log string fix",
+    "en": "- Removed Chinese text residue from original fork\n- B1G Smarters test playlist pre-seeded on first launch\n- Auto-refresh of empty playlists with URL\n- Log string fix in redirect cache service"
   },
   "minVersion": "1.0.0"
 }

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.20] - 2026-02-24
+
+### Changed
+- Eliminados todos los textos en chino residuales del fork original (shnulaa/FlutterIPTV)
+- Segunda lista de prueba (B1G Smasters) precargada al primer inicio
+- Playlists vacías con URL se descargan automáticamente en background
+
+### Fixed
+- Cadena de log rota en redirect_cache_service (residuo del strip de chino)
+
 ## [1.5.19] - 2026-02-24
 
 ### Added
