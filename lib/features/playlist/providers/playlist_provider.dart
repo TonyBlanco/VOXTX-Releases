@@ -145,6 +145,19 @@ class PlaylistProvider extends ChangeNotifier {
         unawaited(_createMissingBackups());
       }
 
+      // Auto-refresh any seeded/empty playlists that have a URL but 0 channels
+      for (final playlist in _playlists) {
+        if (playlist.channelCount == 0 &&
+            playlist.url != null &&
+            playlist.url!.isNotEmpty &&
+            playlist.lastUpdated == null) {
+          ServiceLocator.log.i(
+              'Auto-refreshing empty playlist "${playlist.name}" (${playlist.url})',
+              tag: 'PlaylistProvider');
+          unawaited(refreshPlaylist(playlist, silent: true));
+        }
+      }
+
       final loadTime = DateTime.now().difference(startTime).inMilliseconds;
       ServiceLocator.log.i(': ${loadTime}ms', tag: 'PlaylistProvider');
       _error = null;
