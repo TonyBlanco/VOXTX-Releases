@@ -637,33 +637,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
 
-            // 家长控制 - 暂时隐藏（未实现）
-            // const SizedBox(height: 24),
-            // _buildSectionHeader(AppStrings.of(context)?.parentalControl ?? 'Parental Control'),
-            // _buildSettingsCard([
-            //   _buildSwitchTile(
-            //     context,
-            //     title: AppStrings.of(context)?.enableParentalControl ?? 'Enable Parental Control',
-            //     subtitle: '${AppStrings.of(context)?.enableParentalControlSubtitle ?? 'Require PIN to access certain content'} ${AppStrings.of(context)?.notImplemented ?? '(Not implemented)'}',
-            //     icon: Icons.lock_outline_rounded,
-            //     value: settings.parentalControl,
-            //     onChanged: (value) {
-            //       settings.setParentalControl(value);
-            //       final strings = AppStrings.of(context);
-            //       _showError(context, strings?.parentalControlNotImplemented ?? 'Parental control not implemented, setting will not take effect');
-            //     },
-            //   ),
-            //   if (settings.parentalControl) ...[
-            //     _buildDivider(),
-            //     _buildActionTile(
-            //       context,
-            //       title: AppStrings.of(context)?.changePin ?? 'Change PIN',
-            //       subtitle: '${AppStrings.of(context)?.changePinSubtitle ?? 'Update your parental control PIN'} ${AppStrings.of(context)?.notImplemented ?? '(Not implemented)'}',
-            //       icon: Icons.pin_rounded,
-            //       onTap: () => _showChangePinDialog(context, settings),
-            //     ),
-            //   ],
-            // ]),
+// Parental Control
+            const SizedBox(height: 24),
+            _buildSectionHeader(AppStrings.of(context)?.parentalControl ?? 'Control parental'),
+            _buildSettingsCard([
+              _buildSwitchTile(
+                context,
+                title: AppStrings.of(context)?.enableParentalControl ?? 'Activar control parental',
+                subtitle: AppStrings.of(context)?.enableParentalControlSubtitle ?? 'Solicitar PIN para acceder a contenido adulto',
+                icon: Icons.lock_outline_rounded,
+                value: settings.parentalControl,
+                onChanged: (value) {
+                  if (value && (settings.parentalPin == null || settings.parentalPin!.isEmpty)) {
+                    _showChangePinDialog(context, settings, enableAfter: true);
+                  } else {
+                    settings.setParentalControl(value);
+                  }
+                },
+              ),
+              if (settings.parentalControl) ...[
+                _buildDivider(),
+                _buildActionTile(
+                  context,
+                  title: AppStrings.of(context)?.changePin ?? 'Cambiar PIN',
+                  subtitle: AppStrings.of(context)?.changePinSubtitle ?? 'Actualizar el PIN de control parental',
+                  icon: Icons.pin_rounded,
+                  onTap: () => _showChangePinDialog(context, settings),
+                ),
+              ],
+            ]),
 
             const SizedBox(height: 24),
 
@@ -2090,7 +2092,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showChangePinDialog(BuildContext context, SettingsProvider settings) {
+  void _showChangePinDialog(BuildContext context, SettingsProvider settings, {bool enableAfter = false}) {
     final controller = TextEditingController();
 
     showDialog(
@@ -2099,7 +2101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return AlertDialog(
           backgroundColor: AppTheme.getSurfaceColor(context),
           title: Text(
-            AppStrings.of(context)?.setPin ?? 'Set PIN',
+            AppStrings.of(context)?.setPin ?? 'Establecer PIN',
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
           ),
           content: TextField(
@@ -2109,27 +2111,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             obscureText: true,
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
             decoration: InputDecoration(
-              hintText: AppStrings.of(context)?.enterPin ?? 'Enter 4-digit PIN',
+              hintText: AppStrings.of(context)?.enterPin ?? 'Introduce el PIN de 4 dígitos',
               hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(AppStrings.of(context)?.cancel ?? 'Cancel'),
+              child: Text(AppStrings.of(context)?.cancel ?? 'Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final strings = AppStrings.of(context);
                 if (controller.text.length == 4) {
-                  settings.setParentalPin(controller.text);
-                  Navigator.pop(dialogContext);
-                  _showError(context, strings?.pinNotImplemented ?? 'Parental control not implemented, PIN setting will not take effect');
+                  await settings.setParentalPin(controller.text);
+                  if (enableAfter) await settings.setParentalControl(true);
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+                  if (context.mounted) {
+                    _showSuccess(context, 'PIN guardado correctamente');
+                  }
                 } else {
-                  _showError(context, strings?.enter4DigitPin ?? 'Please enter 4-digit PIN');
+                  _showError(context, strings?.enter4DigitPin ?? 'Introduce un PIN de 4 dígitos');
                 }
               },
-              child: Text(AppStrings.of(context)?.save ?? 'Save'),
+              child: Text(AppStrings.of(context)?.save ?? 'Guardar'),
             ),
           ],
         );

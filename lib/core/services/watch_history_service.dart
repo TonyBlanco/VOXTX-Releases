@@ -5,6 +5,36 @@ import '../services/service_locator.dart';
 class WatchHistoryService {
   final DatabaseHelper _db = ServiceLocator.database;
 
+  /// Save VOD playback position so the user can resume later
+  Future<void> updatePlaybackPosition(int channelId, int playlistId, int positionSeconds) async {
+    try {
+      if (positionSeconds < 5) return; // ignore trivial positions
+      await _db.update(
+        'watch_history',
+        {'position_seconds': positionSeconds},
+        where: 'channel_id = ? AND playlist_id = ?',
+        whereArgs: [channelId, playlistId],
+      );
+    } catch (e) {
+      ServiceLocator.log.e('updatePlaybackPosition failed: $e', tag: 'WatchHistoryService');
+    }
+  }
+
+  /// Get saved VOD position (0 if none)
+  Future<int> getPlaybackPosition(int channelId, int playlistId) async {
+    try {
+      final result = await _db.rawQuery('''
+        SELECT position_seconds FROM watch_history
+        WHERE channel_id = ? AND playlist_id = ?
+        LIMIT 1
+      ''', [channelId, playlistId]);
+      if (result.isEmpty) return 0;
+      return (result.first['position_seconds'] as int?) ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   /// 添加观看记录
   Future<void> addWatchHistory(int channelId, int playlistId) async {
     try {
@@ -45,7 +75,7 @@ class WatchHistoryService {
       // 使用 INNER JOIN 查询观看记录和对应的频道信息
       // 只返回存在且激活的频道，按观看时间倒序排列，限制返回数量
       final result = await _db.rawQuery('''
-        SELECT c.*, wh.watched_at
+        SELECT c.*, wh.watched_at, wh.position_seconds
         FROM watch_history wh
         INNER JOIN channels c ON wh.channel_id = c.id
         WHERE wh.playlist_id = ? AND c.is_active = 1 AND c.playlist_id = ?
@@ -65,6 +95,7 @@ class WatchHistoryService {
           playlistId: row['playlist_id'] as int,
           isActive: (row['is_active'] as int) == 1,
           createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
+          resumePositionSeconds: (row['position_seconds'] as int?) ?? 0,
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -77,7 +108,7 @@ class WatchHistoryService {
   Future<List<Channel>> getAllWatchHistory({int limit = 20}) async {
     try {
       final result = await _db.rawQuery('''
-        SELECT c.*, wh.watched_at, p.name as playlist_name
+        SELECT c.*, wh.watched_at, wh.position_seconds, p.name as playlist_name
         FROM watch_history wh
         INNER JOIN channels c ON wh.channel_id = c.id
         INNER JOIN playlists p ON wh.playlist_id = p.id
@@ -98,6 +129,7 @@ class WatchHistoryService {
           playlistId: row['playlist_id'] as int,
           isActive: (row['is_active'] as int) == 1,
           createdAt: DateTime.fromMillisecondsSinceEpoch(row['created_at'] as int),
+          resumePositionSeconds: (row['position_seconds'] as int?) ?? 0,
         );
       }).toList();
     } catch (e) {

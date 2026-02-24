@@ -27,6 +27,8 @@ class Channel {
   int currentSourceIndex; // Current playing source index
 
   String? fallbackLogoUrl;
+  /// Resume position for VOD content (seconds). Runtime only, not persisted in DB directly.
+  int resumePositionSeconds;
 
   Channel({
     this.id,
@@ -44,6 +46,7 @@ class Channel {
     this.currentSourceIndex = 0,
     this.fallbackLogoUrl,
     this.channelType = 'live',
+    this.resumePositionSeconds = 0,
   }) : sources = sources ?? [url],
        createdAt = createdAt ?? DateTime.now();
 

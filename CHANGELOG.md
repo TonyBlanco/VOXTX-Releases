@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.19] - 2026-02-24
+
+### Added
+- Failover con backoff exponencial (500ms → 1s → 2s, 3 reintentos) al fallar un stream
+- Continue watching: posición de reproducción guardada en VOD, reanuda desde donde lo dejaste
+- Selección de pista de calidad de vídeo directamente desde el reproductor
+- Controles parentales funcionales con PIN configurable desde Ajustes
+- Barra de progreso en las tarjetas de canal VOD con posición guardada
+- Historial de reproducción activado por defecto en la pantalla de inicio
+
 ## [1.5.18] - 2026-02-24
 
 ### Changed

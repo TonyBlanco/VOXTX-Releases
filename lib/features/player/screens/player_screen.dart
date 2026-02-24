@@ -68,6 +68,10 @@ class _PlayerScreenState extends State<PlayerScreen>
   // 保存分屏模式状态，用于 dispose 时判断
   bool _wasMultiScreenMode = false;
 
+  // Resume position (seconds) to seek to after playback starts
+  int _pendingResumeSeconds = 0;
+  bool _resumeSnackbarShown = false;
+
   // 标记是否已经保存了分屏状态（避免重复保存）
   bool _multiScreenStateSaved = false;
 
@@ -185,6 +189,30 @@ class _PlayerScreenState extends State<PlayerScreen>
       _checkAndShowError();
     }
 
+    // Resume from saved position once playing starts
+    if (_pendingResumeSeconds > 0 &&
+        provider.state == PlayerState.playing &&
+        !_resumeSnackbarShown) {
+      final sec = _pendingResumeSeconds;
+      _resumeSnackbarShown = true;
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        provider.resumeFromSavedPosition(sec);
+        try {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Reanudando desde ${_formatDuration(Duration(seconds: sec))}'),
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Desde el inicio',
+                onPressed: () => provider.seek(Duration.zero),
+              ),
+            ),
+          );
+        } catch (_) {}
+      });
+    }
+
     // 只有 DLNA 投屏会话时才同步播放状态
     try {
       final dlnaProvider = context.read<DlnaProvider>();
@@ -291,8 +319,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         // TV端原生播放器也需要记录频道遍历
         if (!isDlnaMode && currentIndex >= 0 && currentIndex < channels.length) {
           final channel = channels[currentIndex];
-          if (channel.id != null && channel.playlistId != null) {
-            await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId!);
+          if (channel.id != null) {
+            await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId);
             ServiceLocator.log.d('PlayerScreen: Recorded watch history for channel ${channel.name}');
           }
         }
@@ -521,11 +549,176 @@ class _PlayerScreenState extends State<PlayerScreen>
         settingsProvider.setLastChannelId(channel.id);
       }
 
+      // Parental control gate
+      if (settingsProvider.parentalControl && _isAdultContent(channel)) {
+        _checkParentalGate(
+          settingsProvider,
+          onUnlocked: () {
+            playerProvider.playChannel(channel);
+            _loadResumePosition(channel);
+          },
+        );
+        return;
+      }
+
       playerProvider.playChannel(channel);
+      _loadResumePosition(channel);
     } catch (_) {
       // Fallback if channel object not found
       playerProvider.playUrl(widget.channelUrl, name: widget.channelName);
     }
+  }
+
+  // ── Parental Control helpers ───────────────────────────────────────
+
+  bool _isAdultContent(Channel channel) {
+    final group = (channel.groupName ?? '').toLowerCase();
+    final name = channel.name.toLowerCase();
+    const adultKeywords = [
+      'adult', 'xxx', 'porno', 'porn', '18+', 'x18', 'explicit',
+      'adults only', 'erotic', 'erotica', 'red light', 'playboy',
+    ];
+    return adultKeywords.any((k) => group.contains(k) || name.contains(k));
+  }
+
+  void _checkParentalGate(SettingsProvider settings, {required VoidCallback onUnlocked}) {
+    final pinController = TextEditingController();
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppTheme.getSurfaceColor(context),
+          title: Row(
+            children: [
+              Icon(Icons.lock_rounded, color: AppTheme.getPrimaryColor(context)),
+              const SizedBox(width: 8),
+              Text('Control parental',
+                  style: TextStyle(color: AppTheme.getTextPrimary(context))),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Introduce el PIN para acceder a este contenido',
+                style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: pinController,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: true,
+                autofocus: true,
+                style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                decoration: InputDecoration(
+                  hintText: 'PIN de 4 dígitos',
+                  hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (mounted) Navigator.pop(context); // back to channel list
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (settings.validateParentalPin(pinController.text)) {
+                  Navigator.pop(ctx);
+                  onUnlocked();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('PIN incorrecto')),
+                  );
+                }
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── VOD Resume position helpers ───────────────────────────────────
+
+  void _loadResumePosition(Channel channel) {
+    if (channel.id == null) return;
+    _resumeSnackbarShown = false;
+    ServiceLocator.watchHistory
+        .getPlaybackPosition(channel.id!, channel.playlistId)
+        .then((pos) {
+      if (pos > 10 && mounted) {
+        setState(() => _pendingResumeSeconds = pos);
+      }
+    });
+  }
+
+  // ── Quality / Video Track dialog ───────────────────────────────────────
+
+  void _showQualityDialog(PlayerProvider provider) {
+    final tracks = provider.availableVideoTracks;
+    if (tracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay pistas de calidad disponibles para este stream')),
+      );
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.getSurfaceColor(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Calidad de vídeo',
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            ...tracks.map((track) {
+              final label = track.title?.isNotEmpty == true
+                  ? track.title!
+                  : (track.id.isEmpty || track.id == 'auto' ? 'Auto' : 'Pista ${tracks.indexOf(track) + 1}');
+              return ListTile(
+                title: Text(
+                  label,
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                leading: Icon(
+                  Icons.hd_rounded,
+                  color: AppTheme.getPrimaryColor(context),
+                ),
+                onTap: () {
+                  provider.setVideoTrack(track);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Calidad cambiada: $label')),
+                  );
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
   }
 
   void _startHideControlsTimer() {
@@ -2513,6 +2706,35 @@ class _PlayerScreenState extends State<PlayerScreen>
                       );
                     },
                     child: const Icon(Icons.settings_rounded,
+                        color: Colors.white, size: 18),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // Quality track button
+                  TVFocusable(
+                    onSelect: () => _showQualityDialog(provider),
+                    focusScale: 1.0,
+                    showFocusBorder: false,
+                    builder: (context, isFocused, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isFocused
+                              ? AppTheme.getPrimaryColor(context)
+                              : const Color(0x33FFFFFF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isFocused
+                                ? AppTheme.getPrimaryColor(context)
+                                : const Color(0x1AFFFFFF),
+                            width: isFocused ? 2 : 1,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: const Icon(Icons.high_quality_rounded,
                         color: Colors.white, size: 18),
                   ),
 

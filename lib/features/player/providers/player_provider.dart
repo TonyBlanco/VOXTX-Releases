@@ -42,7 +42,7 @@ class PlayerProvider extends ChangeNotifier {
   int _volumeBoostDb = 0;
 
   int _retryCount = 0;
-  static const int _maxRetries = 2;  // 改为重试2次
+  static const int _maxRetries = 3; // exponential backoff: 500ms, 1s, 2s
   Timer? _retryTimer;
   bool _isAutoSwitching = false; // 标记是否正在自动切换源
   bool _isAutoDetecting = false; // 标记是否正在自动检测源
@@ -155,7 +155,10 @@ class PlayerProvider extends ChangeNotifier {
       _retryCount++;
       ServiceLocator.log.d('PlayerProvider: 播放错误，尝试重试($_retryCount/$_maxRetries): $error');
       _retryTimer?.cancel();
-      _retryTimer = Timer(const Duration(milliseconds: 500), () {
+      // Exponential backoff: 500ms, 1000ms, 2000ms
+      final delayMs = 500 * math.pow(2, _retryCount - 1).round();
+      ServiceLocator.log.d('PlayerProvider: retry in ${delayMs}ms (backoff)');
+      _retryTimer = Timer(Duration(milliseconds: delayMs), () {
         if (_currentChannel != null) {
           _retryPlayback();
         }
@@ -888,7 +891,7 @@ class PlayerProvider extends ChangeNotifier {
       // 记录观看历史
       final channelId = channel.id;
       final playlistId = channel.playlistId;
-      if (channelId != null && playlistId != null) {
+      if (channelId != null) {
         await ServiceLocator.watchHistory.addWatchHistory(channelId, playlistId);
       }
       
@@ -1018,6 +1021,9 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   Future<void> stop({bool silent = false}) async {
+    // Save VOD position before stopping
+    await _saveVodPositionIfNeeded();
+
     // 清除错误状态和定时器
     _retryTimer?.cancel();
     _retryTimer = null;
@@ -1047,6 +1053,51 @@ class PlayerProvider extends ChangeNotifier {
 
   void seekForward(int seconds) {
     seek(_position + Duration(seconds: seconds));
+  }
+
+  // ── VOD resume / position persistence ─────────────────────────────────────
+
+  /// Save current position to DB so the user can resume later (VOD only).
+  Future<void> _saveVodPositionIfNeeded() async {
+    final channel = _currentChannel;
+    if (channel == null) return;
+    if (channel.id == null) return;
+    // Only persist position for seekable/VOD-style content
+    final positionSec = _position.inSeconds;
+    if (positionSec < 5) return;
+    // Don't save for live streams
+    if (_duration.inSeconds > 0 && _duration.inSeconds <= 86400) {
+      try {
+        await ServiceLocator.watchHistory
+            .updatePlaybackPosition(channel.id!, channel.playlistId, positionSec);
+        ServiceLocator.log.d('Saved VOD position: ${positionSec}s for ${channel.name}', tag: 'PlayerProvider');
+      } catch (e) {
+        ServiceLocator.log.w('Failed to save VOD position: $e', tag: 'PlayerProvider');
+      }
+    }
+  }
+
+  /// Seek to the resume position stored in the channel model (called by UI after playback starts).
+  void resumeFromSavedPosition(int positionSeconds) {
+    if (positionSeconds > 5) {
+      seek(Duration(seconds: positionSeconds));
+      ServiceLocator.log.i('Resuming from position: ${positionSeconds}s', tag: 'PlayerProvider');
+    }
+  }
+
+  // ── Quality / Video Track selection ───────────────────────────────────────
+
+  /// Available video tracks (for HLS quality selection).
+  List<VideoTrack> get availableVideoTracks {
+    if (_useNativePlayer || _mediaKitPlayer == null) return [];
+    return _mediaKitPlayer!.state.tracks.video;
+  }
+
+  /// Set a specific video track for quality selection.
+  void setVideoTrack(VideoTrack track) {
+    if (_useNativePlayer || _mediaKitPlayer == null) return;
+    _mediaKitPlayer!.setVideoTrack(track);
+    ServiceLocator.log.i('Video track set: ${track.title ?? track.id}', tag: 'PlayerProvider');
   }
 
   void seekBackward(int seconds) {

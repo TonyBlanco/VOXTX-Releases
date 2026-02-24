@@ -229,6 +229,30 @@ class _ChannelCardState extends State<ChannelCard> {
                           child: Text(AppStrings.of(context)?.unavailable ?? 'Unavailable', style: TextStyle(color: Colors.white, fontSize: isMobile ? 6 : 8, fontWeight: FontWeight.bold)),
                         ),
                       ),
+                    // Resume progress bar for VOD channels
+                    if ((widget.channel?.resumePositionSeconds ?? 0) > 0 &&
+                        (widget.channel?.type == ChannelType.vod ||
+                         widget.channel?.type == ChannelType.replay))
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 3,
+                          color: Colors.black38,
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: ((widget.channel!.resumePositionSeconds) /
+                                    (widget.channel!.resumePositionSeconds + 60).clamp(1, 3600))
+                                .clamp(0.05, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.getGradient(context),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

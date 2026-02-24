@@ -9,7 +9,7 @@ import '../services/service_locator.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _databaseName = 'flutter_iptv.db';
-  static const int _databaseVersion = 9; // Added channel_type to channels
+  static const int _databaseVersion = 10; // v10: position_seconds in watch_history
 
   Future<void> initialize() async {
     ServiceLocator.log.d('DatabaseHelper: 开始初始化数据库');
@@ -121,6 +121,7 @@ class DatabaseHelper {
         playlist_id INTEGER NOT NULL,
         watched_at INTEGER NOT NULL,
         duration_seconds INTEGER DEFAULT 0,
+        position_seconds INTEGER DEFAULT 0,
         FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE,
         FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
       )
@@ -322,6 +323,16 @@ class DatabaseHelper {
         await db.execute(
             "ALTER TABLE channels ADD COLUMN channel_type TEXT DEFAULT 'live'");
         ServiceLocator.log.i('数据库迁移: 添加 channel_type 字段到 channels 表');
+      } catch (e) {
+        ServiceLocator.log.d('Migration error (ignored): $e');
+      }
+    }
+    if (oldVersion < 10) {
+      // Add position_seconds to watch_history for VOD resume
+      try {
+        await db.execute(
+            'ALTER TABLE watch_history ADD COLUMN position_seconds INTEGER DEFAULT 0');
+        ServiceLocator.log.i('Migration v10: added position_seconds to watch_history');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }

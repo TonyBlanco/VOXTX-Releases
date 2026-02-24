@@ -93,7 +93,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _simpleMenu = true; // Usar menú simple (no expandido) por defecto
   String _logLevel = 'off'; // Nivel de logs: debug, release, off (por defecto off)
   String _mobileOrientation = 'portrait'; // Orientación en móvil: portrait, landscape, auto (por defecto portrait)
-  bool _showWatchHistoryOnHome = false; // Mostrar historial en Home (por defecto false)
+  bool _showWatchHistoryOnHome = true; // Mostrar historial en Home por defecto
   bool _showFavoritesOnHome = false; // Mostrar favoritos en Home (por defecto false)
 
   // Getters
@@ -112,6 +112,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get enableEpg => _enableEpg;
   String? get epgUrl => _epgUrl;
   bool get parentalControl => _parentalControl;
+  String? get parentalPin => _parentalPin;
   bool get autoPlay => _autoPlay;
   bool get rememberLastChannel => _rememberLastChannel;
   int? get lastChannelId => _lastChannelId;
@@ -248,7 +249,7 @@ class SettingsProvider extends ChangeNotifier {
     _mobileOrientation = prefs.getString(_keyMobileOrientation) ?? 'portrait';
 
     // Cargar ajustes de visualización en la pantalla principal
-    _showWatchHistoryOnHome = prefs.getBool(_keyShowWatchHistoryOnHome) ?? false;
+    _showWatchHistoryOnHome = prefs.getBool(_keyShowWatchHistoryOnHome) ?? true;
     _showFavoritesOnHome = prefs.getBool(_keyShowFavoritesOnHome) ?? false;
     
     // No llamar a notifyListeners() en el constructor para evitar reconstrucciones durante build

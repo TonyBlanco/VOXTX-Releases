@@ -1,24 +1,24 @@
 {
-  "version": "1.5.18",
-  "build": 178,
+  "version": "1.5.19",
+  "build": 179,
   "releaseDate": "2026-02-24",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-mobile-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-mobile-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-tv-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-tv-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.18/voxtx-android-tv-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.19/voxtx-android-tv-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Splash: duración aumentada a 13 segundos\n- Splash: barras animadas de señal/conexión mientras carga las listas\n- Splash: texto de estado en tiempo real (Cargando listas, Verificando actualizaciones...)",
-    "zh": "- Splash: duración aumentada a 13 segundos\n- Splash: barras animadas de señal/conexión mientras carga las listas\n- Splash: texto de estado en tiempo real",
-    "en": "- Splash: minimum duration increased to 13 seconds\n- Splash: animated equalizer/signal bars during channel list loading\n- Splash: real-time status text showing loading stages"
+    "es": "- Failover con backoff exponencial al fallar un stream\n- Continue watching: reanuda VOD desde donde lo dejaste\n- Selección de calidad de vídeo en el reproductor\n- Controles parentales funcionales con PIN\n- Barra de progreso en tarjetas VOD",
+    "zh": "- 指数退避故障转移\n- 继续观看：从上次停止的地方恢复VOD\n- 播放器中的视频质量选择\n- 带PIN码的家长控制\n- VOD卡片进度条",
+    "en": "- Exponential backoff failover on stream errors\n- Continue watching: resumes VOD from where you left off\n- Video quality track selection in player\n- Functional parental controls with PIN\n- VOD card progress bar"
   },
   "minVersion": "1.0.0"
 }
