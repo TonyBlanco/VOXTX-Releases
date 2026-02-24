@@ -17,10 +17,13 @@ voxtx   https://github.com/TonyBlanco/VOXTX-Android.git ← PRIVATE DEV REPO —
 | `origin` | Upstream fork (read-only reference) | ❌ NEVER |
 | `voxtx` | Private dev work | ✅ YES |
 
-> **⚠️ VOXTX-Releases (`https://github.com/TonyBlanco/VOXTX-Releases`) is NOT a remote in this repo.**  
-> It is a **separate, standalone repo** that contains ONLY `version.json` + GitHub Releases with APK assets.  
-> **NEVER add it as a remote here. NEVER push source code to it.**  
-> The only way to interact with it is via `gh release create` (attach APKs) and a separate clone for version.json updates (see below).
+> **⚠️ VOXTX-Releases (`https://github.com/TonyBlanco/VOXTX-Releases`) — REGLA ABSOLUTA:**  
+> En este repo **solo se publican dos cosas**:
+> 1. **APKs** — como assets de un GitHub Release (via `gh release create`)
+> 2. **`version.json`** — el manifest que la app usa para detectar actualizaciones
+>
+> **NUNCA** añadirlo como remote. **NUNCA** hacer `git push` de código fuente ni branches.  
+> Es un repo público — cualquier cosa que se suba es visible para todo el mundo.
 
 ---
 
