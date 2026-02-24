@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +20,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  static const Duration _minimumSplashDuration = Duration(milliseconds: 3200);
+  static const Duration _minimumSplashDuration = Duration(milliseconds: 12800);
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _ambientController;
@@ -35,6 +36,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _ambientRingScale;
   late Animation<double> _ambientRingOpacity;
   late Animation<double> _loadingShimmer;
+  String _loadingStatus = 'Iniciando servicios...';
+
+  void _setStatus(String status) {
+    if (mounted) setState(() => _loadingStatus = status);
+  }
 
   @override
   void initState() {
@@ -78,42 +84,42 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   Future<void> _initializeApp() async {
-    ServiceLocator.log.i('开始初始化应用服务', tag: 'SplashScreen');
+    ServiceLocator.log.i('Initializing app services', tag: 'SplashScreen');
     final startTime = DateTime.now();
     
     try {
-      // Initialize core services
-      ServiceLocator.log.d('初始化核心服务...', tag: 'SplashScreen');
+      _setStatus('Conectando con los servicios...');
       await ServiceLocator.init();
-      ServiceLocator.log.d('初始化 TV 检测...', tag: 'SplashScreen');
+
+      _setStatus('Detectando plataforma...');
       await TVDetectionChannel.initialize();
 
-      // Load data
       if (mounted) {
-        ServiceLocator.log.d('加载播放列表数据...', tag: 'SplashScreen');
+        _setStatus('Cargando listas de canales...');
         final playlistProvider = context.read<PlaylistProvider>();
         await playlistProvider.loadPlaylists();
         
-        ServiceLocator.log.d('播放列表加载完成: ${playlistProvider.playlists.length} 个', tag: 'SplashScreen');
-        
-        // 播放列表加载完成后，通知自动刷新服务进行检查
+        _setStatus('Verificando actualizaciones...');
         AutoRefreshService().checkOnStartup();
+        await Future.delayed(const Duration(milliseconds: 600));
         
-        // 预热播放器 - Windows 桌面端提前初始化播放器,避免首次进入播放页面卡顿
         if (PlatformDetector.isDesktop) {
-          ServiceLocator.log.d('预热播放器...', tag: 'SplashScreen');
+          _setStatus('Inicializando reproductor...');
           final playerProvider = context.read<PlayerProvider>();
-          // 异步预热,不阻塞启动流程
           playerProvider.warmup().catchError((e) {
-            ServiceLocator.log.d('播放器预热失败 (不影响使用): $e', tag: 'SplashScreen');
+            ServiceLocator.log.d('Player warmup failed (non-fatal): $e', tag: 'SplashScreen');
           });
+          await Future.delayed(const Duration(milliseconds: 400));
         }
+
+        _setStatus('Preparando interfaz...');
       }
       
       final initTime = DateTime.now().difference(startTime).inMilliseconds;
-      ServiceLocator.log.i('应用初始化完成，耗时: ${initTime}ms', tag: 'SplashScreen');
+      ServiceLocator.log.i('App init done in ${initTime}ms', tag: 'SplashScreen');
     } catch (e) {
-      ServiceLocator.log.e('应用初始化失败', tag: 'SplashScreen', error: e);
+      _setStatus('Error al inicializar. Reintentando...');
+      ServiceLocator.log.e('App init failed', tag: 'SplashScreen', error: e);
     }
 
     final elapsed = DateTime.now().difference(_splashStartedAt);
@@ -257,27 +263,53 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
               const SizedBox(height: 60),
 
-              // Professional loading bar (without spinner)
+              // Connection signal bars + status text
               AnimatedBuilder(
                 animation: Listenable.merge([_textController, _ambientController]),
                 builder: (context, _) {
+                  final t = _ambientController.value * 2 * pi;
+                  final primaryColor = AppTheme.getPrimaryColor(context);
                   return Opacity(
                     opacity: _textOpacity.value,
                     child: SizedBox(
-                      width: 220,
+                      width: 260,
                       child: Column(
                         children: [
+                          // Animated signal/equalizer bars
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: List.generate(7, (i) {
+                              final phase = i * (pi / 3.5);
+                              final height = 8.0 + 22.0 * (0.5 + 0.5 * sin(t + phase));
+                              final opacity = 0.45 + 0.55 * (0.5 + 0.5 * sin(t + phase));
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 80),
+                                  width: 7,
+                                  height: height,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: primaryColor.withOpacity(opacity),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                          const SizedBox(height: 20),
+                          // Shimmer bar below the equalizer
                           ClipRRect(
                             borderRadius: BorderRadius.circular(999),
                             child: Container(
-                              height: 6,
+                              height: 4,
                               color: AppTheme.getSurfaceColor(context),
                               child: Stack(
                                 children: [
                                   Transform.translate(
-                                    offset: Offset(_loadingShimmer.value * 120, 0),
+                                    offset: Offset(_loadingShimmer.value * 130, 0),
                                     child: Container(
-                                      width: 84,
+                                      width: 90,
                                       decoration: BoxDecoration(
                                         gradient: AppTheme.getGradient(context),
                                         borderRadius: BorderRadius.circular(999),
@@ -289,11 +321,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            AppStrings.of(context)?.loading ?? 'Loading...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.getTextMuted(context),
+                          // Cycling status text
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 400),
+                            child: Text(
+                              _loadingStatus,
+                              key: ValueKey(_loadingStatus),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.getTextMuted(context),
+                                letterSpacing: 0.5,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],

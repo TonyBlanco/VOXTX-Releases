@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.18] - 2026-02-24
+
+### Changed
+- Splash: duración mínima aumentada a 13 segundos para dar tiempo a cargar las listas
+- Splash: barras animadas tipo ecualizador/señal visibles mientras carga los canales
+- Splash: texto de estado en tiempo real (Cargando listas, Verificando actualizaciones...)
+
 ## [1.5.17] - 2026-02-24
 
 ### Fixed
