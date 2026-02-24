@@ -1,9 +1,27 @@
 # Changelog
 
-All notable changes to FlutterIPTV will be documented in this file.
+All notable changes to VoxTvIPTV will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Channels mini preview panel for TV/Desktop with quick actions (play/favorite)
+- Channel availability status indicator in preview flow
+
+### Changed
+- App update source migrated to `TonyBlanco/VOXTX-Android` (`master`)
+- In-app release links and update metadata now point to the new repository
+- README structure updated: `README.md` in Spanish and `README_EN.md` in English
+- Repository/documentation links aligned with `VOXTX-Android`
+
+### Fixed
+- Stabilized Movies/Series behavior after regressions in recent iterations
+- Restored and improved modal-based details flow in Movies
+- Fixed Series episodes flow to fetch and display episode data reliably
+- Resolved parser/structure issues that were causing release build failures
 
 ## [1.1.30] - 2024-12-21
 
@@ -179,14 +197,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Platform channel for Android TV detection
 
 ---
-
-## [Unreleased]
-
-### Planned Features
-- EPG (Electronic Program Guide) support
-- Channel logos caching
-- Multiple audio track selection
-- Subtitle support
-- Picture-in-Picture mode (Android)
-- Chromecast support
-- Recording functionality
