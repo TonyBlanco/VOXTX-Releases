@@ -17,7 +17,7 @@
   },
   "changelog": {
     "es": "- Añadido: panel mini preview en Canales para TV/Escritorio\n- Añadido: indicador de disponibilidad en el preview\n- Corregido: regresiones de estabilidad en flujos Movies/Series\n- Cambiado: fuente de actualización y enlaces migrados a VOXTX-Android",
-    "zh": "- 新增：频道页迷你预览面板（电视/桌面）\n- 新增：迷你预览中的频道可用性状态指示\n- 修复：Movies/Series 最近迭代中的稳定性问题\n- 变更：应用更新与仓库链接统一迁移到 VOXTX-Android",
+    "zh": "- Añadido: panel mini preview en Canales para TV/Escritorio\n- Añadido: indicador de disponibilidad en el preview\n- Corregido: regresiones de estabilidad en flujos Movies/Series\n- Cambiado: fuente de actualización y enlaces migrados a VOXTX-Android",
     "en": "- Added: Channels mini preview panel for TV/Desktop\n- Added: Channel availability indicator in preview flow\n- Fixed: Stability regressions in Movies/Series flows\n- Changed: Update source and repository links migrated to VOXTX-Android"
   },
   "minVersion": "1.0.0"
