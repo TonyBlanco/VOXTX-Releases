@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.22] - 2026-02-24
+### Novedades
+- **Guía de Programas — Selector de categoría**: Chips horizontales para filtrar canales por grupo. Al abrir se pre-selecciona el grupo del canal activo
+- **Botón Pantalla Completa en EPG**: Icono ⛶ en el header del canal y superpuesto en el player para abrir el reproductor nativo a pantalla completa
+- **Logos sin cuadro X**: Nuevo widget `_ChannelLogo` — muestra icono de TV durante carga y si falla, sin spinners ni errores visuales
+
 All notable changes to VoxTvIPTV will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
