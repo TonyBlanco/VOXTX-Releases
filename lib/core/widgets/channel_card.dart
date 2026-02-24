@@ -10,19 +10,19 @@ import 'tv_focusable.dart';
 import 'channel_logo_widget.dart';
 
 /// A card widget for displaying channel information
-/// 使用固定宽高比，内部布局自适应
-/// TV端优化：无特效，长按显示菜单
 /// 
-/// 功能特性：
-/// - 自动滚动：
-///   * Windows端：鼠标悬停时滚动显示完整内容，移开后恢复原样
-///   * TV端：焦点聚焦时滚动显示完整内容，失去焦点后恢复原样
-/// - 响应式布局：根据设备类型（TV/Mobile/Desktop）自适应显示
-/// - EPG信息：显示当前和下一个节目信息
+/// TV
+/// 
+/// 
+/// - 
+///   * Windows
+///   * TV
+/// - TV/Mobile/Desktop
+/// - EPG
 class ChannelCard extends StatefulWidget {
   final String name;
   final String? logoUrl;
-  final Channel? channel; // 新增：完整的 Channel 对象，用于 ChannelLogoWidget
+  final Channel? channel; //  Channel  ChannelLogoWidget
   final String? groupName;
   final String? currentProgram;
   final String? nextProgram;
@@ -35,8 +35,8 @@ class ChannelCard extends StatefulWidget {
   final VoidCallback? onTest;
   final VoidCallback? onLeft;
   final VoidCallback? onDown;
-  final VoidCallback? onUp; // 添加onUp回调
-  final VoidCallback? onFocused; // 获得焦点时的回调
+  final VoidCallback? onUp; // onUp
+  final VoidCallback? onFocused; // 
   final bool autofocus;
   final FocusNode? focusNode;
 
@@ -57,7 +57,7 @@ class ChannelCard extends StatefulWidget {
     this.onTest,
     this.onLeft,
     this.onDown,
-    this.onUp, // 添加onUp参数
+    this.onUp, // onUp
     this.onFocused,
     this.autofocus = false,
     this.focusNode,
@@ -70,11 +70,11 @@ class ChannelCard extends StatefulWidget {
 class _ChannelCardState extends State<ChannelCard> {
   bool _isHovered = false;
   bool _isFocused = false;
-  static int _buildCount = 0; // 静态计数器，跟踪构建次数
+  static int _buildCount = 0; // 
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 只记录前5个卡片的构建，避免日志过多
+    // ✅ 5
     if (_buildCount < 5) {
       ServiceLocator.log.d('[ChannelCard] build #${_buildCount++} - ${widget.name}');
     }
@@ -95,8 +95,8 @@ class _ChannelCardState extends State<ChannelCard> {
       },
       onLeft: widget.onLeft,
       onDown: widget.onDown,
-      onUp: widget.onUp, // 添加onUp回调
-      focusScale: isTV ? 1.0 : 1.03, // TV端不缩放
+      onUp: widget.onUp, // onUp
+      focusScale: isTV ? 1.0 : 1.03, // TV
       showFocusBorder: false,
       builder: (context, isFocused, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -125,7 +125,7 @@ class _ChannelCardState extends State<ChannelCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Logo area - 固定占60%高度
+            // Logo area - 60%
             Expanded(
               flex: 55,
               child: ClipRRect(
@@ -194,7 +194,7 @@ class _ChannelCardState extends State<ChannelCard> {
                           ),
                         ),
                       ),
-                    // 非TV端显示收藏和测试按钮
+                    // TV
                     if (!isTV)
                       Positioned(
                         top: 3,
@@ -208,7 +208,7 @@ class _ChannelCardState extends State<ChannelCard> {
                           ],
                         ),
                       ),
-                    // TV端只显示收藏图标（小）
+                    // TV
                     if (isTV && widget.isFavorite)
                       Positioned(
                         top: 6,
@@ -257,7 +257,7 @@ class _ChannelCardState extends State<ChannelCard> {
                 ),
               ),
             ),
-            // 内容区域 - 固定占40%高度，内容自适应
+            //  - 40%
             Expanded(
               flex: 40,
               child: Container(
@@ -269,7 +269,7 @@ class _ChannelCardState extends State<ChannelCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // 频道名称 - 始终显示，支持自动滚动
+                    //  - 
                     _AutoScrollText(
                       text: widget.name,
                       style: TextStyle(
@@ -280,7 +280,7 @@ class _ChannelCardState extends State<ChannelCard> {
                       ),
                       shouldScroll: _isHovered || _isFocused,
                     ),
-                    // EPG或分类信息 - 自适应显示
+                    // EPG - 
                     Expanded(
                       child: _buildInfoSection(context, isMobile),
                     ),
@@ -294,7 +294,7 @@ class _ChannelCardState extends State<ChannelCard> {
     );
   }
 
-  /// 构建信息区域（EPG或分类）- 静态显示当前和下一个节目
+  /// EPG- 
   Widget _buildInfoSection(BuildContext context, bool isMobile) {
     final hasCurrentProgram = widget.currentProgram != null && widget.currentProgram!.isNotEmpty;
     final hasNextProgram = widget.nextProgram != null && widget.nextProgram!.isNotEmpty;
@@ -305,7 +305,7 @@ class _ChannelCardState extends State<ChannelCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // 如果有EPG信息，显示EPG
+        // EPGEPG
         if (hasEpg) ...[
           if (hasCurrentProgram) ...[
             SizedBox(height: isMobile ? 1 : 2),
@@ -349,7 +349,7 @@ class _ChannelCardState extends State<ChannelCard> {
             ),
           ],
         ] 
-        // 如果没有EPG信息，显示分类和"暂无节目信息"
+        // EPG""
         else ...[
           if (hasGroup) ...[
             SizedBox(height: isMobile ? 1 : 2),
@@ -380,7 +380,7 @@ class _ChannelCardState extends State<ChannelCard> {
     );
   }
 
-  // TV端长按菜单
+  // TV
   void _showTVMenu(BuildContext context) {
     final strings = AppStrings.of(context);
     showDialog(
@@ -392,7 +392,7 @@ class _ChannelCardState extends State<ChannelCard> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 收藏/取消收藏
+            // /
             TVFocusable(
               autofocus: true,
               onSelect: () {
@@ -419,7 +419,7 @@ class _ChannelCardState extends State<ChannelCard> {
               ),
             ),
             const SizedBox(height: 8),
-            // 测试频道
+            // 
             if (widget.onTest != null)
               TVFocusable(
                 onSelect: () {
@@ -512,7 +512,7 @@ class _ChannelCardState extends State<ChannelCard> {
   }
 
   Widget _buildPlaceholder() {
-    // 使用默认台标图片
+    // 
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Image.asset('assets/images/default_logo.png', fit: BoxFit.contain),
@@ -526,7 +526,7 @@ class _ChannelCardState extends State<ChannelCard> {
         child: CachedNetworkImage(
           imageUrl: url,
           fit: BoxFit.contain,
-          memCacheWidth: 160, // 限制内存缓存大小
+          memCacheWidth: 160, // 
           memCacheHeight: 90,
           placeholder: (context, url) => _buildPlaceholder(),
           errorWidget: (context, url, error) => _buildPlaceholder(),
@@ -541,8 +541,8 @@ class _ChannelCardState extends State<ChannelCard> {
   }
 }
 
-/// 自动滚动文本组件
-/// 当文本超出容器宽度时，在悬停或聚焦状态下自动滚动显示完整内容
+/// 
+/// 
 class _AutoScrollText extends StatefulWidget {
   final String text;
   final TextStyle? style;

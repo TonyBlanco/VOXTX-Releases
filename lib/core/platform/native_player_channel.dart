@@ -34,13 +34,13 @@ class NativePlayerChannel {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'onPlayerClosed') {
         ServiceLocator.log.d('NativePlayerChannel: Player closed from native');
-        // 保存单频道播放状态
+        // 
         _saveSingleChannelState(call.arguments);
         _onPlayerClosedCallback?.call();
         _onPlayerClosedCallback = null;
       } else if (call.method == 'onMultiScreenClosed') {
         ServiceLocator.log.d('NativePlayerChannel: Multi-screen closed from native');
-        // 保存分屏状态
+        // 
         _saveMultiScreenState(call.arguments);
         _onMultiScreenClosedCallback?.call();
         _onMultiScreenClosedCallback = null;
@@ -186,7 +186,7 @@ class NativePlayerChannel {
     }
   }
 
-  /// 保存分屏状态
+  /// 
   static void _saveMultiScreenState(dynamic arguments) {
     if (_settingsProvider == null || _channelProvider == null) {
       ServiceLocator.log.d(
@@ -211,7 +211,7 @@ class NativePlayerChannel {
         return;
       }
 
-      // 将频道索引转换为频道ID
+      // ID
       final channels = _channelProvider!.channels;
       final List<int?> channelIds = [];
 
@@ -231,14 +231,14 @@ class NativePlayerChannel {
       ServiceLocator.log.d(
           'NativePlayerChannel: _saveMultiScreenState - channelIds: $channelIds, activeIndex: $activeIndex');
 
-      // 保存分屏状态
+      // 
       _settingsProvider!.saveLastMultiScreen(channelIds, activeIndex);
     } catch (e) {
       ServiceLocator.log.d('NativePlayerChannel: _saveMultiScreenState error: $e');
     }
   }
 
-  /// 保存单频道播放状态
+  /// 
   static void _saveSingleChannelState(dynamic arguments) {
     if (_settingsProvider == null || _channelProvider == null) {
       ServiceLocator.log.d(
@@ -255,7 +255,7 @@ class NativePlayerChannel {
         skipSave = arguments['skipSave'] as bool? ?? false;
       }
 
-      // 如果是从分屏退出到单频道播放的，不覆盖分屏状态
+      // 
       if (skipSave) {
         ServiceLocator.log.d(
             'NativePlayerChannel: _saveSingleChannelState - skipSave=true, keeping multi-screen state');
@@ -280,7 +280,7 @@ class NativePlayerChannel {
           'NativePlayerChannel: _saveSingleChannelState - channelIndex: $channelIndex, channelId: $channelId');
 
       if (channelId != null) {
-        // 保存单频道播放状态
+        // 
         _settingsProvider!.saveLastSingleChannel(channelId);
       }
     } catch (e) {
@@ -311,18 +311,18 @@ class NativePlayerChannel {
     List<String>? urls,
     List<String>? names,
     List<String>? groups,
-    List<List<String>>? sources, // 每个频道的所有源
-    List<String>? logos, // 每个频道的台标URL
-    List<String>? epgIds, // 每个频道的EPG ID
-    List<bool>? isSeekable, // 每个频道是否可拖动（点播/回放）
+    List<List<String>>? sources, // 
+    List<String>? logos, // URL
+    List<String>? epgIds, // EPG ID
+    List<bool>? isSeekable, // /
     bool isDlnaMode = false,
     String bufferStrength = 'fast',
     bool showFps = true,
     bool showClock = true,
     bool showNetworkSpeed = true,
     bool showVideoInfo = true,
-    String progressBarMode = 'auto', // 进度条显示模式：auto, always, never
-    bool showChannelName = false, // 多屏播放是否显示频道名称
+    String progressBarMode = 'auto', // auto, always, never
+    bool showChannelName = false, // 
     Function? onClosed,
   }) async {
     try {
@@ -338,18 +338,18 @@ class NativePlayerChannel {
         'urls': urls,
         'names': names,
         'groups': groups,
-        'sources': sources, // 传递每个频道的所有源
-        'logos': logos, // 传递每个频道的台标URL
-        'epgIds': epgIds, // 传递每个频道的EPG ID
-        'isSeekable': isSeekable, // 传递每个频道是否可拖动
+        'sources': sources, // 
+        'logos': logos, // URL
+        'epgIds': epgIds, // EPG ID
+        'isSeekable': isSeekable, // 
         'isDlnaMode': isDlnaMode,
         'bufferStrength': bufferStrength,
         'showFps': showFps,
         'showClock': showClock,
         'showNetworkSpeed': showNetworkSpeed,
         'showVideoInfo': showVideoInfo,
-        'progressBarMode': progressBarMode, // 传递进度条显示模式
-        'showChannelName': showChannelName, // 传递多屏频道名称显示设置
+        'progressBarMode': progressBarMode, // 
+        'showChannelName': showChannelName, // 
       });
       ServiceLocator.log.d('NativePlayerChannel: launch result=$result');
       return result ?? false;
@@ -428,10 +428,10 @@ class NativePlayerChannel {
     List<String>? logos,
     int initialChannelIndex = 0,
     int volumeBoostDb = 0,
-    int defaultScreenPosition = 1, // 1-4 对应四个屏幕位置
-    int restoreActiveIndex = -1, // 恢复时的活动屏幕索引
-    List<int?>? restoreScreenChannels, // 恢复时每个屏幕的频道索引
-    bool showChannelName = false, // 是否显示频道名称
+    int defaultScreenPosition = 1, // 1-4 
+    int restoreActiveIndex = -1, // 
+    List<int?>? restoreScreenChannels, // 
+    bool showChannelName = false, // 
     Function? onClosed,
   }) async {
     try {

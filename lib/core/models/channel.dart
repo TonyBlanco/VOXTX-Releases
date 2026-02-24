@@ -1,9 +1,9 @@
 /// Channel type enum
 enum ChannelType {
-  live,      // 直播
-  vod,       // 点播
-  replay,    // 回放
-  unknown,   // 未知
+  live,      // 
+  vod,       // 
+  replay,    // 
+  unknown,   // 
 }
 
 /// Represents an IPTV channel with multiple sources
@@ -66,26 +66,26 @@ class Channel {
     final group = groupName?.toLowerCase() ?? '';
     final urlLower = currentUrl.toLowerCase();
     
-    // 回放关键词（优先级最高，因为回放也可能是 .mp4 文件）
-    if (group.contains('回放') || group.contains('replay') ||
-        group.contains('时移') || group.contains('catchup') ||
-        group.contains('回看')) {
+    //  .mp4 
+    if (group.contains('') || group.contains('replay') ||
+        group.contains('') || group.contains('catchup') ||
+        group.contains('')) {
       return ChannelType.replay;
     }
     
-    // 点播关键词
-    if (group.contains('电影') || group.contains('movie') ||
-        group.contains('电视剧') || group.contains('series') || group.contains('剧集') ||
-        group.contains('音乐') || group.contains('music') || group.contains('mv') ||
-        group.contains('舞曲') || group.contains('dance') ||
-        group.contains('点播') || group.contains('vod') ||
-        group.contains('综艺') || group.contains('variety') ||
-        group.contains('动漫') || group.contains('anime') ||
-        group.contains('纪录片') || group.contains('documentary')) {
+    // 
+    if (group.contains('') || group.contains('movie') ||
+        group.contains('') || group.contains('series') || group.contains('') ||
+        group.contains('') || group.contains('music') || group.contains('mv') ||
+        group.contains('') || group.contains('dance') ||
+        group.contains('') || group.contains('vod') ||
+        group.contains('') || group.contains('variety') ||
+        group.contains('') || group.contains('anime') ||
+        group.contains('') || group.contains('documentary')) {
       return ChannelType.vod;
     }
     
-    // URL 扩展名判断（点播文件）
+    // URL 
     if (urlLower.endsWith('.mp4') || urlLower.endsWith('.mkv') ||
         urlLower.endsWith('.avi') || urlLower.endsWith('.mov') ||
         urlLower.endsWith('.flv') || urlLower.endsWith('.wmv') ||
@@ -93,15 +93,15 @@ class Channel {
       return ChannelType.vod;
     }
     
-    // 直播关键词
-    if (group.contains('直播') || group.contains('live') ||
-        group.contains('央视') || group.contains('cctv') ||
-        group.contains('卫视') || group.contains('频道') || 
+    // 
+    if (group.contains('') || group.contains('live') ||
+        group.contains('') || group.contains('cctv') ||
+        group.contains('') || group.contains('') || 
         group.contains('channel') || group.contains('tv')) {
       return ChannelType.live;
     }
     
-    // URL 特征判断（直播流）
+    // URL 
     if (urlLower.contains('/live/') || urlLower.contains('live.') ||
         urlLower.endsWith('.m3u8') || urlLower.contains('.m3u8?')) {
       return ChannelType.live;

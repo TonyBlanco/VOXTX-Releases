@@ -39,7 +39,7 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
   }
 
   Future<void> _startServer() async {
-    ServiceLocator.log.d('开始启动搜索服务器...');
+    ServiceLocator.log.d('...');
 
     setState(() {
       _isLoading = true;
@@ -50,9 +50,9 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
     _serverService.onSearchReceived = _handleSearchReceived;
 
     final success = await _serverService.start();
-    ServiceLocator.log.d('搜索服务器启动结果: ${success ? "成功" : "失败"}');
+    ServiceLocator.log.d(': ${success ? "" : ""}');
     if (success) {
-      ServiceLocator.log.d('搜索服务器URL: ${_serverService.serverUrl}');
+      ServiceLocator.log.d('URL: ${_serverService.serverUrl}');
     }
 
     setState(() {
@@ -66,10 +66,10 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
   }
 
   void _handleSearchReceived(String query) {
-    ServiceLocator.log.d('收到搜索请求: $query');
+    ServiceLocator.log.d(': $query');
     
     if (mounted) {
-      // 关闭对话框并执行搜索
+      // 
       Navigator.of(context).pop();
       widget.onSearchReceived(query);
     }
@@ -209,7 +209,7 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
 
   Widget _buildQrCodeState(bool isMobile) {
     if (isMobile) {
-      // 手机端：纵向布局
+      // 
       return Column(
         children: [
           // QR Code
@@ -284,7 +284,7 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
       );
     }
     
-    // TV/桌面端：横向布局
+    // TV/
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

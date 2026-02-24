@@ -29,7 +29,7 @@ class M3UParser {
   /// Parse M3U content from a URL
   static Future<List<Channel>> parseFromUrl(String url, int playlistId, {String? mergeRule}) async {
     try {
-      ServiceLocator.log.d('DEBUG: 开始从URL获取播放列表内容: $url');
+      ServiceLocator.log.d('DEBUG: URL: $url');
 
       // Use Dio for better handling of large files and redirects
       final dio = ServiceLocator.createDio();
@@ -42,13 +42,13 @@ class M3UParser {
         ),
       );
 
-      ServiceLocator.log.d('DEBUG: 成功获取播放列表内容，状态码: ${response.statusCode}');
+      ServiceLocator.log.d('DEBUG: : ${response.statusCode}');
       final contentLength = response.data.toString().length;
-      ServiceLocator.log.d('DEBUG: 内容大小: $contentLength 字符');
+      ServiceLocator.log.d('DEBUG: : $contentLength ');
 
       // Only use isolate for large files (>500KB) to avoid overhead
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "使用" : "不使用"} isolate 解析 (大小: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final M3UParseResult result;
       if (useIsolate) {
@@ -60,15 +60,15 @@ class M3UParser {
         result = _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
       }
 
-      // 保存解析结果（包括 EPG URL）到主线程的静态变量
+      //  EPG URL
       _lastParseResult = result;
 
       ServiceLocator.log.d(
-          'DEBUG: URL解析完成，共解析出 ${result.channels.length} 个频道，EPG URL: ${result.epgUrl ?? "(未配置)"}');
+          'DEBUG: URL ${result.channels.length} EPG URL: ${result.epgUrl ?? "()"}');
 
       return result.channels;
     } catch (e) {
-      ServiceLocator.log.d('DEBUG: 从URL获取播放列表时出错: $e');
+      ServiceLocator.log.d('DEBUG: URL: $e');
 
       final errorStr = e.toString().toLowerCase();
       // Use localization keys for common errors
@@ -93,21 +93,21 @@ class M3UParser {
   static Future<List<Channel>> parseFromFile(
       String filePath, int playlistId, {String? mergeRule}) async {
     try {
-      ServiceLocator.log.d('DEBUG: 开始从本地文件读取播放列表: $filePath');
+      ServiceLocator.log.d('DEBUG: : $filePath');
       final file = File(filePath);
 
       if (!await file.exists()) {
-        ServiceLocator.log.d('DEBUG: 文件不存在: $filePath');
+        ServiceLocator.log.d('DEBUG: : $filePath');
         throw Exception('File does not exist: $filePath');
       }
 
       final content = await file.readAsString();
       final contentLength = content.length;
-      ServiceLocator.log.d('DEBUG: 成功读取本地文件，内容大小: $contentLength 字符');
+      ServiceLocator.log.d('DEBUG: : $contentLength ');
 
       // Only use isolate for large files (>500KB)
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "使用" : "不使用"} isolate 解析 (大小: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final M3UParseResult result;
       if (useIsolate) {
@@ -118,44 +118,44 @@ class M3UParser {
         result = _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
       }
 
-      // 保存解析结果（包括 EPG URL）到主线程的静态变量
+      //  EPG URL
       _lastParseResult = result;
 
       ServiceLocator.log.d(
-          'DEBUG: 本地文件解析完成，共解析出 ${result.channels.length} 个频道，EPG URL: ${result.epgUrl ?? "(未配置)"}');
+          'DEBUG:  ${result.channels.length} EPG URL: ${result.epgUrl ?? "()"}');
 
       return result.channels;
     } catch (e) {
-      ServiceLocator.log.d('DEBUG: 读取本地播放列表文件时出错: $e');
+      ServiceLocator.log.d('DEBUG: : $e');
       throw Exception('Error reading playlist file: $e');
     }
   }
 
-  /// Isolate 中执行的解析函数（必须是顶层函数或静态函数）
-  /// 返回完整的解析结果，包括频道列表和 EPG URL
+  /// Isolate 
+  ///  EPG URL
   static M3UParseResult _parseInIsolate(_ParseParams params) {
     final channels = parse(params.content, params.playlistId, mergeRule: params.mergeRule);
-    // parse 方法会设置 _lastParseResult，但那是在 isolate 中
-    // 我们需要返回结果到主线程
-    // 注意：_lastParseResult 在 isolate 中被设置，但我们需要返回它
+    // parse  _lastParseResult isolate 
+    // 
+    // _lastParseResult  isolate 
     return _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
   }
 
   /// Parse M3U content string
   /// Merges channels with same tvg-name/epgId into single channel with multiple sources
   static List<Channel> parse(String content, int playlistId, {String? mergeRule}) {
-    // 注意：此方法可能在 isolate 中运行，不能使用 ServiceLocator.log
-    // 但我们可以使用 print 来调试（会输出到控制台）
-    print('M3U Parser: 开始解析，播放列表ID: $playlistId, 合并规则: ${mergeRule ?? "name_group"}');
+    //  isolate  ServiceLocator.log
+    //  print 
+    print('M3U Parser: ID: $playlistId, : ${mergeRule ?? "name_group"}');
 
     final List<Channel> rawChannels = [];
     final lines = LineSplitter.split(content).toList();
     String? epgUrl;
 
-    print('M3U Parser: 内容总行数: ${lines.length}');
+    print('M3U Parser: : ${lines.length}');
 
     if (lines.isEmpty) {
-      print('M3U Parser: 内容为空，返回空频道列表');
+      print('M3U Parser: ');
       return rawChannels;
     }
 
@@ -164,28 +164,28 @@ class M3UParser {
     for (int i = 0; i < lines.length && i < 10; i++) {
       final line = lines[i].trim();
       print(
-          'M3U Parser: 检查第${i + 1}行: ${line.length > 100 ? "${line.substring(0, 100)}..." : line}');
+          'M3U Parser: ${i + 1}: ${line.length > 100 ? "${line.substring(0, 100)}..." : line}');
 
       if (line.startsWith(_extM3U)) {
         foundHeader = true;
-        print('M3U Parser: 找到M3U头部标记');
+        print('M3U Parser: M3U');
 
         // Extract x-tvg-url from this line
         final extractedUrl = _extractEpgUrl(line);
-        print('M3U Parser: EPG URL 提取结果: ${extractedUrl ?? "(未找到)"}');
+        print('M3U Parser: EPG URL : ${extractedUrl ?? "()"}');
 
         if (extractedUrl != null) {
           epgUrl = extractedUrl;
-          print('M3U Parser: 成功提取EPG URL: $epgUrl');
+          print('M3U Parser: EPG URL: $epgUrl');
           break;
         }
       }
     }
 
     if (!foundHeader) {
-      print('M3U Parser: 警告 - 缺少M3U头部标记，尝试继续解析');
+      print('M3U Parser:  - M3U');
     } else {
-      print('M3U Parser: M3U头部验证完成，EPG URL: ${epgUrl ?? "(未配置)"}');
+      print('M3U Parser: M3UEPG URL: ${epgUrl ?? "()"}');
     }
 
     String? currentName;
@@ -231,10 +231,10 @@ class M3UParser {
             validChannelCount++;
           } else {
             invalidUrlCount++;
-            // ServiceLocator.log.d('DEBUG: 无效的URL在第${i + 1}行: $line');
+            // ServiceLocator.log.d('DEBUG: URL${i + 1}: $line');
           }
         } else {
-          // ServiceLocator.log.d('DEBUG: 找到URL但没有对应的频道名称在第${i + 1}行: $line');
+          // ServiceLocator.log.d('DEBUG: URL${i + 1}: $line');
         }
 
         // Reset for next entry
@@ -245,20 +245,20 @@ class M3UParser {
       }
     }
 
-    // ServiceLocator.log.d('DEBUG: 原始解析完成 - 有效频道: $validChannelCount, 无效URL: $invalidUrlCount');
+    // ServiceLocator.log.d('DEBUG:  - : $validChannelCount, URL: $invalidUrlCount');
     print(
-        'M3U Parser: 原始解析完成 - 有效频道: $validChannelCount, 无效URL: $invalidUrlCount');
+        'M3U Parser:  - : $validChannelCount, URL: $invalidUrlCount');
 
     // Merge channels with same epgId (tvg-name) into single channel with multiple sources
     final List<Channel> mergedChannels = _mergeChannelSources(rawChannels, mergeRule: mergeRule);
 
-    // ServiceLocator.log.d('DEBUG: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
+    // ServiceLocator.log.d('DEBUG: : ${mergedChannels.length} (: ${rawChannels.length})');
     print(
-        'M3U Parser: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
+        'M3U Parser: : ${mergedChannels.length} (: ${rawChannels.length})');
 
     // Save parse result with EPG URL
     _lastParseResult = M3UParseResult(channels: mergedChannels, epgUrl: epgUrl);
-    print('M3U Parser: 保存解析结果 - EPG URL: ${epgUrl ?? "(未配置)"}');
+    print('M3U Parser:  - EPG URL: ${epgUrl ?? "()"}');
 
     return mergedChannels;
   }
@@ -271,7 +271,7 @@ class M3UParser {
     final Map<String, Channel> mergedMap = {};
 
     // Special groups that should not be the primary group
-    final specialGroups = {'🕘️更新时间', '更新时间', 'update', 'info'};
+    final specialGroups = {'🕘️', '', 'update', 'info'};
 
     // Default to 'name_group' if not specified
     final rule = mergeRule ?? 'name_group';
@@ -331,7 +331,7 @@ class M3UParser {
   /// Supports: x-tvg-url="url" or url-tvg="url"
   static String? _extractEpgUrl(String headerLine) {
     print(
-        'M3U Parser: _extractEpgUrl 输入: ${headerLine.length > 200 ? headerLine.substring(0, 200) + "..." : headerLine}');
+        'M3U Parser: _extractEpgUrl : ${headerLine.length > 200 ? headerLine.substring(0, 200) + "..." : headerLine}');
 
     // Match x-tvg-url="..." or url-tvg="..."
     final patterns = [
@@ -344,22 +344,22 @@ class M3UParser {
     for (int i = 0; i < patterns.length; i++) {
       final pattern = patterns[i];
       final match = pattern.firstMatch(headerLine);
-      print('M3U Parser: 尝试模式 $i: ${pattern.pattern} - 匹配结果: ${match != null}');
+      print('M3U Parser:  $i: ${pattern.pattern} - : ${match != null}');
 
       if (match != null && match.groupCount >= 1) {
         final urls = match.group(1);
-        print('M3U Parser: 提取到URL字符串: $urls');
+        print('M3U Parser: URL: $urls');
 
         if (urls != null && urls.isNotEmpty) {
           // If multiple URLs separated by comma, return the first one
           final firstUrl = urls.split(',').first.trim();
-          print('M3U Parser: 返回第一个URL: $firstUrl');
+          print('M3U Parser: URL: $firstUrl');
           return firstUrl;
         }
       }
     }
 
-    print('M3U Parser: 所有模式都未匹配到EPG URL');
+    print('M3U Parser: EPG URL');
     return null;
   }
 
@@ -389,7 +389,7 @@ class M3UParser {
 
     // Debug logging for logo parsing
     if (logo != null && logo.isNotEmpty) {
-      // ServiceLocator.log.d('DEBUG: 解析到台标URL: $logo, 频道: $name');
+      // ServiceLocator.log.d('DEBUG: URL: $logo, : $name');
     }
 
     return {
@@ -435,12 +435,12 @@ class M3UParser {
               uri.scheme == 'mmst');
 
       // if (!isValid) {
-      //   ServiceLocator.log.d('DEBUG: URL验证失败 - Scheme: ${uri.scheme}, Host: ${uri.host}');
+      //   ServiceLocator.log.d('DEBUG: URL - Scheme: ${uri.scheme}, Host: ${uri.host}');
       // }
 
       return isValid;
     } catch (e) {
-      // ServiceLocator.log.d('DEBUG: URL解析错误: $url, 错误: $e');
+      // ServiceLocator.log.d('DEBUG: URL: $url, : $e');
       return false;
     }
   }
@@ -491,7 +491,7 @@ class M3UParser {
   }
 }
 
-/// 用于传递参数到 isolate 的类
+///  isolate 
 class _ParseParams {
   final String content;
   final int playlistId;

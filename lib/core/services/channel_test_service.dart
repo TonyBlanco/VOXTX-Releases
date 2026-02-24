@@ -4,15 +4,15 @@ import 'package:flutter/foundation.dart';
 import '../models/channel.dart';
 import './service_locator.dart';
 
-/// 频道测试结果
+/// 
 class ChannelTestResult {
   final Channel channel;
   final bool isAvailable;
-  final int? responseTime; // 响应时间（毫秒）
+  final int? responseTime; // 
   final String? error;
-  final int availableSources; // 可用源数量
-  final int totalSources; // 总源数量
-  final List<SourceTestResult> sourceResults; // 每个源的测试结果
+  final int availableSources; // 
+  final int totalSources; // 
+  final List<SourceTestResult> sourceResults; // 
 
   ChannelTestResult({
     required this.channel,
@@ -25,7 +25,7 @@ class ChannelTestResult {
   });
 }
 
-/// 单个源的测试结果
+/// 
 class SourceTestResult {
   final String url;
   final bool isAvailable;
@@ -40,21 +40,21 @@ class SourceTestResult {
   });
 }
 
-/// 频道测试服务
+/// 
 class ChannelTestService {
-  static const int _timeout = 3; // 超时时间（秒）
-  static const int _maxConcurrent = 5; // 最大并发数
+  static const int _timeout = 3; // 
+  static const int _maxConcurrent = 5; // 
 
-  /// 测试单个频道（测试所有源）
+  /// 
   Future<ChannelTestResult> testChannel(Channel channel) async {
     final sources = channel.sources;
     
-    // 如果只有一个源，使用简单测试
+    // 
     if (sources.length <= 1) {
       return _testSingleUrl(channel, channel.url);
     }
     
-    // 测试所有源
+    // 
     final sourceResults = <SourceTestResult>[];
     int availableCount = 0;
     int? bestResponseTime;
@@ -71,28 +71,28 @@ class ChannelTestService {
       }
     }
     
-    // 频道可用 = 至少有一个源可用
+    //  = 
     final isAvailable = availableCount > 0;
     
     return ChannelTestResult(
       channel: channel,
       isAvailable: isAvailable,
       responseTime: bestResponseTime,
-      error: isAvailable ? null : '所有 ${sources.length} 个源均不可用',
+      error: isAvailable ? null : ' ${sources.length} ',
       availableSources: availableCount,
       totalSources: sources.length,
       sourceResults: sourceResults,
     );
   }
 
-  /// 测试单个 URL
+  ///  URL
   Future<SourceTestResult> _testUrl(String url) async {
     final stopwatch = Stopwatch()..start();
 
     try {
       final uri = Uri.parse(url);
 
-      // 根据协议类型选择测试方法
+      // 
       if (uri.scheme == 'rtmp' || uri.scheme == 'rtsp') {
         return await _testSocketUrl(url, uri, stopwatch);
       }
@@ -104,7 +104,7 @@ class ChannelTestService {
         url: url,
         isAvailable: false,
         responseTime: stopwatch.elapsedMilliseconds,
-        error: '连接超时',
+        error: '',
       );
     } on SocketException catch (e) {
       stopwatch.stop();
@@ -112,7 +112,7 @@ class ChannelTestService {
         url: url,
         isAvailable: false,
         responseTime: stopwatch.elapsedMilliseconds,
-        error: '网络错误: ${e.message}',
+        error: ': ${e.message}',
       );
     } catch (e) {
       stopwatch.stop();
@@ -125,14 +125,14 @@ class ChannelTestService {
     }
   }
 
-  /// 测试单个频道（单源，兼容旧逻辑）
+  /// 
   Future<ChannelTestResult> _testSingleUrl(Channel channel, String url) async {
     final stopwatch = Stopwatch()..start();
 
     try {
       final uri = Uri.parse(url);
 
-      // 根据协议类型选择测试方法
+      // 
       if (uri.scheme == 'rtmp' || uri.scheme == 'rtsp') {
         return await _testSocketConnection(channel, uri, stopwatch);
       }
@@ -144,7 +144,7 @@ class ChannelTestService {
         channel: channel,
         isAvailable: false,
         responseTime: stopwatch.elapsedMilliseconds,
-        error: '连接超时',
+        error: '',
       );
     } on SocketException catch (e) {
       stopwatch.stop();
@@ -152,7 +152,7 @@ class ChannelTestService {
         channel: channel,
         isAvailable: false,
         responseTime: stopwatch.elapsedMilliseconds,
-        error: '网络错误: ${e.message}',
+        error: ': ${e.message}',
       );
     } catch (e) {
       stopwatch.stop();
@@ -165,7 +165,7 @@ class ChannelTestService {
     }
   }
 
-  /// 测试 HTTP/HTTPS 流
+  ///  HTTP/HTTPS 
   Future<ChannelTestResult> _testHttpStream(
     Channel channel,
     Uri uri,
@@ -179,12 +179,12 @@ class ChannelTestService {
       client = HttpClient();
       client.connectionTimeout = const Duration(seconds: _timeout);
 
-      // 使用 GET 请求
+      //  GET 
       request = await client.getUrl(uri).timeout(
             const Duration(seconds: _timeout),
           );
 
-      // 设置常见的流媒体请求头
+      // 
       request.headers.set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
       request.headers.set('Accept', '*/*');
       request.headers.set('Connection', 'keep-alive');
@@ -195,12 +195,12 @@ class ChannelTestService {
 
       stopwatch.stop();
 
-      // 检查响应状态
+      // 
       final statusCode = response.statusCode;
       final isAvailable = statusCode >= 200 && statusCode < 400;
 
       final contentType = response.headers.contentType?.toString() ?? '';
-      ServiceLocator.log.d('测试频道 ${channel.name}: HTTP $statusCode, Content-Type: $contentType');
+      ServiceLocator.log.d(' ${channel.name}: HTTP $statusCode, Content-Type: $contentType');
 
       return ChannelTestResult(
         channel: channel,
@@ -216,7 +216,7 @@ class ChannelTestService {
     }
   }
 
-  /// 测试 HTTP/HTTPS URL（返回 SourceTestResult）
+  ///  HTTP/HTTPS URL SourceTestResult
   Future<SourceTestResult> _testHttpUrl(
     String url,
     Uri uri,
@@ -261,7 +261,7 @@ class ChannelTestService {
     }
   }
 
-  /// 测试 Socket 连接 (用于 RTMP/RTSP)
+  ///  Socket  ( RTMP/RTSP)
   Future<ChannelTestResult> _testSocketConnection(
     Channel channel,
     Uri uri,
@@ -291,7 +291,7 @@ class ChannelTestService {
     }
   }
 
-  /// 测试 Socket URL（返回 SourceTestResult）
+  ///  Socket URL SourceTestResult
   Future<SourceTestResult> _testSocketUrl(
     String url,
     Uri uri,
@@ -321,7 +321,7 @@ class ChannelTestService {
     }
   }
 
-  /// 批量测试频道
+  /// 
   Stream<ChannelTestProgress> testChannels(List<Channel> channels) async* {
     if (channels.isEmpty) return;
 
@@ -331,7 +331,7 @@ class ChannelTestService {
     var unavailable = 0;
     final results = <ChannelTestResult>[];
 
-    // 分批处理
+    // 
     for (var i = 0; i < channels.length; i += _maxConcurrent) {
       final batch = channels.skip(i).take(_maxConcurrent).toList();
 
@@ -362,7 +362,7 @@ class ChannelTestService {
   }
 }
 
-/// 频道测试进度
+/// 
 class ChannelTestProgress {
   final int total;
   final int completed;

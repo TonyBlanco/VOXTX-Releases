@@ -3,7 +3,7 @@ import '../models/channel.dart';
 import 'channel_test_service.dart';
 import './service_locator.dart';
 
-/// 后台测试状态
+/// 
 enum BackgroundTestStatus {
   idle,
   running,
@@ -11,10 +11,10 @@ enum BackgroundTestStatus {
   cancelled,
 }
 
-/// 后台测试进度回调
+/// 
 typedef BackgroundTestCallback = void Function(BackgroundTestProgress progress);
 
-/// 后台测试进度
+/// 
 class BackgroundTestProgress {
   final int total;
   final int completed;
@@ -39,7 +39,7 @@ class BackgroundTestProgress {
   bool get isRunning => status == BackgroundTestStatus.running;
 }
 
-/// 后台频道测试服务（单例）
+/// 
 class BackgroundTestService {
   static final BackgroundTestService _instance = BackgroundTestService._internal();
   factory BackgroundTestService() => _instance;
@@ -73,17 +73,17 @@ class BackgroundTestService {
         results: List.unmodifiable(_results),
       );
 
-  /// 添加监听器
+  /// 
   void addListener(BackgroundTestCallback callback) {
     _listeners.add(callback);
   }
 
-  /// 移除监听器
+  /// 
   void removeListener(BackgroundTestCallback callback) {
     _listeners.remove(callback);
   }
 
-  /// 通知所有监听器
+  /// 
   void _notifyListeners() {
     final progress = currentProgress;
     for (final listener in _listeners) {
@@ -91,10 +91,10 @@ class BackgroundTestService {
     }
   }
 
-  /// 开始后台测试
+  /// 
   void startTest(List<Channel> channels) {
     if (_status == BackgroundTestStatus.running) {
-      ServiceLocator.log.d('后台测试已在运行中');
+      ServiceLocator.log.d('');
       return;
     }
 
@@ -122,7 +122,7 @@ class BackgroundTestService {
         _notifyListeners();
       },
       onError: (e) {
-        ServiceLocator.log.d('后台测试出错: $e');
+        ServiceLocator.log.d(': $e');
         _status = BackgroundTestStatus.completed;
         _notifyListeners();
       },
@@ -132,19 +132,19 @@ class BackgroundTestService {
       },
     );
 
-    ServiceLocator.log.d('后台测试已启动，共 ${channels.length} 个频道');
+    ServiceLocator.log.d(' ${channels.length} ');
   }
 
-  /// 停止后台测试
+  /// 
   void stopTest() {
     _subscription?.cancel();
     _subscription = null;
     _status = BackgroundTestStatus.cancelled;
     _notifyListeners();
-    ServiceLocator.log.d('后台测试已停止');
+    ServiceLocator.log.d('');
   }
 
-  /// 清除结果
+  /// 
   void clearResults() {
     _status = BackgroundTestStatus.idle;
     _total = 0;
@@ -156,7 +156,7 @@ class BackgroundTestService {
     _notifyListeners();
   }
 
-  /// 获取失效频道ID列表
+  /// ID
   List<int> getUnavailableChannelIds() {
     return _results.where((r) => !r.isAvailable).map((r) => r.channel.id).whereType<int>().toList();
   }

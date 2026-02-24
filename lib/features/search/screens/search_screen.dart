@@ -63,7 +63,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final content = Column(
       children: [
-        // 横屏时添加状态栏间距
+        // 
         if (isLandscape && topPadding > 0 && widget.embedded)
           SizedBox(height: topPadding),
         _buildSearchHeader(),
@@ -92,14 +92,14 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 6, // 搜索页
+            selectedIndex: 6, // 
             child: content,
           ),
         ),
       );
     }
 
-    // 嵌入模式不使用Scaffold
+    // Scaffold
     if (widget.embedded) {
       return content;
     }
@@ -126,21 +126,21 @@ class _SearchScreenState extends State<SearchScreen> {
     final isTV = PlatformDetector.isTV || PlatformDetector.useDPadNavigation;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMobile = PlatformDetector.isMobile;
-    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 与其他页面保持一致
+    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 
     final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
     final topPadding = isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : (MediaQuery.of(context).padding.top + 8);
     
     return Container(
-      height: isLandscape ? 24.0 : null,  // 横屏时固定高度24px，与AppBar一致
+      height: isLandscape ? 24.0 : null,  // 24pxAppBar
       padding: EdgeInsets.only(
-        top: isLandscape ? 0 : (topPadding + 8),  // 横屏时不需要padding
+        top: isLandscape ? 0 : (topPadding + 8),  // padding
         left: 16,
         right: 16,
-        bottom: isLandscape ? 0 : 8,  // 横屏时不需要padding
+        bottom: isLandscape ? 0 : 8,  // padding
       ),
-      alignment: isLandscape ? Alignment.centerLeft : null,  // 横屏时垂直居中
+      alignment: isLandscape ? Alignment.centerLeft : null,  // 
       decoration: BoxDecoration(
-        gradient: isLandscape ? null : LinearGradient(  // 横屏时移除渐变背景
+        gradient: isLandscape ? null : LinearGradient(  // 
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: isDark
@@ -155,7 +155,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   Colors.white.withOpacity(0.3),
                 ],
         ),
-        boxShadow: isLandscape ? null : [  // 横屏时移除阴影
+        boxShadow: isLandscape ? null : [  // 
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 8,
@@ -165,7 +165,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       child: Row(
         children: [
-          // Back Button - 只在非嵌入模式下显示
+          // Back Button - 
           if (!widget.embedded)
             TVFocusable(
               onSelect: () => Navigator.pop(context),
@@ -195,7 +195,7 @@ class _SearchScreenState extends State<SearchScreen> {
           if (!widget.embedded)
             const SizedBox(width: 12),
 
-          // Search Field - TV 端使用可点击的搜索框
+          // Search Field - TV 
           Expanded(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
@@ -238,20 +238,20 @@ class _SearchScreenState extends State<SearchScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return TVFocusable(
-      autofocus: false,  // 不自动聚焦到搜索框
+      autofocus: false,  // 
       onSelect: () => _showTVSearchDialog(),
       focusScale: 1.02,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: isDark 
-              ? const Color(0x14FFFFFF)  // 白色 8% 透明度
-              : const Color(0x08000000),  // 黑色 3% 透明度
+              ? const Color(0x14FFFFFF)  //  8% 
+              : const Color(0x08000000),  //  3% 
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isDark
-                ? const Color(0x26FFFFFF)  // 白色 15% 透明度
-                : const Color(0x14000000),  // 黑色 8% 透明度
+                ? const Color(0x26FFFFFF)  //  15% 
+                : const Color(0x14000000),  //  8% 
             width: 1,
           ),
         ),
@@ -296,39 +296,39 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildMobileSearchField() {
     final isMobile = PlatformDetector.isMobile;
-    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 与其他页面保持一致
+    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 
     
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
-        borderRadius: BorderRadius.circular(isLandscape ? 10 : 12),  // 横屏时圆角更小
+        borderRadius: BorderRadius.circular(isLandscape ? 10 : 12),  // 
       ),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
         style: TextStyle(
           color: AppTheme.getTextPrimary(context),
-          fontSize: isLandscape ? 14 : 16,  // 横屏时字体更小
+          fontSize: isLandscape ? 14 : 16,  // 
         ),
         decoration: InputDecoration(
           hintText: AppStrings.of(context)?.searchHint ?? 'Search channels...',
           hintStyle: TextStyle(
             color: AppTheme.getTextMuted(context),
-            fontSize: isLandscape ? 14 : 16,  // 横屏时字体更小
+            fontSize: isLandscape ? 14 : 16,  // 
           ),
           prefixIcon: Icon(
             Icons.search_rounded,
             color: AppTheme.getTextMuted(context),
-            size: isLandscape ? 20 : 24,  // 横屏时图标更小
+            size: isLandscape ? 20 : 24,  // 
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear_rounded,
                     color: AppTheme.getTextMuted(context),
-                    size: isLandscape ? 20 : 24,  // 横屏时图标更小
+                    size: isLandscape ? 20 : 24,  // 
                   ),
-                  padding: isLandscape ? const EdgeInsets.all(4) : null,  // 横屏时减少padding
+                  padding: isLandscape ? const EdgeInsets.all(4) : null,  // padding
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
@@ -337,8 +337,8 @@ class _SearchScreenState extends State<SearchScreen> {
               : null,
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
-            horizontal: isLandscape ? 12 : 16,  // 横屏时减少padding
-            vertical: isLandscape ? 6 : 8,  // 横屏时减少padding
+            horizontal: isLandscape ? 12 : 16,  // padding
+            vertical: isLandscape ? 6 : 8,  // padding
           ),
         ),
         onChanged: (value) {
@@ -372,7 +372,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 输入框区域 - 使用 Focus 包装来处理焦点
+                    //  -  Focus 
                     Focus(
                       onFocusChange: (hasFocus) {
                         setDialogState(() {
@@ -380,7 +380,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         });
                       },
                       onKeyEvent: (node, event) {
-                        // 当按下向下键时，移动焦点到搜索按钮
+                        // 
                         if (event is KeyDownEvent) {
                           if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
                             searchButtonFocusNode.requestFocus();
@@ -433,7 +433,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // 取消按钮
+                        // 
                         Focus(
                           focusNode: cancelButtonFocusNode,
                           onKeyEvent: (node, event) {
@@ -477,7 +477,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // 搜索按钮
+                        // 
                         Focus(
                           focusNode: searchButtonFocusNode,
                           onKeyEvent: (node, event) {
@@ -713,12 +713,12 @@ class _SearchScreenState extends State<SearchScreen> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth - (PlatformDetector.isMobile ? 16 : 40); // 减去padding
+              final availableWidth = constraints.maxWidth - (PlatformDetector.isMobile ? 16 : 40); // padding
               final crossAxisCount = CardSizeCalculator.calculateCardsPerRow(availableWidth);
               
               return GridView.builder(
                 padding: EdgeInsets.symmetric(horizontal: PlatformDetector.isMobile ? 8 : 20),
-                // ✅ 性能优化：限制缓存范围，减少内存占用
+                // ✅ 
                 cacheExtent: 500,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
@@ -730,7 +730,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 itemBuilder: (context, index) {
                   final channel = results[index];
                   
-                  // ✅ 使用 select 替代 watch，避免所有搜索结果重建
+                  // ✅  select  watch
                   final isFavorite = context.select<FavoritesProvider, bool>(
                     (provider) => provider.isFavorite(channel.id ?? 0),
                   );
@@ -746,7 +746,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   return ChannelCard(
                     name: channel.name,
                     logoUrl: channel.logoUrl,
-                    channel: channel, // 传递完整的 channel 对象
+                    channel: channel, //  channel 
                     groupName: channel.groupName,
                     currentProgram: currentProgram?.title,
                     nextProgram: nextProgram?.title,
@@ -756,31 +756,31 @@ class _SearchScreenState extends State<SearchScreen> {
                       context.read<FavoritesProvider>().toggleFavorite(channel);
                     },
                     onTap: () {
-                      // 保存上次播放的频道ID
+                      // ID
                       final settingsProvider = context.read<SettingsProvider>();
                       if (settingsProvider.rememberLastChannel && channel.id != null) {
                         settingsProvider.setLastChannelId(channel.id);
                       }
 
-                      // 检查是否启用了分屏模式
+                      // 
                       if (settingsProvider.enableMultiScreen) {
-                        // TV 端使用原生分屏播放器
+                        // TV 
                         if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
                           final channelProvider = context.read<ChannelProvider>();
-                          // ✅ 使用全部频道而不是分页显示的频道
+                          // ✅ 
                           final channels = channelProvider.allChannels;
                           
-                          // 找到当前点击频道的索引
+                          // 
                           final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
                           
-                          // 准备频道数据
+                          // 
                           final urls = channels.map((c) => c.url).toList();
                           final names = channels.map((c) => c.name).toList();
                           final groups = channels.map((c) => c.groupName ?? '').toList();
                           final sources = channels.map((c) => c.sources).toList();
                           final logos = channels.map((c) => c.logoUrl ?? '').toList();
                           
-                          // 启动原生分屏播放器
+                          // 
                           NativePlayerChannel.launchMultiScreen(
                             urls: urls,
                             names: names,
@@ -798,7 +798,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         } else if (PlatformDetector.isDesktop) {
                           final multiScreenProvider = context.read<MultiScreenProvider>();
                           final defaultPosition = settingsProvider.defaultScreenPosition;
-                          // 设置音量增强到分屏Provider
+                          // Provider
                           multiScreenProvider.setVolumeSettings(1.0, settingsProvider.volumeBoost);
                           multiScreenProvider.playChannelAtDefaultPosition(channel, defaultPosition);
                           

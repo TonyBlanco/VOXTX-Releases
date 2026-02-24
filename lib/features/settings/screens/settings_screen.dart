@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // 如果需要自动检查更新，延迟执行
+    // 
     if (widget.autoCheckUpdate) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkForUpdates(context);
@@ -41,7 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 显示设置成功消息
+  // 
   void _showSuccess(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 显示设置失败消息
+  // 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -63,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 获取对话框样式（横屏适配）
+  // 
   Map<String, dynamic> _getDialogStyle(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(),
               _buildSelectTile(
                 context,
-                title: AppStrings.of(context)?.fontFamily ?? '字体',
+                title: AppStrings.of(context)?.fontFamily ?? '',
                 subtitle: _getFontFamilyLabel(context, settings.fontFamily, settings),
                 icon: Icons.text_fields_rounded,
                 onTap: () => _showFontFamilyDialog(context, settings),
@@ -369,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.merge_rounded,
                   onTap: () => _showChannelMergeRuleDialog(context, settings),
                 ),
-              // 缓冲大小 - 暂时隐藏（未实现）
+              //  - 
               // _buildDivider(),
               // _buildSelectTile(
               //   context,
@@ -441,7 +441,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(),
               _buildSelectTile(
                 context,
-                title: AppStrings.of(context)?.progressBarMode ?? '进度条显示',
+                title: AppStrings.of(context)?.progressBarMode ?? '',
                 subtitle: _getProgressBarModeLabel(context, settings.progressBarMode),
                 icon: Icons.linear_scale_rounded,
                 onTap: () => _showProgressBarModeDialog(context, settings),
@@ -484,18 +484,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
               ],
-              // 手机端屏幕方向设置
+              // 
               if (PlatformDetector.isMobile) ...[
                 _buildDivider(),
                 _buildSelectTile(
                   context,
-                  title: '屏幕方向',
+                  title: '',
                   subtitle: _getOrientationLabel(context, settings.mobileOrientation),
                   icon: Icons.screen_rotation_rounded,
                   onTap: () => _showOrientationDialog(context, settings),
                 ),
               ],
-              // 音量标准化 - 暂时隐藏（未实现）
+              //  - 
               // _buildDivider(),
               // _buildSwitchTile(
               //   context,
@@ -509,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               //     _showError(context, strings?.volumeNormalizationNotImplemented ?? 'Volume normalization not implemented, setting will not take effect');
               //   },
               // ),
-              // 音量增强 - 始终显示（已实现）
+              //  - 
               _buildDivider(),
               _buildSelectTile(
                 context,
@@ -578,7 +578,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await settings.setEnableEpg(value);
                   final strings = AppStrings.of(context);
                   if (value) {
-                    // 启用 EPG 时，如果有配置 URL 则加载
+                    //  EPG  URL 
                     if (settings.epgUrl != null && settings.epgUrl!.isNotEmpty) {
                       final success = await context.read<EpgProvider>().loadEpg(settings.epgUrl!);
                       if (success) {
@@ -590,7 +590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _showSuccess(context, strings?.epgEnabledPleaseConfigure ?? 'EPG enabled, please configure EPG URL');
                     }
                   } else {
-                    // 关闭 EPG 时清除已加载的数据
+                    //  EPG 
                     context.read<EpgProvider>().clear();
                     _showSuccess(context, strings?.epgDisabled ?? 'EPG disabled');
                   }
@@ -781,14 +781,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
           ),
           child: TVSidebar(
-            selectedIndex: 7, // 设置页
+            selectedIndex: 7, // 
             child: content,
           ),
         ),
       );
     }
 
-    // 嵌入模式不使用Scaffold
+    // Scaffold
     if (widget.embedded) {
       final isMobile = PlatformDetector.isMobile;
       final isLandscape = isMobile && MediaQuery.of(context).size.width > 700;
@@ -797,11 +797,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       return Column(
         children: [
-          // 简化的标题栏
+          // 
           Container(
             padding: EdgeInsets.fromLTRB(
               12,
-              topPadding + (isLandscape ? 4 : 8),  // 使用和首页相同的topPadding
+              topPadding + (isLandscape ? 4 : 8),  // topPadding
               12,
               isLandscape ? 4 : 8,
             ),
@@ -811,7 +811,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   AppStrings.of(context)?.settings ?? 'Settings',
                   style: TextStyle(
                     color: AppTheme.getTextPrimary(context),
-                    fontSize: isLandscape ? 14 : 18,  // 横屏时字体更小
+                    fontSize: isLandscape ? 14 : 18,  // 
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -838,19 +838,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Column(
           children: [
-            // 手机端添加状态栏高度
+            // 
             if (PlatformDetector.isMobile)
               SizedBox(height: MediaQuery.of(context).padding.top),
             AppBar(
               backgroundColor: Colors.transparent,
-              primary: false,  // 禁用自动SafeArea padding
-              toolbarHeight: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 24.0 : 56.0,  // 横屏时减小到24px
-              automaticallyImplyLeading: false,  // 不显示返回按钮
+              primary: false,  // SafeArea padding
+              toolbarHeight: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 24.0 : 56.0,  // 24px
+              automaticallyImplyLeading: false,  // 
               title: Text(
                 AppStrings.of(context)?.settings ?? 'Settings',
                 style: TextStyle(
                   color: AppTheme.getTextPrimary(context), 
-                  fontSize: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 14 : 20,  // 横屏时字体14px
+                  fontSize: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 14 : 20,  // 14px
                   fontWeight: FontWeight.bold
                 ),
               ),
@@ -881,14 +881,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final strings = AppStrings.of(context);
     final manager = ColorSchemeManager.instance;
     
-    // 判断当前是黑暗还是明亮模式
+    // 
     final isDarkMode = _isDarkMode(context, settings);
     final schemeId = isDarkMode ? settings.darkColorScheme : settings.lightColorScheme;
     final scheme = isDarkMode 
         ? manager.getDarkScheme(schemeId) 
         : manager.getLightScheme(schemeId);
     
-    // 返回配色名称
+    // 
     switch (scheme.nameKey) {
       case 'colorSchemeLotus':
         return strings?.colorSchemeLotus ?? 'Lotus';
@@ -925,7 +925,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else if (settings.themeMode == 'light') {
       return false;
     } else {
-      // 跟随系统
+      // 
       final brightness = MediaQuery.of(context).platformBrightness;
       return brightness == Brightness.dark;
     }
@@ -1468,7 +1468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title,
                     style: TextStyle(
                       color: AppTheme.getTextPrimary(context),
-                      fontSize: isLandscape ? 13 : 15,  // 横屏时字体更小
+                      fontSize: isLandscape ? 13 : 15,  // 
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1477,14 +1477,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle,
                     style: TextStyle(
                       color: AppTheme.getTextMuted(context),
-                      fontSize: isLandscape ? 10 : 12,  // 横屏时字体更小
+                      fontSize: isLandscape ? 10 : 12,  // 
                     ),
                   ),
                 ],
               ),
             ),
             Transform.scale(
-              scale: isLandscape ? 0.8 : 1.0,  // 横屏时开关更小
+              scale: isLandscape ? 0.8 : 1.0,  // 
               child: Switch(
                 value: value,
                 onChanged: onChanged,
@@ -1550,7 +1550,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title,
                       style: TextStyle(
                         color: AppTheme.getTextPrimary(context),
-                        fontSize: isLandscape ? 13 : 15,  // 横屏时字体更小
+                        fontSize: isLandscape ? 13 : 15,  // 
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1559,7 +1559,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle,
                       style: TextStyle(
                         color: AppTheme.getTextMuted(context),
-                        fontSize: isLandscape ? 10 : 12,  // 横屏时字体更小
+                        fontSize: isLandscape ? 10 : 12,  // 
                       ),
                     ),
                   ],
@@ -1568,7 +1568,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(
                 Icons.chevron_right_rounded,
                 color: AppTheme.getTextMuted(context),
-                size: isLandscape ? 18 : 24,  // 横屏时图标更小
+                size: isLandscape ? 18 : 24,  // 
               ),
             ],
           ),
@@ -1780,14 +1780,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final options = ['auto', 'always', 'never'];
     final strings = AppStrings.of(context);
     final labels = {
-      'auto': strings?.progressBarModeAuto ?? '自动检测',
-      'always': strings?.progressBarModeAlways ?? '始终显示',
-      'never': strings?.progressBarModeNever ?? '不显示',
+      'auto': strings?.progressBarModeAuto ?? '',
+      'always': strings?.progressBarModeAlways ?? '',
+      'never': strings?.progressBarModeNever ?? '',
     };
     final descriptions = {
-      'auto': strings?.progressBarModeAutoDesc ?? '根据内容类型自动显示（点播/回放显示，直播隐藏）',
-      'always': strings?.progressBarModeAlwaysDesc ?? '所有内容都显示进度条',
-      'never': strings?.progressBarModeNeverDesc ?? '所有内容都不显示进度条',
+      'auto': strings?.progressBarModeAutoDesc ?? '/',
+      'always': strings?.progressBarModeAlwaysDesc ?? '',
+      'never': strings?.progressBarModeNeverDesc ?? '',
     };
 
     showDialog(
@@ -1799,7 +1799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           contentPadding: style['contentPadding'],
           titlePadding: style['titlePadding'],
           title: Text(
-            strings?.progressBarMode ?? '进度条显示',
+            strings?.progressBarMode ?? '',
             style: TextStyle(
               color: AppTheme.getTextPrimary(context),
               fontSize: style['titleFontSize'],
@@ -1830,7 +1830,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (value != null) {
                       settings.setProgressBarMode(value);
                       Navigator.pop(dialogContext);
-                      final message = (strings?.progressBarModeSet ?? '进度条显示已设置为：{mode}')
+                      final message = (strings?.progressBarModeSet ?? '{mode}')
                           .replaceFirst('{mode}', labels[value] ?? value);
                       _showSuccess(context, message);
                     }
@@ -1851,13 +1851,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final strings = AppStrings.of(context);
     switch (mode) {
       case 'auto':
-        return strings?.progressBarModeAuto ?? '自动检测';
+        return strings?.progressBarModeAuto ?? '';
       case 'always':
-        return strings?.progressBarModeAlways ?? '始终显示';
+        return strings?.progressBarModeAlways ?? '';
       case 'never':
-        return strings?.progressBarModeNever ?? '不显示';
+        return strings?.progressBarModeNever ?? '';
       default:
-        return strings?.progressBarModeAuto ?? '自动检测';
+        return strings?.progressBarModeAuto ?? '';
     }
   }
 
@@ -2059,11 +2059,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 final newUrl = controller.text.trim().isEmpty ? null : controller.text.trim();
                 final oldUrl = settings.epgUrl;
 
-                // 保存新 URL
+                //  URL
                 await settings.setEpgUrl(newUrl);
                 Navigator.pop(dialogContext);
 
-                // 如果 URL 变化了，清除旧数据并加载新数据
+                //  URL 
                 if (newUrl != oldUrl) {
                   final epgProvider = context.read<EpgProvider>();
                   epgProvider.clear();
@@ -2181,7 +2181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
-    // 获取当前设置的语言代码，null 表示跟随系统
+    // null 
     final currentLang = settings.locale?.languageCode;
 
     showDialog(
@@ -2356,7 +2356,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportLogs(BuildContext context) async {
-    // 显示二维码对话框
+    // 
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -2415,17 +2415,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
 
-      // 获取日志文件所在的目录
+      // 
       final logDir = logPath.substring(0, logPath.lastIndexOf(Platform.pathSeparator));
       
       if (Platform.isWindows) {
-        // Windows: 使用 explorer 打开文件夹
+        // Windows:  explorer 
         await Process.run('explorer', [logDir]);
       } else if (Platform.isMacOS) {
-        // macOS: 使用 open 命令
+        // macOS:  open 
         await Process.run('open', [logDir]);
       } else if (Platform.isLinux) {
-        // Linux: 使用 xdg-open 命令
+        // Linux:  xdg-open 
         await Process.run('xdg-open', [logDir]);
       } else {
         _showError(context, 'Opening folders is not supported on this platform');
@@ -2465,16 +2465,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 获取当前应用版本
+  // 
   Future<String> _getCurrentVersion() async {
     try {
       return await ServiceLocator.updateService.getCurrentVersion();
     } catch (e) {
-      return '1.1.11'; // 默认版本
+      return '1.1.11'; // 
     }
   }
 
-  // 检查更新
+  // 
   void _checkForUpdates(BuildContext context) {
     ServiceLocator.updateManager.manualCheckForUpdate(context);
   }
@@ -2515,7 +2515,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
               ),
               const SizedBox(height: 16),
-              // 显示2x2网格示意图
+              // 2x2
               Container(
                 width: 120,
                 height: 90,
@@ -2658,7 +2658,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           contentPadding: style['contentPadding'],
           titlePadding: style['titlePadding'],
           title: Text(
-            strings?.fontFamily ?? '字体',
+            strings?.fontFamily ?? '',
             style: TextStyle(
               color: AppTheme.getTextPrimary(context),
               fontSize: style['titleFontSize'],
@@ -2688,7 +2688,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       settings.setFontFamily(value);
                       Navigator.pop(dialogContext);
                       final fontLabel = _getFontFamilyLabel(context, value, settings);
-                      final message = (strings?.fontChanged ?? '字体已更改为 {font}').replaceAll('{font}', fontLabel);
+                      final message = (strings?.fontChanged ?? ' {font}').replaceAll('{font}', fontLabel);
                       _showSuccess(context, message);
                     }
                   },
@@ -2719,20 +2719,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// 获取屏幕方向标签
+  /// 
   String _getOrientationLabel(BuildContext context, String orientation) {
     switch (orientation) {
       case 'portrait':
-        return '竖屏';
+        return '';
       case 'landscape':
-        return '横屏';
+        return '';
       case 'auto':
       default:
-        return '自动旋转';
+        return '';
     }
   }
 
-  /// 显示屏幕方向选择对话框
+  /// 
   void _showOrientationDialog(BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final options = ['portrait', 'landscape', 'auto'];
@@ -2746,7 +2746,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           contentPadding: style['contentPadding'],
           titlePadding: style['titlePadding'],
           title: Text(
-            '屏幕方向',
+            '',
             style: TextStyle(
               color: AppTheme.getTextPrimary(context),
               fontSize: style['titleFontSize'],
@@ -2794,7 +2794,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (value != null) {
                       await settings.setMobileOrientation(value);
                       
-                      // 应用屏幕方向
+                      // 
                       List<DeviceOrientation> orientations;
                       switch (value) {
                         case 'landscape':
@@ -2822,7 +2822,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     
                     if (dialogContext.mounted) {
                       Navigator.pop(dialogContext);
-                      _showSuccess(context, '屏幕方向已设置为: ${_getOrientationLabel(context, value)}');
+                      _showSuccess(context, ': ${_getOrientationLabel(context, value)}');
                     }
                   }
                 },

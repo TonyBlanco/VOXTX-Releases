@@ -1,13 +1,13 @@
 import 'package:flutter/services.dart';
 import 'service_locator.dart';
 
-/// 原生日志通道服务
-/// 接收来自Android原生代码的日志并写入Flutter的LogService
+/// 
+/// AndroidFlutterLogService
 class NativeLogChannel {
   static const MethodChannel _channel = MethodChannel('com.flutteriptv/native_log');
   static bool _initialized = false;
 
-  /// 初始化原生日志通道
+  /// 
   static Future<void> init() async {
     if (_initialized) return;
 
@@ -26,9 +26,9 @@ class NativeLogChannel {
     _initialized = true;
   }
 
-  /// 处理原生日志
+  /// 
   static void _handleNativeLog(String level, String tag, String message) {
-    // 添加 [NATIVE] 前缀以区分原生日志
+    //  [NATIVE] 
     final formattedMessage = '[NATIVE] [$tag] $message';
 
     switch (level.toLowerCase()) {

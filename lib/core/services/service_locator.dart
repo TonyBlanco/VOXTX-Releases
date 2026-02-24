@@ -99,12 +99,12 @@ class ServiceLocator {
   }
 
   static Future<void> dispose() async {
-    // 刷新日志缓冲区
+    // 
     try {
       await _logService.flush();
     } catch (e) {
-      // 使用 print 而不是 debugPrint，因为这是在 static 方法中
-      print('ServiceLocator: 刷新日志失败 - $e');
+      //  print  debugPrint static 
+      print('ServiceLocator:  - $e');
     }
     
     await _database.close();

@@ -10,17 +10,17 @@ import 'channel_logo_widget.dart';
 import '../../features/settings/providers/settings_provider.dart';
 import '../services/service_locator.dart';
 
-/// TV端共享侧边栏组件
-/// 失去焦点收起，获得焦点展开
+/// TV
+/// 
 class TVSidebar extends StatefulWidget {
   final int selectedIndex;
   final Widget child;
-  final VoidCallback? onRight; // 按右键时的回调
+  final VoidCallback? onRight; // 
 
-  /// 用于外部获取菜单焦点节点列表
+  /// 
   static List<FocusNode>? menuFocusNodes;
 
-  /// 当前选中的菜单索引
+  /// 
   static int? selectedMenuIndex;
 
   const TVSidebar({
@@ -36,17 +36,17 @@ class TVSidebar extends StatefulWidget {
 
 class _TVSidebarState extends State<TVSidebar> {
   final List<FocusNode> _menuFocusNodes = [];
-  Timer? _navDelayTimer; // 延迟导航定时器
-  int? _pendingNavIndex; // 待导航的菜单索引
+  Timer? _navDelayTimer; // 
+  int? _pendingNavIndex; // 
 
   @override
   void initState() {
     super.initState();
-    // 创建8个菜单项的焦点节点
+    // 8
     for (int i = 0; i < 8; i++) {
       _menuFocusNodes.add(FocusNode());
     }
-    // 暴露给外部
+    // 
     TVSidebar.menuFocusNodes = _menuFocusNodes;
     TVSidebar.selectedMenuIndex = widget.selectedIndex;
   }
@@ -88,18 +88,18 @@ class _TVSidebarState extends State<TVSidebar> {
   void _onNavItemTap(int index, String? route) {
     if (index == widget.selectedIndex) return;
 
-    // 切换页面时清理台标加载队列
+    // 
     clearLogoLoadingQueue();
 
     if (index == 0) {
-      // 返回首页：直接 pop 到首页
+      //  pop 
       Navigator.of(context).popUntil((r) => r.settings.name == AppRouter.home || r.isFirst);
     } else if (route != null) {
       if (widget.selectedIndex == 0) {
-        // 从首页跳转，直接 push
+        //  push
         Navigator.pushNamed(context, route);
       } else {
-        // 从其他页面跳转，使用 pushReplacementNamed 替换当前页面
+        //  pushReplacementNamed 
         Navigator.pushReplacementNamed(context, route);
       }
     }
@@ -108,19 +108,19 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   Widget build(BuildContext context) {
     final navItems = _getNavItems(context);
-    // 实时读取简单菜单设置
+    // 
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
-    // 根据简单菜单设置决定是否展开
-    // 简单模式：始终收起，非简单模式：始终展开
+    // 
+    // 
     final shouldExpand = !simpleMenu;
     final width = shouldExpand ? 130.0 : 52.0;
 
     return Row(
       children: [
-        // 侧边栏
+        // 
         Focus(
           onFocusChange: (hasFocus) {
-            // 当侧边栏获得焦点时,自动聚焦到当前选中的菜单项
+            // ,
             if (hasFocus && widget.selectedIndex < _menuFocusNodes.length) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 final targetNode = _menuFocusNodes[widget.selectedIndex];
@@ -168,14 +168,14 @@ class _TVSidebarState extends State<TVSidebar> {
             ),
           ),
         ),
-        // 主内容
+        // 
         Expanded(child: widget.child),
       ],
     );
   }
 
   Widget _buildLogo() {
-    // 实时读取简单菜单设置
+    // 
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
     final shouldExpand = !simpleMenu;
     
@@ -209,7 +209,7 @@ class _TVSidebarState extends State<TVSidebar> {
   Widget _buildNavItem(int index, _NavItem item) {
     final isSelected = widget.selectedIndex == index;
     final focusNode = index < _menuFocusNodes.length ? _menuFocusNodes[index] : null;
-    // 实时读取简单菜单设置
+    // 
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
     final shouldExpand = !simpleMenu;
 
@@ -219,10 +219,10 @@ class _TVSidebarState extends State<TVSidebar> {
         focusNode: focusNode,
         autofocus: index == widget.selectedIndex,
         onFocusChange: (hasFocus) {
-          // 强制刷新UI
+          // UI
           if (mounted) setState(() {});
 
-          // 延迟触发导航
+          // 
           if (hasFocus && index != widget.selectedIndex) {
             _navDelayTimer?.cancel();
             _pendingNavIndex = index;
@@ -232,7 +232,7 @@ class _TVSidebarState extends State<TVSidebar> {
               }
             });
           } else if (!hasFocus && _pendingNavIndex == index) {
-            // 失去焦点时取消待导航
+            // 
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
           }
@@ -240,31 +240,31 @@ class _TVSidebarState extends State<TVSidebar> {
         onKey: (node, event) {
           final key = event.logicalKey;
           
-          // 处理选择键
+          // 
           if (event is KeyDownEvent && (key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space)) {
-            // 手动确认时立即导航，取消延迟
+            // 
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
             _onNavItemTap(index, item.route);
             return KeyEventResult.handled;
           }
           
-          // 处理右键
+          // 
           if (event is KeyDownEvent && key == LogicalKeyboardKey.arrowRight && widget.onRight != null) {
-            // 按右键时取消延迟导航
+            // 
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
             widget.onRight!();
             return KeyEventResult.handled;
           }
           
-          // 阻止在边界时的上下键导航 - 同时处理KeyDown和KeyUp
+          //  - KeyDownKeyUp
           if (key == LogicalKeyboardKey.arrowUp && index == 0) {
-            // 在第一个菜单项时，阻止向上导航
+            // 
             return KeyEventResult.handled;
           }
           if (key == LogicalKeyboardKey.arrowDown && index == 7) {
-            // 在最后一个菜单项（第8个，索引7）时，阻止向下导航
+            // 87
             return KeyEventResult.handled;
           }
           
@@ -276,10 +276,10 @@ class _TVSidebarState extends State<TVSidebar> {
             onTap: () => _onNavItemTap(index, item.route),
             child: Builder(
               builder: (context) {
-                // 直接检查 FocusNode 的实际焦点状态
+                //  FocusNode 
                 final isFocused = focusNode?.hasFocus ?? false;
-                // 当前选中的菜单项始终显示高亮（使用渐变背景）
-                // 如果有焦点但不是当前选中项，也显示焦点高亮
+                // 
+                // 
                 final showSelectedHighlight = isSelected;
                 final showFocusHighlight = isFocused && !isSelected;
 
@@ -288,7 +288,7 @@ class _TVSidebarState extends State<TVSidebar> {
                   decoration: BoxDecoration(
                     gradient: (showSelectedHighlight || showFocusHighlight) ? AppTheme.getGradient(context) : null,
                     borderRadius: BorderRadius.circular(8),
-                    // 只要有焦点就显示边框（无论是否选中）
+                    // 
                     border: isFocused
                         ? Border.all(
                             color: Colors.white.withOpacity(0.6),

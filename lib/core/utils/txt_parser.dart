@@ -15,7 +15,7 @@ class TXTParser {
   /// Parse TXT content from a URL
   static Future<List<Channel>> parseFromUrl(String url, int playlistId, {String? mergeRule}) async {
     try {
-      ServiceLocator.log.d('DEBUG: 开始从URL获取TXT播放列表内容: $url');
+      ServiceLocator.log.d('DEBUG: URLTXT: $url');
 
       final dio = ServiceLocator.createDio();
 
@@ -27,13 +27,13 @@ class TXTParser {
         ),
       );
 
-      ServiceLocator.log.d('DEBUG: 成功获取TXT播放列表内容，状态码: ${response.statusCode}');
+      ServiceLocator.log.d('DEBUG: TXT: ${response.statusCode}');
       final contentLength = response.data.toString().length;
-      ServiceLocator.log.d('DEBUG: 内容大小: $contentLength 字符');
+      ServiceLocator.log.d('DEBUG: : $contentLength ');
 
       // Only use isolate for large files (>500KB) to avoid overhead
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "使用" : "不使用"} isolate 解析 (大小: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final List<Channel> channels;
       if (useIsolate) {
@@ -44,11 +44,11 @@ class TXTParser {
         channels = parse(response.data.toString(), playlistId, mergeRule: mergeRule);
       }
 
-      ServiceLocator.log.d('DEBUG: TXT URL解析完成，共解析出 ${channels.length} 个频道');
+      ServiceLocator.log.d('DEBUG: TXT URL ${channels.length} ');
 
       return channels;
     } catch (e) {
-      ServiceLocator.log.d('DEBUG: 从URL获取TXT播放列表时出错: $e');
+      ServiceLocator.log.d('DEBUG: URLTXT: $e');
 
       final errorStr = e.toString().toLowerCase();
 
@@ -73,21 +73,21 @@ class TXTParser {
   static Future<List<Channel>> parseFromFile(
       String filePath, int playlistId, {String? mergeRule}) async {
     try {
-      ServiceLocator.log.d('DEBUG: 开始从本地文件读取TXT播放列表: $filePath');
+      ServiceLocator.log.d('DEBUG: TXT: $filePath');
       final file = File(filePath);
 
       if (!await file.exists()) {
-        ServiceLocator.log.d('DEBUG: 文件不存在: $filePath');
+        ServiceLocator.log.d('DEBUG: : $filePath');
         throw Exception('File does not exist: $filePath');
       }
 
       final content = await file.readAsString();
       final contentLength = content.length;
-      ServiceLocator.log.d('DEBUG: 成功读取TXT本地文件，内容大小: $contentLength 字符');
+      ServiceLocator.log.d('DEBUG: TXT: $contentLength ');
 
       // Only use isolate for large files (>500KB)
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "使用" : "不使用"} isolate 解析 (大小: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final List<Channel> channels;
       if (useIsolate) {
@@ -97,11 +97,11 @@ class TXTParser {
         channels = parse(content, playlistId, mergeRule: mergeRule);
       }
 
-      ServiceLocator.log.d('DEBUG: TXT本地文件解析完成，共解析出 ${channels.length} 个频道');
+      ServiceLocator.log.d('DEBUG: TXT ${channels.length} ');
 
       return channels;
     } catch (e) {
-      ServiceLocator.log.d('DEBUG: 读取TXT本地播放列表文件时出错: $e');
+      ServiceLocator.log.d('DEBUG: TXT: $e');
       throw Exception('Error reading playlist file: $e');
     }
   }
@@ -111,16 +111,16 @@ class TXTParser {
   ///         Channel Name,URL
   /// Merges channels with same name into single channel with multiple sources
   static List<Channel> parse(String content, int playlistId, {String? mergeRule}) {
-    // 注意：此方法可能在 isolate 中运行，不能使用 ServiceLocator.log
-    print('TXT Parser: 开始解析，播放列表ID: $playlistId, 合并规则: ${mergeRule ?? "name_group"}');
+    //  isolate  ServiceLocator.log
+    print('TXT Parser: ID: $playlistId, : ${mergeRule ?? "name_group"}');
 
     final List<Channel> rawChannels = [];
     final lines = LineSplitter.split(content).toList();
 
-    print('TXT Parser: 内容总行数: ${lines.length}');
+    print('TXT Parser: : ${lines.length}');
 
     if (lines.isEmpty) {
-      print('TXT Parser: 内容为空，返回空频道列表');
+      print('TXT Parser: ');
       return rawChannels;
     }
 
@@ -160,12 +160,12 @@ class TXTParser {
       }
     }
 
-    print('TXT Parser: 原始解析完成，有效频道: ${rawChannels.length}');
+    print('TXT Parser: : ${rawChannels.length}');
 
     // Merge channels with same name into single channel with multiple sources
     final List<Channel> mergedChannels = _mergeChannelSources(rawChannels, mergeRule: mergeRule);
 
-    print('TXT Parser: 合并后频道数: ${mergedChannels.length} (原始: ${rawChannels.length})');
+    print('TXT Parser: : ${mergedChannels.length} (: ${rawChannels.length})');
 
     return mergedChannels;
   }
@@ -178,7 +178,7 @@ class TXTParser {
     final Map<String, Channel> mergedMap = {};
 
     // Special groups that should not be the primary group
-    final specialGroups = {'🕘️更新时间', '更新时间', 'update', 'info'};
+    final specialGroups = {'🕘️', '', 'update', 'info'};
 
     // Default to 'name_group' if not specified
     final rule = mergeRule ?? 'name_group';
@@ -276,7 +276,7 @@ class TXTParser {
   }
 }
 
-/// 用于传递参数到 isolate 的类
+///  isolate 
 class _ParseParams {
   final String content;
   final int playlistId;
@@ -285,7 +285,7 @@ class _ParseParams {
   _ParseParams(this.content, this.playlistId, this.mergeRule);
 }
 
-/// Isolate 中执行的解析函数（必须是顶层函数或静态函数）
+/// Isolate 
 List<Channel> _parseInIsolate(_ParseParams params) {
   return TXTParser.parse(params.content, params.playlistId, mergeRule: params.mergeRule);
 }

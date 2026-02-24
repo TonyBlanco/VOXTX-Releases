@@ -104,8 +104,8 @@ class _TVFocusableState extends State<TVFocusable> with SingleTickerProviderStat
         widget.onLeft!();
         return KeyEventResult.handled;
       }
-      // 不拦截左键，让系统默认处理（移动到左边的元素）
-      // 如果左边没有元素了，系统会自动移到菜单
+      // 
+      // 
       return KeyEventResult.ignored;
     }
     if (key == LogicalKeyboardKey.arrowRight && widget.onRight != null) {
@@ -149,12 +149,12 @@ class _TVFocusableState extends State<TVFocusable> with SingleTickerProviderStat
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // 内容（带缩放）
+                  // 
                   Transform.scale(
                     scale: _scaleAnimation.value,
                     child: focusedChild,
                   ),
-                  // 焦点边框（不缩放，贴合原始尺寸）
+                  // 
                   if (widget.showFocusBorder && _isFocused)
                     Positioned.fill(
                       child: IgnorePointer(

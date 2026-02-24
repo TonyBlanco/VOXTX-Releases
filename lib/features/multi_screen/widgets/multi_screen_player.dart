@@ -137,7 +137,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             }
           },
           child: GestureDetector(
-            // Mini模式下整个区域可拖动
+            // Mini
             onPanStart:
                 isMiniMode ? (_) => windowManager.startDragging() : null,
             onTap: () {
@@ -149,7 +149,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             },
             child: Stack(
               children: [
-                // 2x2 网格
+                // 2x2 
                 Container(
                   color: Colors.black,
                   child: Column(
@@ -174,7 +174,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
                 ),
 
-                // 顶部儴控制埗栏（紙非濵ini模式紡（?
+                // ini?
                 if (_showControls && !isMiniMode)
                   Positioned(
                     top: 0,
@@ -184,7 +184,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
 
 
-                // Mini模式紡控制埗按挳（最彸上婅（屽终堟樉绀猴級
+                // Mini
                 if (isMiniMode)
                   Positioned(
                     top: 4,
@@ -227,7 +227,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                     ),
                   ),
 
-                // 频道选择器
+                // 
                 if (_showChannelSelector)
                   _buildChannelSelector(context, multiScreenProvider),
               ],
@@ -250,7 +250,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
 
   Widget _buildTopControls(BuildContext context) {
     return Container(
-      // 调整顶部间距为 30，使按钮向上移动，减少与右上角信息窗口的距离并齐平
+      //  30
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -290,13 +290,13 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   color: Colors.white,
                 ),
                 onPressed: _toggleWindowFullscreen,
-                tooltip: _isWindowFullscreen ? '退出全屏' : '全屏',
+                tooltip: _isWindowFullscreen ? '' : '',
               ),
             IconButton(
               icon: const Icon(Icons.grid_off_rounded, color: Colors.white),
               onPressed: widget.onExitMultiScreen,
               tooltip: AppStrings.of(context)?.exitMultiScreen ??
-                  '退出分屏',
+                  '',
             ),
           ],
         ),
@@ -626,7 +626,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
       color: Colors.black.withOpacity(0.95),
       child: Row(
         children: [
-          // 左侧晶制嗙被制楄〃
+          // 
           Container(
             width: 200,
             decoration: BoxDecoration(
@@ -656,7 +656,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 栏囬栏?
+                // ?
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -702,7 +702,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                     ],
                   ),
                 ),
-                // 全ㄩ儴频道亾选夐」
+                // ㄩ
                 _buildCategoryItem(
                   context,
                   name: AppStrings.of(context)?.allChannels ?? 'All Channels',
@@ -711,7 +711,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   onTap: () => setState(() => _selectedCategory = null),
                 ),
                 Divider(color: AppTheme.getCardColor(context), height: 1),
-                // 制嗙被制楄〃
+                // 
                 Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -732,7 +732,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
               ],
             ),
           ),
-          // 监充晶频道亾网格
+          // 
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -849,7 +849,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
       BuildContext context,
       ChannelProvider channelProvider,
       MultiScreenProvider multiScreenProvider) {
-    // 使用 allChannels 获取全部频道，而不是分页的 channels
+    //  allChannels  channels
     List channels;
     if (_selectedCategory == null) {
       channels = channelProvider.allChannels;
@@ -862,7 +862,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 顶部儴栏囬
+        // 
         Container(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -895,7 +895,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
             ],
           ),
         ),
-        // 频道亾网格
+        // 
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -936,7 +936,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo区定煙 - 鍥定畾高度害
+              // Logo - 
               Expanded(
                 flex: 3,
                 child: ClipRRect(
@@ -960,7 +960,7 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
                   ),
                 ),
               ),
-              // 频道亾名嶅尯域?
+              // ?
               Expanded(
                 flex: 1,
                 child: Container(
@@ -1048,12 +1048,12 @@ class _MultiScreenPlayerState extends State<MultiScreenPlayer> {
         ? 110.0
         : 60.0;
 
-    // 如果配置为不显示频道名称，则返回空数组
+    // 
     if (!settingsProvider.showMultiScreenChannelName) {
       return const SizedBox.shrink();
     }
 
-    // 使用 select 只监听当前屏幕频道的 EPG 数据
+    //  select  EPG 
     final currentProgram = screen.channel != null
         ? context.select<EpgProvider, EpgProgram?>(
             (provider) => provider.getCurrentProgram(

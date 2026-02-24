@@ -45,7 +45,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // 手机端使用 BottomSheet，桌面端和 TV 使用 Dialog
+    //  BottomSheet TV  Dialog
     if (PlatformDetector.isMobile) {
       return _buildBottomSheet(context);
     } else {
@@ -53,7 +53,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     }
   }
 
-  // ========== BottomSheet 实现（手机端）==========
+  // ========== BottomSheet ==========
   Widget _buildBottomSheet(BuildContext context) {
     return Consumer<PlaylistProvider>(
       builder: (context, provider, _) {
@@ -70,10 +70,10 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
               ),
               child: Stack(
                 children: [
-                  // 主内容
+                  // 
                   Column(
                     children: [
-                      // 拖拽指示器
+                      // 
                       Container(
                         margin: const EdgeInsets.only(top: 12, bottom: 8),
                         width: 40,
@@ -84,7 +84,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
                         ),
                       ),
                       
-                      // 可滚动内容
+                      // 
                       Expanded(
                         child: SingleChildScrollView(
                           controller: scrollController,
@@ -242,7 +242,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     );
   }
 
-  // ========== Dialog 实现（桌面端和 TV）==========
+  // ========== Dialog  TV==========
   Widget _buildDialog(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -412,7 +412,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     );
   }
 
-  // ========== 手机端内容 ==========
+  // ==========  ==========
   Widget _buildMobileContent(PlaylistProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -422,7 +422,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
           focusNode: _nameFocusNode,
           hintText: AppStrings.of(context)?.playlistName ?? 'Playlist Name',
           prefixIcon: Icons.label_outline_rounded,
-          autofocus: false, // 手机端不自动聚焦，避免键盘立即弹出
+          autofocus: false, // 
         ),
         const SizedBox(height: 12),
         _buildTextField(
@@ -486,7 +486,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     );
   }
 
-  // ========== TV 端内容 ==========
+  // ========== TV  ==========
   Widget _buildTVContent(PlaylistProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -497,7 +497,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
           title: AppStrings.of(context)?.fromFile ?? 'From File',
           subtitle: AppStrings.of(context)?.importFromUsb ?? 'Import from USB or local storage',
           isPrimary: true,
-          autofocus: true, // ✅ TV端第一个选项自动获取焦点
+          autofocus: true, // ✅ TV
         ),
         const SizedBox(height: 12),
         _buildImportCard(
@@ -521,7 +521,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     );
   }
 
-  // ========== 桌面端内容 ==========
+  // ==========  ==========
   Widget _buildDesktopContent(PlaylistProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -531,7 +531,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
           focusNode: _nameFocusNode,
           hintText: AppStrings.of(context)?.playlistName ?? 'Playlist Name',
           prefixIcon: Icons.label_outline_rounded,
-          autofocus: false, // ✅ Windows 端不自动聚焦输入框
+          autofocus: false, // ✅ Windows 
         ),
         const SizedBox(height: 12),
         _buildTextField(
@@ -571,7 +571,7 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
                 onPressed: () => _pickFile(provider),
                 icon: Icons.folder_open_rounded,
                 label: AppStrings.of(context)?.fromFile ?? 'File',
-                autofocus: true, // ✅ Windows 端第一个按钮自动获取焦点
+                autofocus: true, // ✅ Windows 
               ),
             ),
             const SizedBox(width: 12),
@@ -680,15 +680,15 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     required VoidCallback? onPressed,
     required IconData icon,
     required String label,
-    bool autofocus = false, // ✅ 添加 autofocus 参数
+    bool autofocus = false, // ✅  autofocus 
   }) {
     final isWindows = !PlatformDetector.isTV && !PlatformDetector.isMobile;
     
     return TVFocusable(
-      autofocus: autofocus, // ✅ 使用 autofocus 参数
+      autofocus: autofocus, // ✅  autofocus 
       onSelect: onPressed,
-      focusScale: isWindows ? 1.0 : 1.02, // Windows端不缩放
-      showFocusBorder: !isWindows, // Windows端不显示外层焦点边框
+      focusScale: isWindows ? 1.0 : 1.02, // Windows
+      showFocusBorder: !isWindows, // Windows
       builder: (context, isFocused, child) {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -738,10 +738,10 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     required String title,
     required String subtitle,
     required bool isPrimary,
-    bool autofocus = false, // ✅ 添加 autofocus 参数
+    bool autofocus = false, // ✅  autofocus 
   }) {
     return TVFocusable(
-      autofocus: autofocus, // ✅ 使用 autofocus 参数
+      autofocus: autofocus, // ✅  autofocus 
       onSelect: onPressed,
       focusScale: 1.02,
       showFocusBorder: true,

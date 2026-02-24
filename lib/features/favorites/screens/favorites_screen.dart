@@ -35,30 +35,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void _playChannel(dynamic channel) {
     final settingsProvider = context.read<SettingsProvider>();
     
-    // 保存上次播放的频道ID
+    // ID
     if (settingsProvider.rememberLastChannel && channel.id != null) {
       settingsProvider.setLastChannelId(channel.id);
     }
 
-    // 检查是否启用了分屏模式
+    // 
     if (settingsProvider.enableMultiScreen) {
-      // TV 端使用原生分屏播放器
+      // TV 
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         final channelProvider = context.read<ChannelProvider>();
-        // ✅ 使用全部频道而不是分页显示的频道
+        // ✅ 
         final channels = channelProvider.allChannels;
         
-        // 找到当前点击频道的索引
+        // 
         final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
         
-        // 准备频道数据
+        // 
         final urls = channels.map((c) => c.url).toList();
         final names = channels.map((c) => c.name).toList();
         final groups = channels.map((c) => c.groupName ?? '').toList();
         final sources = channels.map((c) => c.sources).toList();
         final logos = channels.map((c) => c.logoUrl ?? '').toList();
         
-        // 启动原生分屏播放器
+        // 
         NativePlayerChannel.launchMultiScreen(
           urls: urls,
           names: names,
@@ -76,7 +76,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       } else if (PlatformDetector.isDesktop) {
         final multiScreenProvider = context.read<MultiScreenProvider>();
         final defaultPosition = settingsProvider.defaultScreenPosition;
-        // 设置音量增强到分屏Provider
+        // Provider
         multiScreenProvider.setVolumeSettings(1.0, settingsProvider.volumeBoost);
         multiScreenProvider.playChannelAtDefaultPosition(channel, defaultPosition);
         
@@ -129,14 +129,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
           ),
           child: TVSidebar(
-            selectedIndex: 5, // 收藏页
+            selectedIndex: 5, // 
             child: content,
           ),
         ),
       );
     }
 
-    // 嵌入模式不使用Scaffold
+    // Scaffold
     if (widget.embedded) {
       final isMobile = PlatformDetector.isMobile;
       final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
@@ -145,26 +145,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       
       return Column(
         children: [
-          // 横屏时添加状态栏间距
+          // 
           if (isLandscape && topPadding > 0)
             SizedBox(height: topPadding),
-          // 简化的标题栏
+          // 
           Container(
-            height: isLandscape ? 24.0 : null,  // 横屏时固定高度24px，与AppBar一致
+            height: isLandscape ? 24.0 : null,  // 24pxAppBar
             padding: EdgeInsets.fromLTRB(
               12,
-              isLandscape ? 0 : (topPadding + 8),  // 横屏时不需要额外padding，竖屏保持原样
+              isLandscape ? 0 : (topPadding + 8),  // padding
               12,
-              0,  // 底部padding设为0，由height控制
+              0,  // padding0height
             ),
-            alignment: Alignment.centerLeft,  // 垂直居中对齐
+            alignment: Alignment.centerLeft,  // 
             child: Row(
               children: [
                 Text(
                   AppStrings.of(context)?.favorites ?? 'Favorites',
                   style: TextStyle(
                     color: AppTheme.getTextPrimary(context),
-                    fontSize: isLandscape ? 14 : 18,  // 横屏时字体14px
+                    fontSize: isLandscape ? 14 : 18,  // 14px
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -176,10 +176,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       icon: Icon(
                         Icons.delete_sweep_rounded, 
                         color: AppTheme.getTextSecondary(context),
-                        size: isLandscape ? 14 : 24,  // 横屏时图标更小，与AppBar一致
+                        size: isLandscape ? 14 : 24,  // AppBar
                       ),
-                      padding: isLandscape ? const EdgeInsets.all(2) : null,  // 横屏时减少padding
-                      constraints: isLandscape ? const BoxConstraints() : null,  // 移除最小尺寸限制
+                      padding: isLandscape ? const EdgeInsets.all(2) : null,  // padding
+                      constraints: isLandscape ? const BoxConstraints() : null,  // 
                       onPressed: () => _confirmClearAll(context, provider),
                       tooltip: AppStrings.of(context)?.clearAll ?? 'Clear All',
                     );
@@ -208,7 +208,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
         child: Column(
           children: [
-            // 手机端添加状态栏高度
+            // 
             if (PlatformDetector.isMobile)
               SizedBox(height: MediaQuery.of(context).padding.top),
             Builder(
@@ -218,23 +218,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 final isLandscape = isMobile && width > 600;
                 return AppBar(
                   backgroundColor: Colors.transparent,
-                  primary: false,  // 禁用自动SafeArea padding
-                  toolbarHeight: isLandscape ? 24.0 : 56.0,  // 横屏时减小到24px
+                  primary: false,  // SafeArea padding
+                  toolbarHeight: isLandscape ? 24.0 : 56.0,  // 24px
                   title: Text(
                     AppStrings.of(context)?.favorites ?? 'Favorites',
                     style: TextStyle(
                       color: AppTheme.getTextPrimary(context),
-                      fontSize: isLandscape ? 14 : 20,  // 横屏时字体14px
+                      fontSize: isLandscape ? 14 : 20,  // 14px
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   leading: IconButton(
                     icon: Icon(
                       Icons.arrow_back_rounded,
-                      size: isLandscape ? 14 : 24,  // 横屏时图标更小
+                      size: isLandscape ? 14 : 24,  // 
                     ),
                     padding: isLandscape ? const EdgeInsets.all(2) : null,
-                    constraints: isLandscape ? const BoxConstraints() : null,  // 移除最小尺寸限制
+                    constraints: isLandscape ? const BoxConstraints() : null,  // 
                     onPressed: () => Navigator.pop(context),
                   ),
                   actions: [
@@ -245,10 +245,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         return IconButton(
                           icon: Icon(
                             Icons.delete_sweep_rounded,
-                            size: isLandscape ? 14 : 24,  // 横屏时图标更小
+                            size: isLandscape ? 14 : 24,  // 
                           ),
                           padding: isLandscape ? const EdgeInsets.all(2) : null,
-                          constraints: isLandscape ? const BoxConstraints() : null,  // 移除最小尺寸限制
+                          constraints: isLandscape ? const BoxConstraints() : null,  // 
                           onPressed: () => _confirmClearAll(context, provider),
                           tooltip: AppStrings.of(context)?.clearAll ?? 'Clear All',
                         );

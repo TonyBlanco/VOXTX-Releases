@@ -5,8 +5,8 @@ import 'package:window_manager/window_manager.dart';
 import '../theme/app_theme.dart';
 import '../platform/windows_pip_channel.dart';
 
-/// 自动隐藏的Windows标题栏
-/// 鼠标移到顶部区域时显示，移开后自动隐藏
+/// Windows
+/// 
 class WindowTitleBar extends StatefulWidget {
   final String title;
   final Widget? leading;
@@ -27,17 +27,17 @@ class _WindowTitleBarState extends State<WindowTitleBar> {
   bool _isVisible = false;
   Timer? _hideTimer;
 
-  // 触发区域高度（鼠标进入此区域显示标题栏）
+  // 
   static const double _triggerHeight = 8.0;
-  // 标题栏高度
+  // 
   static const double _barHeight = 32.0;
-  // 自动隐藏延迟
+  // 
   static const Duration _hideDelay = Duration(milliseconds: 1500);
 
   @override
   void initState() {
     super.initState();
-    // 监听 mini 模式状态变化
+    //  mini 
     WindowsPipChannel.pipModeNotifier.addListener(_onPipModeChanged);
   }
 
@@ -80,14 +80,14 @@ class _WindowTitleBarState extends State<WindowTitleBar> {
       return const SizedBox.shrink();
     }
 
-    // Mini 模式下完全不显示标题栏
+    // Mini 
     if (WindowsPipChannel.isInPipMode) {
       return const SizedBox.shrink();
     }
 
     return Stack(
       children: [
-        // 触发区域（始终存在，用于检测鼠标进入）
+        // 
         Positioned(
           top: 0,
           left: 0,
@@ -99,7 +99,7 @@ class _WindowTitleBarState extends State<WindowTitleBar> {
             child: Container(color: Colors.transparent),
           ),
         ),
-        // 标题栏（带动画）
+        // 
         AnimatedPositioned(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,

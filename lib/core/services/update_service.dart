@@ -9,72 +9,72 @@ import '../models/app_update.dart';
 import 'service_locator.dart';
 
 class UpdateService {
-  // 使用 GitHub Pages 静态文件，无请求次数限制
-  // 统一从 VOXTX-Android 仓库读取版本与发布信息
+  //  GitHub Pages 
+  //  VOXTX-Android 
 
   static const String _versionJsonUrl = 'https://raw.githubusercontent.com/TonyBlanco/VOXTX-Android/master/docs/version.json';
   static const String _githubReleasesUrl = 'https://github.com/TonyBlanco/VOXTX-Android/releases';
 
-  // 检查更新的间隔时间（小时）
+  // 
   static const int _checkUpdateInterval = 24;
   static const String _lastUpdateCheckKey = 'last_update_check';
 
-  /// 检查是否有可用更新
+  /// 
   Future<AppUpdate?> checkForUpdates({bool forceCheck = false}) async {
     try {
-      ServiceLocator.log.d('UPDATE: 开始检查更新...');
+      ServiceLocator.log.d('UPDATE: ...');
 
-      // 检查是否需要检查更新（除非强制检查）
+      // 
       if (!forceCheck) {
         final lastCheck = await _getLastUpdateCheckTime();
         final now = DateTime.now();
         if (lastCheck != null && now.difference(lastCheck).inHours < _checkUpdateInterval) {
-          ServiceLocator.log.d('UPDATE: 距离上次检查不足24小时，跳过本次检查');
+          ServiceLocator.log.d('UPDATE: 24');
           return null;
         }
       }
 
-      // 获取当前应用版本
+      // 
       final currentVersion = await getCurrentVersion();
-      ServiceLocator.log.d('UPDATE: 当前应用版本: $currentVersion');
+      ServiceLocator.log.d('UPDATE: : $currentVersion');
 
-      // 获取最新发布信息
+      // 
       final latestRelease = await _fetchLatestRelease();
       if (latestRelease == null) {
-        ServiceLocator.log.d('UPDATE: 无法获取最新发布信息');
+        ServiceLocator.log.d('UPDATE: ');
         return null;
       }
 
-      ServiceLocator.log.d('UPDATE: 最新发布版本: ${latestRelease.version}');
+      ServiceLocator.log.d('UPDATE: : ${latestRelease.version}');
 
-      // 比较版本号
+      // 
       if (_isNewerVersion(latestRelease.version, currentVersion)) {
-        ServiceLocator.log.d('UPDATE: 发现新版本可用！');
+        ServiceLocator.log.d('UPDATE: ');
         await _saveLastUpdateCheckTime();
         return latestRelease;
       } else {
-        ServiceLocator.log.d('UPDATE: 已是最新版本');
+        ServiceLocator.log.d('UPDATE: ');
         await _saveLastUpdateCheckTime();
         return null;
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 检查更新时发生错误: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       return null;
     }
   }
 
-  /// 获取当前应用版本
+  /// 
   Future<String> getCurrentVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       return packageInfo.version;
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 获取当前版本失败: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       return '0.0.0';
     }
   }
 
-  /// 从 GitHub Pages 获取最新发布信息
+  ///  GitHub Pages 
   Future<AppUpdate?> _fetchLatestRelease() async {
     try {
       final response = await http.get(
@@ -87,59 +87,59 @@ class UpdateService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        // 使用异步方法获取正确的下载链接
+        // 
         return await AppUpdate.fromVersionJsonAsync(data);
       } else {
-        ServiceLocator.log.d('UPDATE: 获取版本信息失败，状态码: ${response.statusCode}');
+        ServiceLocator.log.d('UPDATE: : ${response.statusCode}');
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 获取发布信息时发生错误: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
     }
     return null;
   }
 
-  /// 比较版本号，判断是否为新版本
+  /// 
   bool _isNewerVersion(String newVersion, String currentVersion) {
     try {
       final newVer = Version.parse(newVersion);
       final currentVer = Version.parse(currentVersion);
       return newVer > currentVer;
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 版本号比较失败: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       return false;
     }
   }
 
-  /// 打开下载页面
+  /// 
   Future<bool> openDownloadPage() async {
     try {
       final uri = Uri.parse(_githubReleasesUrl);
-      ServiceLocator.log.d('UPDATE: 打开下载页面: $_githubReleasesUrl');
+      ServiceLocator.log.d('UPDATE: : $_githubReleasesUrl');
       return await launchUrl(
         uri,
         mode: LaunchMode.externalApplication,
       );
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 打开下载页面失败: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       return false;
     }
   }
 
-  /// 下载更新文件
+  /// 
   Future<File?> downloadUpdate(AppUpdate update, {Function(double)? onProgress}) async {
     try {
       final downloadUrl = update.downloadUrl;
       if (downloadUrl.isEmpty) {
-        ServiceLocator.log.d('UPDATE: 下载链接为空');
+        ServiceLocator.log.d('UPDATE: ');
         return null;
       }
 
-      ServiceLocator.log.d('UPDATE: 开始下载: $downloadUrl');
+      ServiceLocator.log.d('UPDATE: : $downloadUrl');
 
-      // 获取临时目录
+      // 
       final tempDir = await getTemporaryDirectory();
       
-      // 从 URL 中提取文件名
+      //  URL 
       String fileName;
       final uri = Uri.parse(downloadUrl);
       final urlFileName = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
@@ -152,21 +152,21 @@ class UpdateService {
       }
       
       final file = File('${tempDir.path}/$fileName');
-      ServiceLocator.log.d('UPDATE: 保存到: ${file.path}');
+      ServiceLocator.log.d('UPDATE: : ${file.path}');
 
-      // 下载文件
+      // 
       final request = http.Request('GET', Uri.parse(downloadUrl));
       request.headers['User-Agent'] = 'FlutterIPTV-App';
       
       final response = await http.Client().send(request);
       
       if (response.statusCode != 200) {
-        ServiceLocator.log.d('UPDATE: 下载失败，状态码: ${response.statusCode}');
+        ServiceLocator.log.d('UPDATE: : ${response.statusCode}');
         return null;
       }
 
       final contentLength = response.contentLength ?? 0;
-      ServiceLocator.log.d('UPDATE: 文件大小: $contentLength bytes');
+      ServiceLocator.log.d('UPDATE: : $contentLength bytes');
       int receivedBytes = 0;
       
       final sink = file.openWrite();
@@ -181,16 +181,16 @@ class UpdateService {
       
       await sink.close();
       
-      ServiceLocator.log.d('UPDATE: 下载完成: ${file.path}, 大小: $receivedBytes bytes');
+      ServiceLocator.log.d('UPDATE: : ${file.path}, : $receivedBytes bytes');
       return file;
     } catch (e, stack) {
-      ServiceLocator.log.d('UPDATE: 下载更新时发生错误: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       ServiceLocator.log.d('UPDATE: Stack: $stack');
       return null;
     }
   }
 
-  /// 获取上次检查更新的时间
+  /// 
   Future<DateTime?> _getLastUpdateCheckTime() async {
     try {
       final prefs = ServiceLocator.prefs;
@@ -200,19 +200,19 @@ class UpdateService {
       }
       return null;
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 获取上次检查时间失败: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
       return null;
     }
   }
 
-  /// 保存上次检查更新的时间
+  /// 
   Future<void> _saveLastUpdateCheckTime() async {
     try {
       final prefs = ServiceLocator.prefs;
       await prefs.setInt(_lastUpdateCheckKey, DateTime.now().millisecondsSinceEpoch);
-      ServiceLocator.log.d('UPDATE: 保存检查时间: ${DateTime.now()}');
+      ServiceLocator.log.d('UPDATE: : ${DateTime.now()}');
     } catch (e) {
-      ServiceLocator.log.d('UPDATE: 保存检查时间失败: $e');
+      ServiceLocator.log.d('UPDATE: : $e');
     }
   }
 }

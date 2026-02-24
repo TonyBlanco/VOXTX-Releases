@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import '../../../core/models/channel.dart';
 import '../../../core/services/service_locator.dart';
 
-/// 单个屏幕的播放器状态
+/// 
 class ScreenPlayerState {
   Player? player;
   VideoController? videoController;
@@ -20,7 +20,7 @@ class ScreenPlayerState {
   Duration position = Duration.zero;
   Duration duration = Duration.zero;
   
-  // 视频信息
+  // 
   int videoWidth = 0;
   int videoHeight = 0;
   int bitrate = 0;
@@ -30,7 +30,7 @@ class ScreenPlayerState {
   ScreenPlayerState();
   
   Future<void> dispose() async {
-    // 先停止播放，再释放资源
+    // 
     if (player != null) {
       await player!.stop();
       await player!.dispose();
@@ -43,7 +43,7 @@ class ScreenPlayerState {
 }
 
 class MultiScreenProvider extends ChangeNotifier {
-  // 4个屏幕的播放器状态
+  // 4
   final List<ScreenPlayerState> _screens = List.generate(4, (_) => ScreenPlayerState());
   int _activeScreenIndex = 0;
   bool _isMultiScreenMode = false;
@@ -53,7 +53,7 @@ class MultiScreenProvider extends ChangeNotifier {
   String _decodingMode = 'auto';
   String _bufferStrength = 'fast';
   
-  // 音量设置
+  // 
   double _volume = 1.0;
   int _volumeBoostDb = 0;
 
@@ -63,7 +63,7 @@ class MultiScreenProvider extends ChangeNotifier {
   double get volume => _volume;
   ScreenPlayerState get activeScreen => _screens[_activeScreenIndex];
 
-  // 获取指定屏幕的状态
+  // 
   ScreenPlayerState getScreen(int index) {
     if (index >= 0 && index < 4) {
       return _screens[index];
@@ -71,7 +71,7 @@ class MultiScreenProvider extends ChangeNotifier {
     return _screens[0];
   }
   
-  // 设置音量和音量增强
+  // 
   void setVolumeSettings(double volume, int volumeBoostDb) {
     _volume = volume;
     _volumeBoostDb = volumeBoostDb;
@@ -118,17 +118,17 @@ class MultiScreenProvider extends ChangeNotifier {
     }
   }
   
-  // 计算有效音量（包含增强）
+  // 
   double _getEffectiveVolume() {
     if (_volumeBoostDb == 0) {
       return _volume * 100;
     }
-    // 将 dB 转换为线性增益
+    //  dB 
     final boostFactor = math.pow(10, _volumeBoostDb / 20);
     return (_volume * boostFactor * 100).clamp(0, 200);
   }
   
-  // 应用音量到活动屏幕
+  // 
   void _applyVolumeToActiveScreen() {
     final screen = _screens[_activeScreenIndex];
     if (screen.player != null) {
@@ -136,10 +136,10 @@ class MultiScreenProvider extends ChangeNotifier {
     }
   }
 
-  // 设置活动屏幕
+  // 
   void setActiveScreen(int index) {
     if (index >= 0 && index < 4 && _activeScreenIndex != index) {
-      // 静音之前的活动屏幕
+      // 
       final oldScreen = _screens[_activeScreenIndex];
       if (oldScreen.player != null) {
         oldScreen.player!.setVolume(0);
@@ -147,7 +147,7 @@ class MultiScreenProvider extends ChangeNotifier {
       
       _activeScreenIndex = index;
       
-      // 取消静音新的活动屏幕（使用有效音量，包含音量增强）
+      // 
       final newScreen = _screens[_activeScreenIndex];
       if (newScreen.player != null) {
         newScreen.player!.setVolume(_getEffectiveVolume());
@@ -158,11 +158,11 @@ class MultiScreenProvider extends ChangeNotifier {
     }
   }
 
-  // 启用/禁用分屏模式
+  // /
   void setMultiScreenMode(bool enabled) {
     _isMultiScreenMode = enabled;
     if (!enabled) {
-      // 禁用分屏模式时，停止所有非活动屏幕的播放
+      // 
       for (int i = 0; i < 4; i++) {
         if (i != _activeScreenIndex) {
           stopScreen(i);
@@ -172,24 +172,24 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 在指定屏幕播放频道
+  // 
   Future<void> playChannelOnScreen(int screenIndex, Channel channel,
       {bool skipHistory = false}) async {
     if (screenIndex < 0 || screenIndex >= 4) return;
     
-    // 使用 currentUrl 而不是 url，以保留当前选择的源索引
+    //  currentUrl  url
     final playUrl = channel.currentUrl;
     ServiceLocator.log.d('MultiScreenProvider: playChannelOnScreen - screenIndex=$screenIndex, channel=${channel.name}, sourceIndex=${channel.currentSourceIndex}, url=$playUrl, activeScreen=$_activeScreenIndex');
     
     final screen = _screens[screenIndex];
     
-    // 如果已经在播放相同的频道和相同的源，不重复播放
+    // 
     if (screen.channel?.currentUrl == playUrl && screen.isPlaying) {
       ServiceLocator.log.d('MultiScreenProvider: Already playing same channel and source, skipping');
       return;
     }
     
-    // Windows端分屏模式也需要记录观看历史
+    // Windows
     if (!skipHistory && channel.id != null) {
       await ServiceLocator.watchHistory
           .addWatchHistory(channel.id!, channel.playlistId);
@@ -204,23 +204,23 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      // 如果播放器不存在，创建新的播放器
+      // 
       if (screen.player == null) {
         ServiceLocator.log.d('MultiScreenProvider: Creating new player for screen $screenIndex');
         _createPlayerForScreen(screenIndex, useSoftwareDecoding: false);
         
-        // 监听播放状态
+        // 
         screen.player!.stream.playing.listen((playing) {
           ServiceLocator.log.d('MultiScreenProvider: Screen $screenIndex playing=$playing');
           screen.isPlaying = playing;
-          // 播放开始后确保音量正确（使用当前的 _activeScreenIndex）
+          //  _activeScreenIndex
           if (playing) {
             _applyVolumeToScreen(screenIndex);
           }
           notifyListeners();
         });
         
-        // 监听视频尺寸
+        // 
         screen.player!.stream.width.listen((width) {
           screen.videoWidth = width ?? 0;
           notifyListeners();
@@ -241,7 +241,7 @@ class MultiScreenProvider extends ChangeNotifier {
           notifyListeners();
         });
         
-        // 监听错误
+        // 
         screen.player!.stream.error.listen((error) async {
           if (error.isNotEmpty) {
             ServiceLocator.log.d('MultiScreenProvider: Screen $screenIndex error=$error');
@@ -258,36 +258,36 @@ class MultiScreenProvider extends ChangeNotifier {
           }
         });
         
-        // 监听缓冲状态
+        // 
         screen.player!.stream.buffering.listen((buffering) {
           screen.isLoading = buffering;
           notifyListeners();
         });
       }
       
-      // 设置音量（只有活动屏幕有声音，使用有效音量包含音量增强）
+      // 
       _applyVolumeToScreen(screenIndex);
       
-      // 解析真实播放地址（处理302重定向）
-      ServiceLocator.log.d('MultiScreenProvider: >>> 屏幕$screenIndex 开始解析302重定向');
+      // 302
+      ServiceLocator.log.d('MultiScreenProvider: >>> $screenIndex 302');
       final redirectStartTime = DateTime.now();
       
       final realUrl = await ServiceLocator.redirectCache.resolveRealPlayUrl(playUrl);
       
       final redirectTime = DateTime.now().difference(redirectStartTime).inMilliseconds;
-      ServiceLocator.log.d('MultiScreenProvider: >>> 屏幕$screenIndex 302重定向解析完成，耗时: ${redirectTime}ms');
-      ServiceLocator.log.d('MultiScreenProvider: >>> 屏幕$screenIndex 使用播放地址: $realUrl');
+      ServiceLocator.log.d('MultiScreenProvider: >>> $screenIndex 302: ${redirectTime}ms');
+      ServiceLocator.log.d('MultiScreenProvider: >>> $screenIndex : $realUrl');
       
-      // 播放频道（使用解析后的真实URL）
+      // URL
       ServiceLocator.log.d('MultiScreenProvider: Opening media for screen $screenIndex: $realUrl');
       final playStartTime = DateTime.now();
       
       await screen.player!.open(Media(realUrl));
       
       final playTime = DateTime.now().difference(playStartTime).inMilliseconds;
-      ServiceLocator.log.d('MultiScreenProvider: >>> 屏幕$screenIndex 播放器初始化完成，耗时: ${playTime}ms');
+      ServiceLocator.log.d('MultiScreenProvider: >>> $screenIndex : ${playTime}ms');
       
-      // 播放开始后再次确保音量正确
+      // 
       _applyVolumeToScreen(screenIndex);
       
       screen.isLoading = false;
@@ -419,7 +419,7 @@ class MultiScreenProvider extends ChangeNotifier {
     screen.isPlaying = false;
   }
   
-  // 应用音量到指定屏幕
+  // 
   void _applyVolumeToScreen(int screenIndex) {
     final screen = _screens[screenIndex];
     if (screen.player != null) {
@@ -429,20 +429,20 @@ class MultiScreenProvider extends ChangeNotifier {
     }
   }
   
-  // 重新应用音量到所有屏幕（用于恢复播放后确保音量正确）
+  // 
   Future<void> reapplyVolumeToAllScreens() async {
     ServiceLocator.log.d('MultiScreenProvider: reapplyVolumeToAllScreens - activeScreen=$_activeScreenIndex');
     for (int i = 0; i < 4; i++) {
       _applyVolumeToScreen(i);
     }
-    // 再次延迟应用，确保播放器完全就绪
+    // 
     await Future.delayed(const Duration(milliseconds: 200));
     for (int i = 0; i < 4; i++) {
       _applyVolumeToScreen(i);
     }
   }
 
-  // 停止指定屏幕的播放
+  // 
   void stopScreen(int screenIndex) {
     if (screenIndex < 0 || screenIndex >= 4) return;
     
@@ -453,7 +453,7 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 清空指定屏幕
+  // 
   void clearScreen(int screenIndex) {
     if (screenIndex < 0 || screenIndex >= 4) return;
     
@@ -463,24 +463,24 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 清空所有屏幕
+  // 
   Future<void> clearAllScreens() async {
     ServiceLocator.log.d('MultiScreenProvider: clearAllScreens - stopping all players');
     final futures = <Future>[];
     for (int i = 0; i < 4; i++) {
       final screen = _screens[i];
-      // 先停止播放
+      // 
       if (screen.player != null) {
         ServiceLocator.log.d('MultiScreenProvider: Stopping player for screen $i');
-        // 设置音量为0确保没有声音
+        // 0
         screen.player!.setVolume(0);
         futures.add(screen.player!.stop());
       }
     }
-    // 等待所有播放器停止
+    // 
     await Future.wait(futures);
     
-    // 再释放资源
+    // 
     for (int i = 0; i < 4; i++) {
       await _screens[i].dispose();
       _screens[i] = ScreenPlayerState();
@@ -489,11 +489,11 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 暂停所有屏幕（保留频道信息，以便恢复）
+  // 
   void pauseAllScreens() {
     for (int i = 0; i < 4; i++) {
       final screen = _screens[i];
-      // 停止并释放播放器，但保留频道信息
+      // 
       screen.player?.dispose();
       screen.player = null;
       screen.videoController = null;
@@ -502,28 +502,28 @@ class MultiScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 恢复所有屏幕播放（重新播放记住的频道）
+  // 
   Future<void> resumeAllScreens() async {
     for (int i = 0; i < 4; i++) {
       final screen = _screens[i];
       if (screen.channel != null) {
-        // 重新播放该频道
+        // 
         await playChannelOnScreen(i, screen.channel!);
       }
     }
   }
 
-  // 检查是否有任何屏幕在播放
+  // 
   bool get hasAnyChannel {
     return _screens.any((screen) => screen.channel != null);
   }
 
-  // 获取活动屏幕的频道
+  // 
   Channel? get activeChannel {
     return _screens[_activeScreenIndex].channel;
   }
 
-  // 在默认位置播放频道
+  // 
   void playChannelAtDefaultPosition(Channel channel, int defaultPosition) {
     final screenIndex = (defaultPosition - 1).clamp(0, 3);
     ServiceLocator.log.d('MultiScreenProvider: playChannelAtDefaultPosition - channel=${channel.name}, position=$defaultPosition, screenIndex=$screenIndex');
@@ -531,12 +531,12 @@ class MultiScreenProvider extends ChangeNotifier {
     playChannelOnScreen(screenIndex, channel);
   }
 
-  // 切换到下一个频道（在活动屏幕）
+  // 
   void playNextOnActiveScreen(List<Channel> channels) {
     final currentChannel = _screens[_activeScreenIndex].channel;
     if (currentChannel == null || channels.isEmpty) return;
     
-    // 使用 id 或 name 进行比较，而不是 url（因为同一频道可能有多个源）
+    //  id  name  url
     final currentIndex = channels.indexWhere((c) => c.id == currentChannel.id || c.name == currentChannel.name);
     if (currentIndex == -1) return;
     
@@ -544,12 +544,12 @@ class MultiScreenProvider extends ChangeNotifier {
     playChannelOnScreen(_activeScreenIndex, channels[nextIndex]);
   }
 
-  // 切换到上一个频道（在活动屏幕）
+  // 
   void playPreviousOnActiveScreen(List<Channel> channels) {
     final currentChannel = _screens[_activeScreenIndex].channel;
     if (currentChannel == null || channels.isEmpty) return;
     
-    // 使用 id 或 name 进行比较，而不是 url（因为同一频道可能有多个源）
+    //  id  name  url
     final currentIndex = channels.indexWhere((c) => c.id == currentChannel.id || c.name == currentChannel.name);
     if (currentIndex == -1) return;
     

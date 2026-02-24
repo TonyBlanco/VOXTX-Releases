@@ -8,8 +8,8 @@ class Playlist {
   final bool isActive;
   final DateTime? lastUpdated;
   final DateTime createdAt;
-  final String? backupPath; // 备份文件路径
-  final DateTime? lastBackupTime; // 最后备份时间
+  final String? backupPath; // 
+  final DateTime? lastBackupTime; // 
 
   // Runtime properties
   int channelCount;
@@ -113,7 +113,7 @@ class Playlist {
     } else if (source.endsWith('.m3u') || source.endsWith('.m3u8')) {
       return 'M3U';
     }
-    // 默认返回 M3U
+    //  M3U
     return 'M3U';
   }
 

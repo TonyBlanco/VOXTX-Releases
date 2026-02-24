@@ -5,7 +5,7 @@ import 'tv_focusable.dart';
 import 'auto_scroll_text.dart';
 
 /// A category chip/card for the home screen
-/// TV端优化：无特效
+/// TV
 class CategoryCard extends StatefulWidget {
   final String name;
   final int channelCount;
@@ -31,13 +31,13 @@ class CategoryCard extends StatefulWidget {
 
   static IconData getIconForCategory(String name) {
     final lowerName = name.toLowerCase();
-    if (lowerName.contains('sport') || lowerName.contains('体育')) return Icons.sports_soccer_rounded;
-    if (lowerName.contains('movie') || lowerName.contains('电影')) return Icons.movie_rounded;
-    if (lowerName.contains('news') || lowerName.contains('新闻')) return Icons.newspaper_rounded;
-    if (lowerName.contains('music') || lowerName.contains('音乐')) return Icons.music_note_rounded;
-    if (lowerName.contains('kid') || lowerName.contains('少儿')) return Icons.child_care_rounded;
-    if (lowerName.contains('cctv') || lowerName.contains('央视')) return Icons.account_balance_rounded;
-    if (lowerName.contains('卫视')) return Icons.satellite_alt_rounded;
+    if (lowerName.contains('sport') || lowerName.contains('')) return Icons.sports_soccer_rounded;
+    if (lowerName.contains('movie') || lowerName.contains('')) return Icons.movie_rounded;
+    if (lowerName.contains('news') || lowerName.contains('')) return Icons.newspaper_rounded;
+    if (lowerName.contains('music') || lowerName.contains('')) return Icons.music_note_rounded;
+    if (lowerName.contains('kid') || lowerName.contains('')) return Icons.child_care_rounded;
+    if (lowerName.contains('cctv') || lowerName.contains('')) return Icons.account_balance_rounded;
+    if (lowerName.contains('')) return Icons.satellite_alt_rounded;
     return Icons.live_tv_rounded;
   }
 }

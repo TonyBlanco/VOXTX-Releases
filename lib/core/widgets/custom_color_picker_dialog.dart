@@ -6,8 +6,8 @@ import '../../features/settings/providers/settings_provider.dart';
 import 'tv_focusable.dart';
 import '../services/service_locator.dart';
 
-/// 自定义颜色选择器对话框
-/// 允许用户通过调色板选择自定义主题颜色
+/// 
+/// 
 class CustomColorPickerDialog extends StatefulWidget {
   const CustomColorPickerDialog({super.key});
 
@@ -16,17 +16,17 @@ class CustomColorPickerDialog extends StatefulWidget {
 }
 
 class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
-  Color _selectedColor = const Color(0xFFB39DDB); // 默认淡紫色
+  Color _selectedColor = const Color(0xFFB39DDB); // 
   final FocusNode _firstColorFocusNode = FocusNode();
   
   @override
   void initState() {
     super.initState();
     
-    // 读取当前配色方案，如果是自定义颜色则初始化为该颜色
+    // 
     _loadCurrentCustomColor();
     
-    // 延迟请求焦点，确保对话框完全构建后再设置焦点
+    // 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _firstColorFocusNode.requestFocus();
@@ -34,25 +34,25 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     });
   }
   
-  /// 加载当前自定义颜色（如果有）
+  /// 
   void _loadCurrentCustomColor() {
     final settings = context.read<SettingsProvider>();
     
-    // 根据当前主题模式获取配色方案ID
+    // ID
     final isDarkMode = _isDarkMode(context, settings);
     final currentSchemeId = isDarkMode 
         ? settings.darkColorScheme 
         : settings.lightColorScheme;
     
-    // 检查是否为自定义颜色
+    // 
     if (currentSchemeId.startsWith('custom_')) {
       try {
-        // 提取颜色值: custom_AARRGGBB
-        final colorHex = currentSchemeId.substring(7); // 移除 "custom_" 前缀
+        // : custom_AARRGGBB
+        final colorHex = currentSchemeId.substring(7); //  "custom_" 
         final colorValue = int.parse(colorHex, radix: 16);
         _selectedColor = Color(colorValue);
       } catch (e) {
-        // 解析失败时保持默认颜色
+        // 
         ServiceLocator.log.d('Failed to parse custom color: $e');
       }
     }
@@ -64,54 +64,54 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     super.dispose();
   }
   
-  // 预设颜色调色板 - 淡雅柔和色系
+  //  - 
   static const List<Color> _presetColors = [
-    // 第一行：淡粉紫色系
-    Color(0xFFF8BBD0), // 淡粉
+    // 
+    Color(0xFFF8BBD0), // 
     Color(0xFFF48FB1),
-    Color(0xFFE1BEE7), // 淡紫
+    Color(0xFFE1BEE7), // 
     Color(0xFFCE93D8),
-    Color(0xFFD1C4E9), // 淡薰衣草
+    Color(0xFFD1C4E9), // 
     Color(0xFFB39DDB),
     
-    // 第二行：淡蓝色系
-    Color(0xFFBBDEFB), // 淡蓝
+    // 
+    Color(0xFFBBDEFB), // 
     Color(0xFF90CAF9),
-    Color(0xFFB3E5FC), // 淡天蓝
+    Color(0xFFB3E5FC), // 
     Color(0xFF81D4FA),
-    Color(0xFFB2EBF2), // 淡青
+    Color(0xFFB2EBF2), // 
     Color(0xFF80DEEA),
     
-    // 第三行：淡绿色系
-    Color(0xFFC8E6C9), // 淡绿
+    // 
+    Color(0xFFC8E6C9), // 
     Color(0xFFA5D6A7),
-    Color(0xFFB2DFDB), // 淡青绿
+    Color(0xFFB2DFDB), // 
     Color(0xFF80CBC4),
-    Color(0xFFDCEDC8), // 淡黄绿
+    Color(0xFFDCEDC8), // 
     Color(0xFFC5E1A5),
     
-    // 第四行：淡黄橙色系
-    Color(0xFFFFF9C4), // 淡黄
+    // 
+    Color(0xFFFFF9C4), // 
     Color(0xFFFFF59D),
-    Color(0xFFFFECB3), // 淡琥珀
+    Color(0xFFFFECB3), // 
     Color(0xFFFFE082),
-    Color(0xFFFFE0B2), // 淡橙
+    Color(0xFFFFE0B2), // 
     Color(0xFFFFCC80),
     
-    // 第五行：淡暖色系
-    Color(0xFFFFCCBC), // 淡深橙
+    // 
+    Color(0xFFFFCCBC), // 
     Color(0xFFFFAB91),
-    Color(0xFFFFCDD2), // 淡红
+    Color(0xFFFFCDD2), // 
     Color(0xFFEF9A9A),
-    Color(0xFFF8BBD0), // 淡粉红
+    Color(0xFFF8BBD0), // 
     Color(0xFFF48FB1),
     
-    // 第六行：淡灰色系
-    Color(0xFFCFD8DC), // 淡蓝灰
+    // 
+    Color(0xFFCFD8DC), // 
     Color(0xFFB0BEC5),
-    Color(0xFFE0E0E0), // 淡灰
+    Color(0xFFE0E0E0), // 
     Color(0xFFBDBDBD),
-    Color(0xFFEEEEEE), // 浅灰
+    Color(0xFFEEEEEE), // 
     Color(0xFFF5F5F5),
   ];
 
@@ -122,7 +122,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     return PopScope(
       canPop: true,
       onPopInvoked: (didPop) {
-        // 返回键直接关闭，不应用颜色
+        // 
       },
       child: Dialog(
         backgroundColor: AppTheme.getSurfaceColor(context),
@@ -136,7 +136,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 标题栏
+              // 
               Row(
                 children: [
                   Expanded(
@@ -174,18 +174,18 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
               ),
               const SizedBox(height: 24),
               
-              // 当前选中颜色预览
+              // 
               _buildColorPreview(),
               const SizedBox(height: 24),
               
-              // 颜色调色板
+              // 
               Expanded(
                 child: _buildColorPalette(),
               ),
               
               const SizedBox(height: 16),
               
-              // 提示文字
+              // 
               Center(
                 child: Text(
                   'Press OK to apply color · Back to cancel',
@@ -202,7 +202,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     );
   }
 
-  /// 构建颜色预览区域
+  /// 
   Widget _buildColorPreview() {
     return Container(
       width: double.infinity,
@@ -246,7 +246,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     );
   }
 
-  /// 构建颜色调色板
+  /// 
   Widget _buildColorPalette() {
     return FocusTraversalGroup(
       child: GridView.builder(
@@ -265,7 +265,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
             focusNode: index == 0 ? _firstColorFocusNode : null,
             autofocus: index == 0,
             onSelect: () {
-              // 按OK键直接应用颜色
+              // OK
               setState(() {
                 _selectedColor = color;
               });
@@ -274,7 +274,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
             focusScale: 1.0,
             showFocusBorder: false,
             builder: (context, isFocused, child) {
-              // 根据颜色亮度决定边框颜色
+              // 
               final isLightColor = _isLightColor(color);
               final borderColor = isLightColor ? Colors.black : Colors.white;
               
@@ -330,21 +330,21 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     );
   }
 
-  /// 判断颜色是否为浅色
+  /// 
   bool _isLightColor(Color color) {
     final luminance = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
-    return luminance > 0.7; // 阈值提高到0.7，更准确地判断浅色
+    return luminance > 0.7; // 0.7
   }
 
-  /// 应用选中的颜色
+  /// 
   void _applyColor(BuildContext context) {
     final settings = context.read<SettingsProvider>();
     final strings = AppStrings.of(context);
     
-    // 创建自定义配色方案ID
+    // ID
     final customSchemeId = 'custom_${_selectedColor.value.toRadixString(16)}';
     
-    // 根据当前主题模式保存
+    // 
     final isDarkMode = _isDarkMode(context, settings);
     if (isDarkMode) {
       settings.setDarkColorScheme(customSchemeId);
@@ -352,16 +352,16 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
       settings.setLightColorScheme(customSchemeId);
     }
     
-    // 关闭自定义颜色选择器对话框
+    // 
     Navigator.pop(context);
     
-    // 延迟一下再关闭配色方案对话框，确保第一个对话框已经关闭
+    // 
     Future.delayed(const Duration(milliseconds: 100), () {
       if (context.mounted) {
-        // 关闭配色方案对话框
+        // 
         Navigator.pop(context);
         
-        // 显示成功提示
+        // 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -375,7 +375,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     });
   }
 
-  /// 判断当前是否为黑暗模式
+  /// 
   bool _isDarkMode(BuildContext context, SettingsProvider settings) {
     if (settings.themeMode == 'dark') {
       return true;
@@ -387,9 +387,9 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
     }
   }
 
-  /// 获取对比色（用于文字显示）
+  /// 
   Color _getContrastColor(Color color) {
-    // 计算亮度
+    // 
     final luminance = (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue) / 255;
     return luminance > 0.5 ? Colors.black : Colors.white;
   }

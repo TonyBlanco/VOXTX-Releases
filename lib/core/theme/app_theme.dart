@@ -6,7 +6,7 @@ import '../services/service_locator.dart';
 
 class AppTheme {
   // Lotus Theme - Brand Colors
-  // 莲花粉紫渐变作为主色调
+  // 
   static const Color primaryColor = Color(0xFFE91E8C); // Lotus Pink
   static const Color primaryLight = Color(0xFFFF6EB4); // Light Pink
   static const Color primaryDark = Color(0xFFAD1457); // Deep Pink
@@ -38,7 +38,7 @@ class AppTheme {
   static const Color glassBorderColorLight = Color(0x33000000);
 
   // ============ Dynamic Colors (based on theme) ============
-  // 这些是默认值（暗色主题），实际使用时通过 of(context) 获取
+  //  of(context) 
   static const Color backgroundColor = backgroundColorDark;
   static const Color surfaceColor = surfaceColorDark;
   static const Color cardColor = cardColorDark;
@@ -94,13 +94,13 @@ class AppTheme {
   }
 
   static Color getFocusBackgroundColor(BuildContext context) {
-    // 使用配色方案的主色，添加透明度作为焦点背景
-    // 明亮主题需要更高的透明度才能看清
+    // 
+    // 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.1 : 0.15);
   }
 
-  // Lotus Gradient - 莲花渐变
+  // Lotus Gradient - 
   static const LinearGradient lotusGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -110,7 +110,7 @@ class AppTheme {
     ],
   );
   
-  /// 获取当前主题的渐变色（动态）
+  /// 
   static LinearGradient getGradient(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -121,17 +121,17 @@ class AppTheme {
     );
   }
   
-  /// 获取当前主题的主色（动态）
+  /// 
   static Color getPrimaryColor(BuildContext context) {
     return Theme.of(context).colorScheme.primary;
   }
   
-  /// 获取当前主题的次色（动态）
+  /// 
   static Color getSecondaryColor(BuildContext context) {
     return Theme.of(context).colorScheme.secondary;
   }
   
-  /// 获取当前主题的柔和渐变（动态）
+  /// 
   static LinearGradient getSoftGradient(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -156,16 +156,16 @@ class AppTheme {
 
   // Card Gradient - Glassmorphism
 
-  /// 字体映射（使用项目内字体文件）
+  /// 
   static const Map<String, String?> fontMap = {
-    'System': null, // 系统字体（所有平台）
-    // 中文字体
+    'System': null, // 
+    // 
     'Microsoft YaHei': 'MicrosoftYaHei',
     'SimHei': 'SimHei',
     'SimSun': 'SimSun',
     'KaiTi': 'KaiTi',
     'FangSong': 'FangSong',
-    // 英文字体
+    // 
     'Arial': 'Arial',
     'Calibri': 'Calibri',
     'Georgia': 'Georgia',
@@ -176,8 +176,8 @@ class AppTheme {
     'Impact': 'Impact',
   };
   
-  /// 根据平台和语言获取可用的字体列表
-  /// 所有平台都显示相同的字体选项（使用项目内字体文件）
+  /// 
+  /// 
   static List<String> getAvailableFonts([String? languageCode]) {
     final isChinese = languageCode == null || languageCode.startsWith('zh');
     
@@ -189,14 +189,14 @@ class AppTheme {
         'SimSun',
         'KaiTi',
         'FangSong',
-        // 添加常用英文字体
+        // 
         'Arial',
         'Segoe UI',
       ];
     } else {
       return [
         'System',
-        // 英文字体
+        // 
         'Arial',
         'Segoe UI',
         'Calibri',
@@ -209,8 +209,8 @@ class AppTheme {
     }
   }
   
-  /// 根据字体名称获取fontFamily
-  /// 使用项目内字体文件，确保所有平台一致
+  /// fontFamily
+  /// 
   static String? resolveFontFamily(String fontName) {
     if (fontName == 'System') {
       return null;
@@ -698,21 +698,21 @@ class GlassCard extends StatelessWidget {
 // ============ Dynamic Theme Generation with Color Schemes ============
 
 extension AppThemeDynamic on AppTheme {
-  /// 根据配色方案 ID 生成黑暗主题
+  ///  ID 
   static ThemeData getDarkTheme(String schemeId, [String? fontFamily]) {
     final scheme = ColorSchemeManager.instance.getDarkScheme(schemeId);
-    // ServiceLocator.log.d('AppTheme: 生成黑暗主题 - schemeId=$schemeId, primaryColor=${scheme.primaryColor}, secondaryColor=${scheme.secondaryColor}, fontFamily=$fontFamily');
+    // ServiceLocator.log.d('AppTheme:  - schemeId=$schemeId, primaryColor=${scheme.primaryColor}, secondaryColor=${scheme.secondaryColor}, fontFamily=$fontFamily');
     return _buildDarkTheme(scheme, fontFamily);
   }
   
-  /// 根据配色方案 ID 生成明亮主题
+  ///  ID 
   static ThemeData getLightTheme(String schemeId, [String? fontFamily]) {
     final scheme = ColorSchemeManager.instance.getLightScheme(schemeId);
-    // ServiceLocator.log.d('AppTheme: 生成明亮主题 - schemeId=$schemeId, primaryColor=${scheme.primaryColor}, secondaryColor=${scheme.secondaryColor}, fontFamily=$fontFamily');
+    // ServiceLocator.log.d('AppTheme:  - schemeId=$schemeId, primaryColor=${scheme.primaryColor}, secondaryColor=${scheme.secondaryColor}, fontFamily=$fontFamily');
     return _buildLightTheme(scheme, fontFamily);
   }
   
-  /// 构建黑暗主题（使用配色方案）
+  /// 
   static ThemeData _buildDarkTheme(ColorSchemeData scheme, [String? fontFamily]) {
     return ThemeData(
       useMaterial3: true,
@@ -861,7 +861,7 @@ extension AppThemeDynamic on AppTheme {
     );
   }
   
-  /// 构建明亮主题（使用配色方案）
+  /// 
   static ThemeData _buildLightTheme(ColorSchemeData scheme, [String? fontFamily]) {
     final bgColor = scheme.backgroundColor ?? AppTheme.backgroundColorLight;
     

@@ -4,8 +4,8 @@ import '../theme/color_scheme_data.dart';
 import '../i18n/app_strings.dart';
 import 'tv_focusable.dart';
 
-/// 配色方案卡片组件
-/// 显示单个配色方案的预览和名称
+/// 
+/// 
 class ColorSchemeCard extends StatelessWidget {
   final ColorSchemeData scheme;
   final bool isSelected;
@@ -92,10 +92,10 @@ class ColorSchemeCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // 渐变色预览区域（占70%）
+              // 70%
               const Spacer(flex: 7),
               
-              // 名称和选中指示器区域（占30%）
+              // 30%
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(

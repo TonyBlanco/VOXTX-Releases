@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// 配色方案数据模型
-/// 定义单个配色方案的所有颜色信息
+/// 
+/// 
 class ColorSchemeData {
-  /// 唯一标识符，如 'lotus', 'ocean'
+  ///  'lotus', 'ocean'
   final String id;
   
-  /// 国际化键，如 'colorSchemeLotus'
+  ///  'colorSchemeLotus'
   final String nameKey;
   
-  /// 主色1（渐变起始色）
+  /// 1
   final Color primaryColor;
   
-  /// 主色2（渐变结束色）
+  /// 2
   final Color secondaryColor;
   
-  /// 背景色（仅明亮模式需要）
+  /// 
   final Color? backgroundColor;
   
-  /// 特点描述的国际化键
+  /// 
   final String descriptionKey;
   
   const ColorSchemeData({
@@ -30,23 +30,23 @@ class ColorSchemeData {
     required this.descriptionKey,
   });
   
-  /// 获取渐变色
+  /// 
   LinearGradient get gradient => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [primaryColor, secondaryColor],
   );
   
-  /// 获取焦点色（通常是主色1）
+  /// 1
   Color get focusColor => primaryColor;
   
-  /// 获取焦点边框色（主色1的亮色版本）
+  /// 1
   Color get focusBorderColor {
     final hsl = HSLColor.fromColor(primaryColor);
     return hsl.withLightness((hsl.lightness + 0.2).clamp(0.0, 1.0)).toColor();
   }
   
-  /// 获取柔和渐变（40% 透明度）
+  /// 40% 
   LinearGradient get softGradient => LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -58,9 +58,9 @@ class ColorSchemeData {
 }
 
 
-// ============ 黑暗模式配色方案 ============
+// ============  ============
 
-/// Lotus（莲花）- 粉紫渐变，优雅现代的品牌色
+/// Lotus- 
 const darkLotus = ColorSchemeData(
   id: 'lotus',
   nameKey: 'colorSchemeLotus',
@@ -69,7 +69,7 @@ const darkLotus = ColorSchemeData(
   descriptionKey: 'colorSchemeDescLotus',
 );
 
-/// Ocean（海洋）- 蓝色渐变，冷静专业护眼
+/// Ocean- 
 const darkOcean = ColorSchemeData(
   id: 'ocean',
   nameKey: 'colorSchemeOcean',
@@ -78,7 +78,7 @@ const darkOcean = ColorSchemeData(
   descriptionKey: 'colorSchemeDescOcean',
 );
 
-/// Forest（森林）- 绿色渐变，自然舒适护眼
+/// Forest- 
 const darkForest = ColorSchemeData(
   id: 'forest',
   nameKey: 'colorSchemeForest',
@@ -87,7 +87,7 @@ const darkForest = ColorSchemeData(
   descriptionKey: 'colorSchemeDescForest',
 );
 
-/// Sunset（日落）- 橙红渐变，温暖活力醒目
+/// Sunset- 
 const darkSunset = ColorSchemeData(
   id: 'sunset',
   nameKey: 'colorSchemeSunset',
@@ -96,7 +96,7 @@ const darkSunset = ColorSchemeData(
   descriptionKey: 'colorSchemeDescSunset',
 );
 
-/// Lavender（薰衣草）- 紫色渐变，神秘高贵柔和
+/// Lavender- 
 const darkLavender = ColorSchemeData(
   id: 'lavender',
   nameKey: 'colorSchemeLavender',
@@ -105,7 +105,7 @@ const darkLavender = ColorSchemeData(
   descriptionKey: 'colorSchemeDescLavender',
 );
 
-/// Midnight（午夜）- 深蓝渐变，深邃专注低调
+/// Midnight- 
 const darkMidnight = ColorSchemeData(
   id: 'midnight',
   nameKey: 'colorSchemeMidnight',
@@ -114,9 +114,9 @@ const darkMidnight = ColorSchemeData(
   descriptionKey: 'colorSchemeDescMidnight',
 );
 
-// ============ 明亮模式配色方案 ============
+// ============  ============
 
-/// Lotus Light（莲花亮色）- 粉紫渐变 + 浅灰白背景
+/// Lotus Light-  + 
 const lightLotus = ColorSchemeData(
   id: 'lotus-light',
   nameKey: 'colorSchemeLotusLight',
@@ -126,7 +126,7 @@ const lightLotus = ColorSchemeData(
   descriptionKey: 'colorSchemeDescLotusLight',
 );
 
-/// Sky（天空）- 天蓝渐变 + 浅蓝白背景
+/// Sky-  + 
 const lightSky = ColorSchemeData(
   id: 'sky',
   nameKey: 'colorSchemeSky',
@@ -136,7 +136,7 @@ const lightSky = ColorSchemeData(
   descriptionKey: 'colorSchemeDescSky',
 );
 
-/// Spring（春天）- 草绿渐变 + 浅绿白背景
+/// Spring-  + 
 const lightSpring = ColorSchemeData(
   id: 'spring',
   nameKey: 'colorSchemeSpring',
@@ -146,7 +146,7 @@ const lightSpring = ColorSchemeData(
   descriptionKey: 'colorSchemeDescSpring',
 );
 
-/// Coral（珊瑚）- 珊瑚橙渐变 + 浅橙白背景
+/// Coral-  + 
 const lightCoral = ColorSchemeData(
   id: 'coral',
   nameKey: 'colorSchemeCoral',
@@ -156,7 +156,7 @@ const lightCoral = ColorSchemeData(
   descriptionKey: 'colorSchemeDescCoral',
 );
 
-/// Violet（紫罗兰）- 紫罗兰渐变 + 浅紫白背景
+/// Violet-  + 
 const lightViolet = ColorSchemeData(
   id: 'violet',
   nameKey: 'colorSchemeViolet',
@@ -166,7 +166,7 @@ const lightViolet = ColorSchemeData(
   descriptionKey: 'colorSchemeDescViolet',
 );
 
-/// Classic（经典）- 灰蓝渐变 + 纯白背景
+/// Classic-  + 
 const lightClassic = ColorSchemeData(
   id: 'classic',
   nameKey: 'colorSchemeClassic',

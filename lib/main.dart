@@ -220,15 +220,15 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ServiceLocator.log.d('addPostFrameCallback invocado', tag: 'DLNA');
       _setupDlnaCallbacks();
-      // 初始化自动刷新服务
+      // 
       ServiceLocator.log.d('addPostFrameCallback ejecutado', tag: 'AutoRefresh');
       _initAutoRefresh();
-      // 应用屏幕方向设置
+      // 
       _applyOrientationSettings();
     });
   }
 
-  /// 应用屏幕方向设置
+  /// 
   Future<void> _applyOrientationSettings() async {
     if (!PlatformDetector.isMobile) return;
 
@@ -280,31 +280,31 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     }
 
     try {
-      // 加载上次刷新时间
+      // 
       await _autoRefreshService.loadLastRefreshTime();
 
-      // 获取设置
+      // 
       final settings = context.read<SettingsProvider>();
       _lastAutoRefreshState = settings.autoRefresh;
       _lastRefreshInterval = settings.refreshInterval;
 
       ServiceLocator.log.d(
-          '读取设置 - autoRefresh=${settings.autoRefresh}, interval=${settings.refreshInterval}',
+          ' - autoRefresh=${settings.autoRefresh}, interval=${settings.refreshInterval}',
           tag: 'AutoRefresh');
 
       if (settings.autoRefresh) {
         ServiceLocator.log
-            .d('启用自动刷新，间隔: ${settings.refreshInterval}小时', tag: 'AutoRefresh');
+            .d(': ${settings.refreshInterval}', tag: 'AutoRefresh');
         _startAutoRefresh(settings);
       } else {
-        ServiceLocator.log.d('自动刷新已禁用', tag: 'AutoRefresh');
+        ServiceLocator.log.d('', tag: 'AutoRefresh');
       }
 
-      // 监听设置变化
+      // 
       settings.addListener(() {
         if (!mounted) return;
 
-        // 只在 autoRefresh 状态或间隔变化时才处理
+        //  autoRefresh 
         final currentAutoRefresh = settings.autoRefresh;
         final currentInterval = settings.refreshInterval;
 
@@ -315,19 +315,19 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
           if (currentAutoRefresh) {
             ServiceLocator.log
-                .d('设置已更改，重新启动服务 - 间隔: $currentInterval小时', tag: 'AutoRefresh');
+                .d(' - : $currentInterval', tag: 'AutoRefresh');
             _startAutoRefresh(settings);
           } else {
-            ServiceLocator.log.d('自动刷新已禁用', tag: 'AutoRefresh');
+            ServiceLocator.log.d('', tag: 'AutoRefresh');
             _autoRefreshService.stop();
           }
         }
       });
 
-      ServiceLocator.log.d('_initAutoRefresh() 完成', tag: 'AutoRefresh');
+      ServiceLocator.log.d('_initAutoRefresh() ', tag: 'AutoRefresh');
     } catch (e, stackTrace) {
-      ServiceLocator.log.d('初始化失败 - $e', tag: 'AutoRefresh');
-      ServiceLocator.log.d('堆栈跟踪 - $stackTrace', tag: 'AutoRefresh');
+      ServiceLocator.log.d(' - $e', tag: 'AutoRefresh');
+      ServiceLocator.log.d(' - $stackTrace', tag: 'AutoRefresh');
     }
   }
 
@@ -341,7 +341,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   Future<void> _performAutoRefresh() async {
     if (!mounted) return;
 
-    ServiceLocator.log.d('开始执行自动刷新', tag: 'AutoRefresh');
+    ServiceLocator.log.d('', tag: 'AutoRefresh');
 
     try {
       final playlistProvider = context.read<PlaylistProvider>();
@@ -349,7 +349,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       final playlists = playlistProvider.playlists;
 
       if (playlists.isEmpty) {
-        ServiceLocator.log.d('没有播放列表需要刷新', tag: 'AutoRefresh');
+        ServiceLocator.log.d('', tag: 'AutoRefresh');
         return;
       }
 
@@ -358,12 +358,12 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
       String? lastError;
 
-      // 刷新所有播放列表（即使某个失败也继续刷新其他的）
+      // 
       for (final playlist in playlists) {
         if (playlist.id != null) {
           try {
             ServiceLocator.log
-                .d('刷新播放列表: ${playlist.name}', tag: 'AutoRefresh');
+                .d(': ${playlist.name}', tag: 'AutoRefresh');
             final success = await playlistProvider.refreshPlaylist(playlist, mergeRule: settings.channelMergeRule);
             if (success) {
               successCount++;
@@ -371,34 +371,34 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
               failCount++;
               lastError = playlistProvider.error; // Get the error from provider
               ServiceLocator.log
-                  .d('播放列表刷新失败: ${playlist.name}', tag: 'AutoRefresh');
+                  .d(': ${playlist.name}', tag: 'AutoRefresh');
             }
           } catch (e) {
             failCount++;
             lastError = e.toString();
             ServiceLocator.log
-                .d('播放列表刷新异常: ${playlist.name} - $e', tag: 'AutoRefresh');
+                .d(': ${playlist.name} - $e', tag: 'AutoRefresh');
           }
         }
       }
 
-      // 重新加载当前激活播放列表的频道
+      // 
       if (playlistProvider.activePlaylist?.id != null) {
         try {
           final channelProvider = context.read<ChannelProvider>();
           await channelProvider
               .loadChannels(playlistProvider.activePlaylist!.id!);
         } catch (e) {
-          ServiceLocator.log.d('重新加载频道失败: $e', tag: 'AutoRefresh');
+          ServiceLocator.log.d(': $e', tag: 'AutoRefresh');
         }
       }
 
       ServiceLocator.log
-          .d('自动刷新完成 - 成功: $successCount, 失败: $failCount', tag: 'AutoRefresh');
+          .d(' - : $successCount, : $failCount', tag: 'AutoRefresh');
 
-      // 如果有失败的，记录但不影响下次刷新时间
+      // 
       if (failCount > 0) {
-        ServiceLocator.log.d('部分播放列表刷新失败，将在下次定时刷新时重试', tag: 'AutoRefresh');
+        ServiceLocator.log.d('', tag: 'AutoRefresh');
 
         // Show error to user if mounted
         if (mounted) {
@@ -427,20 +427,20 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         }
       }
     } catch (e) {
-      ServiceLocator.log.d('自动刷新过程发生严重错误: $e', tag: 'AutoRefresh');
-      // 即使出错，也不影响下次刷新（计时器已经重置）
+      ServiceLocator.log.d(': $e', tag: 'AutoRefresh');
+      // 
     }
   }
 
   @override
   void onWindowClose() async {
-    // 窗口关闭时停止 DLNA 服务
+    //  DLNA 
     try {
       final dlnaProvider = context.read<DlnaProvider>();
       await dlnaProvider.setEnabled(false);
-      ServiceLocator.log.d('窗口关闭，服务已停止', tag: 'DLNA');
+      ServiceLocator.log.d('', tag: 'DLNA');
     } catch (e) {
-      // 忽略错误
+      // 
     }
     await windowManager.destroy();
   }
@@ -452,32 +452,32 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     dlnaProvider.onStopRequested = _handleDlnaStop;
     dlnaProvider.onSeekRequested = _handleDlnaSeek;
     dlnaProvider.onVolumeRequested = _handleDlnaVolume;
-    ServiceLocator.log.d('Provider 已初始化，回调已设置', tag: 'DLNA');
+    ServiceLocator.log.d('Provider ', tag: 'DLNA');
   }
 
   void _handleDlnaPlay(String url, String? title) async {
-    // 如果已经在播放相同的 URL，不重复导航
+    //  URL
     if (_currentDlnaUrl == url) {
       return;
     }
 
-    // 停止当前播放（包括分屏模式）
+    // 
     try {
       final playerProvider = context.read<PlayerProvider>();
       playerProvider.stop();
 
-      // 停止分屏播放（等待完成）
+      // 
       final multiScreenProvider = context.read<MultiScreenProvider>();
       await multiScreenProvider.clearAllScreens();
     } catch (e) {
-      ServiceLocator.log.d('停止当前播放失败 - $e', tag: 'DLNA');
+      ServiceLocator.log.d(' - $e', tag: 'DLNA');
     }
 
-    // 先返回到首页，再导航到播放器
+    // 
     _navigatorKey.currentState?.popUntil((route) => route.isFirst);
 
     _currentDlnaUrl = url;
-    ServiceLocator.log.d('播放 - ${title ?? url}', tag: 'DLNA');
+    ServiceLocator.log.d(' - ${title ?? url}', tag: 'DLNA');
     _navigatorKey.currentState?.pushNamed(
       AppRouter.player,
       arguments: {
@@ -490,7 +490,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
   void _handleDlnaPause() {
     try {
-      // Android TV 使用原生播放器
+      // Android TV 
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.pause();
       } else {
@@ -498,31 +498,31 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.pause();
       }
     } catch (e) {
-      // 忽略错误
+      // 
     }
   }
 
   void _handleDlnaStop() {
     _currentDlnaUrl = null;
     try {
-      // Android TV 使用原生播放器
+      // Android TV 
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
-        // closePlayer 会触发 onClosed 回调，回调中会处理导航
+        // closePlayer  onClosed 
         NativePlayerChannel.closePlayer();
-        // 不需要额外的 popUntil，onClosed 回调会处理
+        //  popUntilonClosed 
       } else {
         final playerProvider = context.read<PlayerProvider>();
         playerProvider.stop();
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      // 忽略错误
+      // 
     }
   }
 
   void _handleDlnaSeek(Duration position) {
     try {
-      // Android TV 使用原生播放器
+      // Android TV 
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.seekTo(position.inMilliseconds);
       } else {
@@ -530,13 +530,13 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.seek(position);
       }
     } catch (e) {
-      // 忽略错误
+      // 
     }
   }
 
   void _handleDlnaVolume(int volume) {
     try {
-      // Android TV 使用原生播放器
+      // Android TV 
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.setVolume(volume);
       } else {
@@ -544,22 +544,22 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.setVolume(volume / 100.0);
       }
     } catch (e) {
-      // 忽略错误
+      // 
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 监听 settings 变化，确保主题能够更新
+    //  settings 
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
         ServiceLocator.log.d(
-            '${settings.darkColorScheme}, 明亮配色: ${settings.lightColorScheme}, 主题模式: ${settings.themeMode}, 字体: ${settings.fontFamily}',
-            tag: 'MaterialApp 重建 - 黑暗配色');
+            '${settings.darkColorScheme}, : ${settings.lightColorScheme}, : ${settings.themeMode}, : ${settings.fontFamily}',
+            tag: 'MaterialApp  - ');
         final fontFamily = AppTheme.resolveFontFamily(settings.fontFamily);
         return MaterialApp(
           navigatorKey: _navigatorKey,
-          navigatorObservers: [AppRouter.routeObserver], // 添加路由监听
+          navigatorObservers: [AppRouter.routeObserver], // 
           title: AppStrings.of(context)?.lotusIptv ?? 'VoXtv',
           debugShowCheckedModeBanner: false,
           theme: AppThemeDynamic.getLightTheme(

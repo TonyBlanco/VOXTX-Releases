@@ -89,17 +89,17 @@ class EpgProvider extends ChangeNotifier {
     return success;
   }
 
-  /// 获取频道当前节目
+  /// 
   EpgProgram? getCurrentProgram(String? channelId, String? channelName) {
     return _epgService.getCurrentProgram(channelId, channelName);
   }
 
-  /// 获取频道下一个节目
+  /// 
   EpgProgram? getNextProgram(String? channelId, String? channelName) {
     return _epgService.getNextProgram(channelId, channelName);
   }
 
-  /// 获取频道今日节目列表
+  /// 
   List<EpgProgram> getTodayPrograms(String? channelId, String? channelName) {
     return _epgService.getTodayPrograms(channelId, channelName);
   }

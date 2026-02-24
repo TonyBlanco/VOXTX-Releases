@@ -46,12 +46,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void didUpdateWidget(VideoPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // 处理静音状态变化
+    // 
     if (widget.muted != oldWidget.muted) {
       _player.setVolume(widget.muted ? 0 : 100);
     }
     
-    // 处理自动播放状态变化
+    // 
     if (widget.autoPlay != oldWidget.autoPlay) {
       if (widget.autoPlay) {
         _loadAndPlay();
@@ -60,7 +60,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       }
     }
     
-    // 处理频道变化
+    // 
     if (widget.channel.url != oldWidget.channel.url) {
       _loadAndPlay();
     }

@@ -12,11 +12,11 @@ class DatabaseHelper {
   static const int _databaseVersion = 10; // v10: position_seconds in watch_history
 
   Future<void> initialize() async {
-    ServiceLocator.log.d('DatabaseHelper: 开始初始化数据库');
+    ServiceLocator.log.d('DatabaseHelper: ');
     final startTime = DateTime.now();
 
     if (_database != null) {
-      ServiceLocator.log.d('DatabaseHelper: 数据库已初始化，跳过');
+      ServiceLocator.log.d('DatabaseHelper: ');
       return;
     }
 
@@ -24,7 +24,7 @@ class DatabaseHelper {
 
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String path = join(appDir.path, _databaseName);
-    ServiceLocator.log.d('DatabaseHelper: 数据库路径: $path');
+    ServiceLocator.log.d('DatabaseHelper: : $path');
 
     _database = await openDatabase(
       path,
@@ -33,33 +33,33 @@ class DatabaseHelper {
       onUpgrade: _onUpgrade,
     );
 
-    // 检查台标表是否为空，如果为空则导入数据
+    // 
     await _ensureChannelLogosImported();
 
     final initTime = DateTime.now().difference(startTime).inMilliseconds;
-    ServiceLocator.log.d('DatabaseHelper: 数据库初始化完成，耗时: ${initTime}ms');
+    ServiceLocator.log.d('DatabaseHelper: : ${initTime}ms');
   }
 
-  /// 确保台标数据已导入
+  /// 
   Future<void> _ensureChannelLogosImported() async {
     try {
       final result = await _database!
           .rawQuery('SELECT COUNT(*) as count FROM channel_logos');
       final count = result.first['count'] as int;
 
-      print('🔍 DatabaseHelper: 台标表当前有 $count 条数据');
+      print('🔍 DatabaseHelper:  $count ');
 
       if (count == 0) {
-        print('⚠️ DatabaseHelper: 台标表为空，开始导入数据');
-        ServiceLocator.log.d('DatabaseHelper: 台标表为空，开始导入数据');
+        print('⚠️ DatabaseHelper: ');
+        ServiceLocator.log.d('DatabaseHelper: ');
         await _importChannelLogos(_database!);
       } else {
-        print('✅ DatabaseHelper: 台标表已有 $count 条数据，跳过导入');
-        ServiceLocator.log.d('DatabaseHelper: 台标表已有 $count 条数据，跳过导入');
+        print('✅ DatabaseHelper:  $count ');
+        ServiceLocator.log.d('DatabaseHelper:  $count ');
       }
     } catch (e) {
-      print('❌ DatabaseHelper: 检查台标数据失败: $e');
-      ServiceLocator.log.e('DatabaseHelper: 检查台标数据失败: $e');
+      print('❌ DatabaseHelper: : $e');
+      ServiceLocator.log.e('DatabaseHelper: : $e');
     }
   }
 
@@ -176,8 +176,8 @@ class DatabaseHelper {
   /// Import channel logos from SQL script
   Future<void> _importChannelLogos(Database db) async {
     try {
-      print('🔍 DatabaseHelper: 开始导入台标数据');
-      ServiceLocator.log.d('DatabaseHelper: 开始导入台标数据');
+      print('🔍 DatabaseHelper: ');
+      ServiceLocator.log.d('DatabaseHelper: ');
       final startTime = DateTime.now();
 
       // Load SQL script from assets
@@ -190,9 +190,9 @@ class DatabaseHelper {
           .where((line) => line.trim().startsWith('INSERT'))
           .toList();
 
-      print('🔍 DatabaseHelper: 准备执行 ${statements.length} 条 SQL 语句');
+      print('🔍 DatabaseHelper:  ${statements.length}  SQL ');
       ServiceLocator.log
-          .d('DatabaseHelper: 准备执行 ${statements.length} 条 SQL 语句');
+          .d('DatabaseHelper:  ${statements.length}  SQL ');
 
       // Execute in batches for better performance
       const batchSize = 100;
@@ -211,12 +211,12 @@ class DatabaseHelper {
 
       final duration = DateTime.now().difference(startTime).inMilliseconds;
       print(
-          '✅ DatabaseHelper: 台标数据导入完成，共 ${statements.length} 条记录，耗时 ${duration}ms');
+          '✅ DatabaseHelper:  ${statements.length}  ${duration}ms');
       ServiceLocator.log.d(
-          'DatabaseHelper: 台标数据导入完成，共 ${statements.length} 条记录，耗时 ${duration}ms');
+          'DatabaseHelper:  ${statements.length}  ${duration}ms');
     } catch (e) {
-      print('❌ DatabaseHelper: 台标数据导入失败: $e');
-      ServiceLocator.log.e('DatabaseHelper: 台标数据导入失败: $e');
+      print('❌ DatabaseHelper: : $e');
+      ServiceLocator.log.e('DatabaseHelper: : $e');
     }
   }
 
@@ -297,7 +297,7 @@ class DatabaseHelper {
       try {
         await db.execute(
             'ALTER TABLE channels ADD COLUMN fallback_logo_url TEXT');
-        ServiceLocator.log.i('数据库迁移: 添加 fallback_logo_url 字段到 channels 表');
+        ServiceLocator.log.i(':  fallback_logo_url  channels ');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
@@ -306,13 +306,13 @@ class DatabaseHelper {
       // Add backup_path and last_backup_time columns to playlists table
       try {
         await db.execute('ALTER TABLE playlists ADD COLUMN backup_path TEXT');
-        ServiceLocator.log.i('数据库迁移: 添加 backup_path 字段到 playlists 表');
+        ServiceLocator.log.i(':  backup_path  playlists ');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
       try {
         await db.execute('ALTER TABLE playlists ADD COLUMN last_backup_time INTEGER');
-        ServiceLocator.log.i('数据库迁移: 添加 last_backup_time 字段到 playlists 表');
+        ServiceLocator.log.i(':  last_backup_time  playlists ');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
@@ -322,7 +322,7 @@ class DatabaseHelper {
       try {
         await db.execute(
             "ALTER TABLE channels ADD COLUMN channel_type TEXT DEFAULT 'live'");
-        ServiceLocator.log.i('数据库迁移: 添加 channel_type 字段到 channels 表');
+        ServiceLocator.log.i(':  channel_type  channels ');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
@@ -402,15 +402,15 @@ class DatabaseHelper {
   /// This should be called periodically or after large deletions
   Future<void> vacuum() async {
     try {
-      ServiceLocator.log.d('开始执行 VACUUM 优化数据库');
+      ServiceLocator.log.d(' VACUUM ');
       final startTime = DateTime.now();
 
       await db.execute('VACUUM');
 
       final duration = DateTime.now().difference(startTime).inMilliseconds;
-      ServiceLocator.log.d('VACUUM 完成，耗时: ${duration}ms');
+      ServiceLocator.log.d('VACUUM : ${duration}ms');
     } catch (e) {
-      ServiceLocator.log.e('VACUUM 执行失败', error: e);
+      ServiceLocator.log.e('VACUUM ', error: e);
       rethrow;
     }
   }
@@ -427,7 +427,7 @@ class DatabaseHelper {
       }
       return 0;
     } catch (e) {
-      ServiceLocator.log.e('获取数据库大小失败', error: e);
+      ServiceLocator.log.e('', error: e);
       return 0;
     }
   }

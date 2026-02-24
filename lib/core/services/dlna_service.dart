@@ -4,120 +4,120 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import './service_locator.dart';
 
-/// DLNA 渲染器服务 (DMR - Digital Media Renderer)
-/// 让手机 App 可以发现并投屏到本设备
+/// DLNA  (DMR - Digital Media Renderer)
+///  App 
 class DlnaService {
   static final DlnaService _instance = DlnaService._internal();
   factory DlnaService() => _instance;
   DlnaService._internal();
 
-  // SSDP 多播地址和端口
+  // SSDP 
   static const String _ssdpAddress = '239.255.255.250';
   static const int _ssdpPort = 1900;
 
-  // 服务端口
+  // 
   int _httpPort = 8200;
 
-  // 设备信息
+  // 
   String _deviceUuid = '';
   String _deviceName = 'VoXTV';
   String? _localIp;
 
-  // 服务状态
+  // 
   RawDatagramSocket? _ssdpSocket;
   HttpServer? _httpServer;
-  Timer? _notifyTimer; // SSDP 定时广播
+  Timer? _notifyTimer; // SSDP 
   bool _isRunning = false;
 
-  // 播放回调
+  // 
   Function(String url, String? title)? onPlayUrl;
   Function()? onPause;
   Function()? onStop;
   Function(int volume)? onSetVolume;
   Function(Duration position)? onSeek;
 
-  // 当前播放状态
-  // 状态: NO_MEDIA_PRESENT, STOPPED, TRANSITIONING, PLAYING, PAUSED_PLAYBACK
+  // 
+  // : NO_MEDIA_PRESENT, STOPPED, TRANSITIONING, PLAYING, PAUSED_PLAYBACK
   String _transportState = 'NO_MEDIA_PRESENT';
   String _currentUri = '';
   String _currentTitle = '';
   Duration _currentPosition = Duration.zero;
   Duration _currentDuration = Duration.zero;
   int _volume = 100;
-  DateTime? _playStartTime; // 播放开始时间，用于计算模拟位置
+  DateTime? _playStartTime; // 
   
-  // 事件订阅管理
+  // 
   final Map<String, String> _eventSubscriptions = {}; // SID -> callback URL
 
   bool get isRunning => _isRunning;
   String get deviceName => _deviceName;
 
-  /// 启动 DLNA 服务
+  ///  DLNA 
   Future<bool> start({String? customName}) async {
     if (_isRunning) return true;
 
     try {
-      // 生成设备 UUID
+      //  UUID
       await _generateDeviceUuid();
       
       if (customName != null) {
         _deviceName = customName;
       }
 
-      // 获取本地 IP
+      //  IP
       _localIp = await _getLocalIpAddress();
       if (_localIp == null) {
-        ServiceLocator.log.d('DLNA: 无法获取本地 IP');
+        ServiceLocator.log.d('DLNA:  IP');
         return false;
       }
 
-      // 启动 HTTP 服务器
+      //  HTTP 
       if (!await _startHttpServer()) {
         return false;
       }
 
-      // 启动 SSDP 服务
+      //  SSDP 
       if (!await _startSsdpService()) {
         await _httpServer?.close();
         return false;
       }
 
       _isRunning = true;
-      ServiceLocator.log.d('DLNA: 服务已启动 - $_deviceName ($_localIp:$_httpPort)');
+      ServiceLocator.log.d('DLNA:  - $_deviceName ($_localIp:$_httpPort)');
       return true;
     } catch (e) {
-      ServiceLocator.log.d('DLNA: 启动失败 - $e');
+      ServiceLocator.log.d('DLNA:  - $e');
       return false;
     }
   }
 
-  /// 停止 DLNA 服务
+  ///  DLNA 
   Future<void> stop() async {
     if (!_isRunning) return;
     
     _isRunning = false;
     
-    // 取消定时器
+    // 
     _notifyTimer?.cancel();
     _notifyTimer = null;
     
-    // 发送 SSDP byebye 通知
+    //  SSDP byebye 
     _sendSsdpByebye();
     
-    // 等待一下让 byebye 消息发送出去
+    //  byebye 
     await Future.delayed(const Duration(milliseconds: 100));
     
-    // 清理订阅
+    // 
     _eventSubscriptions.clear();
     
     _ssdpSocket?.close();
     _ssdpSocket = null;
     await _httpServer?.close(force: true);
     _httpServer = null;
-    ServiceLocator.log.d('DLNA: 服务已停止');
+    ServiceLocator.log.d('DLNA: ');
   }
   
-  /// 发送 SSDP byebye 通知（设备下线）
+  ///  SSDP byebye 
   void _sendSsdpByebye() {
     if (_ssdpSocket == null) return;
     
@@ -130,7 +130,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
 ''';
 
     try {
-      // 发送多次确保收到
+      // 
       for (int i = 0; i < 3; i++) {
         _ssdpSocket?.send(
           utf8.encode(byebye),
@@ -139,11 +139,11 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         );
       }
     } catch (e) {
-      // 忽略发送错误
+      // 
     }
   }
 
-  /// 更新播放状态
+  /// 
   void updatePlayState({
     String? state,
     Duration? position,
@@ -151,12 +151,12 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
   }) {
     if (state != null && state != _transportState) {
       _transportState = state;
-      // 状态变化时通知订阅者
+      // 
       _notifyAllSubscribers();
     }
     if (position != null) {
       _currentPosition = position;
-      // 如果正在播放，重置播放开始时间以保持位置同步
+      // 
       if (_transportState == 'PLAYING') {
         _playStartTime = DateTime.now();
       }
@@ -164,7 +164,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     if (duration != null) _currentDuration = duration;
   }
 
-  /// 生成设备 UUID
+  ///  UUID
   Future<void> _generateDeviceUuid() async {
     try {
       final deviceInfo = DeviceInfoPlugin();
@@ -184,7 +184,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     }
   }
 
-  /// 获取本地 IP 地址
+  ///  IP 
   Future<String?> _getLocalIpAddress() async {
     try {
       final interfaces = await NetworkInterface.list(
@@ -194,7 +194,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
 
       for (var interface in interfaces) {
         final name = interface.name.toLowerCase();
-        // 跳过虚拟网卡
+        // 
         if (name.contains('virtual') || name.contains('vmware') ||
             name.contains('docker') || name.contains('veth')) {
           continue;
@@ -207,7 +207,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         }
       }
 
-      // 如果没找到 192.168 开头的，返回第一个非回环地址
+      //  192.168 
       for (var interface in interfaces) {
         for (var addr in interface.addresses) {
           if (!addr.isLoopback) {
@@ -216,12 +216,12 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         }
       }
     } catch (e) {
-      // 获取 IP 失败
+      //  IP 
     }
     return null;
   }
 
-  /// 启动 HTTP 服务器
+  ///  HTTP 
   Future<bool> _startHttpServer() async {
     try {
       _httpServer = await HttpServer.bind(InternetAddress.anyIPv4, _httpPort);
@@ -229,15 +229,15 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
       _httpServer!.listen(_handleHttpRequest);
       return true;
     } catch (e) {
-      ServiceLocator.log.d('DLNA: HTTP 服务器启动失败 - $e');
+      ServiceLocator.log.d('DLNA: HTTP  - $e');
       return false;
     }
   }
 
-  /// 启动 SSDP 服务
+  ///  SSDP 
   Future<bool> _startSsdpService() async {
     try {
-      // 查找对应的网络接口
+      // 
       NetworkInterface? targetInterface;
       try {
         final interfaces = await NetworkInterface.list(type: InternetAddressType.IPv4);
@@ -251,10 +251,10 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
           if (targetInterface != null) break;
         }
       } catch (e) {
-        // 获取网络接口失败，继续使用默认接口
+        // 
       }
 
-      // 尝试绑定到多播地址 239.255.255.250:1900
+      //  239.255.255.250:1900
       try {
         _ssdpSocket = await RawDatagramSocket.bind(
           InternetAddress.anyIPv4,
@@ -263,7 +263,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
           reusePort: true,
         );
       } catch (e) {
-        // 如果 1900 端口被占用，使用随机端口
+        //  1900 
         _ssdpSocket = await RawDatagramSocket.bind(
           InternetAddress.anyIPv4,
           0,
@@ -271,7 +271,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         );
       }
 
-      // 加入多播组
+      // 
       try {
         final multicastAddr = InternetAddress(_ssdpAddress);
         if (targetInterface != null) {
@@ -280,16 +280,16 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
           _ssdpSocket!.joinMulticast(multicastAddr);
         }
       } catch (e) {
-        // 即使加入多播组失败，也继续运行
+        // 
       }
 
-      // 设置多播 TTL
+      //  TTL
       _ssdpSocket!.multicastHops = 4;
       
-      // 启用多播回环（用于本机测试）
+      // 
       _ssdpSocket!.multicastLoopback = true;
 
-      // 监听请求
+      // 
       _ssdpSocket!.listen((event) {
         if (event == RawSocketEvent.read) {
           final datagram = _ssdpSocket!.receive();
@@ -298,34 +298,34 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
           }
         }
       }, onError: (e) {
-        ServiceLocator.log.d('DLNA: SSDP 错误 - $e');
+        ServiceLocator.log.d('DLNA: SSDP  - $e');
       });
 
-      // 立即发送多次 NOTIFY 广播
+      //  NOTIFY 
       for (int i = 0; i < 3; i++) {
         _sendSsdpNotify();
         await Future.delayed(const Duration(milliseconds: 500));
       }
 
-      // 定期发送广播
+      // 
       _notifyTimer = Timer.periodic(const Duration(seconds: 15), (_) {
         if (_isRunning) _sendSsdpNotify();
       });
 
       return true;
     } catch (e) {
-      ServiceLocator.log.d('DLNA: SSDP 启动失败 - $e');
+      ServiceLocator.log.d('DLNA: SSDP  - $e');
       return false;
     }
   }
 
-  /// 处理 SSDP 请求
+  ///  SSDP 
   void _handleSsdpRequest(Datagram datagram) {
     final message = utf8.decode(datagram.data);
     
-    // 只处理 M-SEARCH 请求，忽略其他 NOTIFY 消息
+    //  M-SEARCH  NOTIFY 
     if (message.startsWith('M-SEARCH')) {
-      // 检查是否在搜索媒体渲染器
+      // 
       if (message.contains('ssdp:all') ||
           message.contains('upnp:rootdevice') ||
           message.contains('urn:schemas-upnp-org:device:MediaRenderer:1') ||
@@ -335,7 +335,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     }
   }
 
-  /// 发送 SSDP 响应
+  ///  SSDP 
   void _sendSsdpResponse(InternetAddress address, int port) {
     final response = '''HTTP/1.1 200 OK\r
 CACHE-CONTROL: max-age=1800\r
@@ -351,7 +351,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     _ssdpSocket?.send(utf8.encode(response), address, port);
   }
 
-  /// 发送 SSDP NOTIFY 广播
+  ///  SSDP NOTIFY 
   void _sendSsdpNotify() {
     final notify = '''NOTIFY * HTTP/1.1\r
 HOST: $_ssdpAddress:$_ssdpPort\r
@@ -371,7 +371,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     );
   }
 
-  /// 处理 HTTP 请求
+  ///  HTTP 
   void _handleHttpRequest(HttpRequest request) async {
     final path = request.uri.path;
 
@@ -397,13 +397,13 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         await request.response.close();
       }
     } catch (e) {
-      ServiceLocator.log.d('DLNA: HTTP 错误 - $e');
+      ServiceLocator.log.d('DLNA: HTTP  - $e');
       request.response.statusCode = 500;
       await request.response.close();
     }
   }
 
-  /// 处理事件订阅请求
+  /// 
   Future<void> _handleEventSubscription(HttpRequest request) async {
     if (request.method == 'SUBSCRIBE') {
       final callback = request.headers.value('CALLBACK');
@@ -437,7 +437,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     }
   }
   
-  /// 发送事件通知给订阅者
+  /// 
   void _sendEventNotification(String sid) async {
     final callbackUrl = _eventSubscriptions[sid];
     if (callbackUrl == null) return;
@@ -463,18 +463,18 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
       request.write(body);
       await request.close();
     } catch (e) {
-      // 事件通知失败，忽略
+      // 
     }
   }
   
-  /// 通知所有订阅者状态变化
+  /// 
   void _notifyAllSubscribers() {
     for (final sid in _eventSubscriptions.keys) {
       _sendEventNotification(sid);
     }
   }
 
-  /// 设备描述 XML
+  ///  XML
   Future<void> _handleDeviceDescription(HttpRequest request) async {
     final xml = '''<?xml version="1.0" encoding="UTF-8"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0" xmlns:dlna="urn:schemas-dlna-org:device-1-0">
@@ -548,7 +548,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     await request.response.close();
   }
 
-  /// 处理 AVTransport 控制请求
+  ///  AVTransport 
   Future<void> _handleAvTransportControl(HttpRequest request) async {
     final body = await utf8.decoder.bind(request).join();
 
@@ -581,7 +581,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
       response = _createSoapResponse('SetAVTransportURI', '');
     } else if (body.contains('"Play"') || body.contains(':Play') || body.contains('Play</')) {
       ServiceLocator.log.d('DLNA: Play');
-      // 只有在有 URL 时才触发播放
+      //  URL 
       if (_currentUri.isNotEmpty) {
         _transportState = 'TRANSITIONING';
         _notifyAllSubscribers();
@@ -593,7 +593,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
           _notifyAllSubscribers();
         });
       } else {
-        ServiceLocator.log.d('DLNA: Play 忽略 - 没有 URL');
+        ServiceLocator.log.d('DLNA: Play  -  URL');
       }
       
       response = _createSoapResponse('Play', '');
@@ -678,7 +678,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     await request.response.close();
   }
 
-  /// 处理 RenderingControl 控制请求
+  ///  RenderingControl 
   Future<void> _handleRenderingControlControl(HttpRequest request) async {
     final body = await utf8.decoder.bind(request).join();
 
@@ -704,7 +704,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     await request.response.close();
   }
 
-  /// 处理 ConnectionManager 控制请求
+  ///  ConnectionManager 
   Future<void> _handleConnectionManagerControl(HttpRequest request) async {
     final body = await utf8.decoder.bind(request).join();
 
@@ -725,7 +725,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     await request.response.close();
   }
 
-  /// 创建 SOAP 响应
+  ///  SOAP 
   String _createSoapResponse(String action, String body, {String service = 'AVTransport'}) {
     return '''<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
@@ -737,7 +737,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
 </s:Envelope>''';
   }
 
-  /// 解码 XML 实体
+  ///  XML 
   String _decodeXmlEntities(String text) {
     return text
         .replaceAll('&lt;', '<')
@@ -747,7 +747,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         .replaceAll('&apos;', "'");
   }
   
-  /// 转义 XML 特殊字符
+  ///  XML 
   String _escapeXml(String text) {
     return text
         .replaceAll('&', '&amp;')
@@ -757,7 +757,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         .replaceAll("'", '&apos;');
   }
 
-  /// 格式化时长为 HH:MM:SS
+  ///  HH:MM:SS
   String _formatDuration(Duration duration) {
     final hours = duration.inHours.toString().padLeft(2, '0');
     final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
@@ -765,7 +765,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     return '$hours:$minutes:$seconds';
   }
 
-  /// 解析时长字符串
+  /// 
   Duration _parseDuration(String str) {
     final parts = str.split(':');
     if (parts.length == 3) {

@@ -7,7 +7,7 @@ class AutoScrollText extends StatefulWidget {
   final double scrollSpeed;
   final Duration scrollDelay;
   final TextAlign textAlign;
-  final bool forceScroll; // 新增：强制滚动控制
+  final bool forceScroll; // 
 
   const AutoScrollText({
     super.key,
@@ -16,8 +16,8 @@ class AutoScrollText extends StatefulWidget {
     this.scrollSpeed = 30.0,
     this.scrollDelay = const Duration(milliseconds: 1000),
     this.textAlign = TextAlign.left,
-    this.forceScroll = false, // 默认false，保持原有行为
-    double? width, // 保持参数兼容性，但实际由布局决定
+    this.forceScroll = false, // false
+    double? width, // 
   });
 
   @override
@@ -37,7 +37,7 @@ class _AutoScrollTextState extends State<AutoScrollText>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(seconds: 2) // 初始值，会被计算值覆盖
+        vsync: this, duration: const Duration(seconds: 2) // 
         );
 
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -51,13 +51,13 @@ class _AutoScrollTextState extends State<AutoScrollText>
   void didUpdateWidget(AutoScrollText oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text || oldWidget.style != widget.style) {
-      // 重置状态
+      // 
       _controller.stop();
       _controller.reset();
       _checkOverflow();
     }
     
-    // 当 forceScroll 状态改变时，重新触发滚动逻辑
+    //  forceScroll 
     if (oldWidget.forceScroll != widget.forceScroll) {
       if (widget.forceScroll && _isOverflowing) {
         _startScrolling();
@@ -69,7 +69,7 @@ class _AutoScrollTextState extends State<AutoScrollText>
   }
 
   void _checkOverflow() {
-    // 延迟执行以确保布局完成
+    // 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
@@ -86,7 +86,7 @@ class _AutoScrollTextState extends State<AutoScrollText>
         final textWidth = textPainter.width;
 
         if (textWidth > containerWidth) {
-          final distance = textWidth - containerWidth + 20; // 额外缓冲
+          final distance = textWidth - containerWidth + 20; // 
           final durationSeconds = distance / widget.scrollSpeed;
 
           setState(() {
@@ -96,7 +96,7 @@ class _AutoScrollTextState extends State<AutoScrollText>
                 Duration(milliseconds: (durationSeconds * 1000).toInt());
           });
 
-          // 如果当前处于 Hover 状态，且发现溢出，重新触发滚动
+          //  Hover 
           if (_isHovering || widget.forceScroll) {
             _startScrolling();
           }
@@ -118,17 +118,17 @@ class _AutoScrollTextState extends State<AutoScrollText>
     });
 
     if (hovering || widget.forceScroll) {
-      // 每次 Hover 时或强制滚动时重新检查溢出，以适应布局宽度的变化
+      //  Hover 
       _checkOverflow();
     } else {
-      // Hover 结束且非强制滚动，停止滚动
+      // Hover 
       _controller.stop();
       _controller.animateTo(0, duration: const Duration(milliseconds: 300));
     }
   }
 
   void _startScrolling() {
-    // 延迟滚动
+    // 
     Future.delayed(widget.scrollDelay, () {
       if (mounted && (_isHovering || widget.forceScroll) && _isOverflowing) {
         if (!_controller.isAnimating) {
@@ -146,7 +146,7 @@ class _AutoScrollTextState extends State<AutoScrollText>
 
   @override
   Widget build(BuildContext context) {
-    // 使用 MouseRegion 包裹来检测 Hover
+    //  MouseRegion  Hover
     return MouseRegion(
       onEnter: (_) => _onHover(true),
       onExit: (_) => _onHover(false),
@@ -167,10 +167,10 @@ class _AutoScrollTextState extends State<AutoScrollText>
                     offset: Offset(-_animation.value * _scrollDistance, 0),
                     child: Text(
                       widget.text,
-                      key: _textKey, // 保持 Key 以便测量
+                      key: _textKey, //  Key 
                       style: widget.style,
                       maxLines: 1,
-                      overflow: TextOverflow.visible, // 允许溢出以便滚动显示
+                      overflow: TextOverflow.visible, // 
                       softWrap: false,
                     ),
                   );

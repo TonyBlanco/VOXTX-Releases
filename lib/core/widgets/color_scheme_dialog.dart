@@ -9,8 +9,8 @@ import 'color_scheme_card.dart';
 import 'custom_color_picker_dialog.dart';
 import 'tv_focusable.dart';
 
-/// 配色方案选择对话框
-/// 根据当前主题模式显示对应的配色列表
+/// 
+/// 
 class ColorSchemeDialog extends StatefulWidget {
   const ColorSchemeDialog({super.key});
 
@@ -26,7 +26,7 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
     final settings = context.watch<SettingsProvider>();
     final strings = AppStrings.of(context);
     
-    // 根据当前主题模式判断是黑暗还是明亮
+    // 
     final isDarkMode = _isDarkMode(context, settings);
     final schemes = isDarkMode 
         ? _manager.getAllDarkSchemes() 
@@ -47,7 +47,7 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 标题栏
+            // 
             Row(
               children: [
                 Expanded(
@@ -85,7 +85,7 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
             ),
             const SizedBox(height: 24),
             
-            // 配色方案网格
+            // 
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -110,7 +110,7 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
             
             const SizedBox(height: 16),
             
-            // 自定义颜色按钮
+            // 
             TVFocusable(
               onSelect: () => _showCustomColorPicker(context),
               focusScale: 1.0,
@@ -165,7 +165,7 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
     );
   }
 
-  /// 显示自定义颜色选择器
+  /// 
   Future<void> _showCustomColorPicker(BuildContext context) async {
     await showDialog(
       context: context,
@@ -173,35 +173,35 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
     );
   }
 
-  /// 判断当前是否为黑暗模式
+  /// 
   bool _isDarkMode(BuildContext context, SettingsProvider settings) {
     if (settings.themeMode == 'dark') {
       return true;
     } else if (settings.themeMode == 'light') {
       return false;
     } else {
-      // 跟随系统
+      // 
       final brightness = MediaQuery.of(context).platformBrightness;
       return brightness == Brightness.dark;
     }
   }
 
-  /// 处理配色方案选择
+  /// 
   void _onSchemeSelected(BuildContext context, ColorSchemeData scheme, bool isDarkMode) {
     final settings = context.read<SettingsProvider>();
     final strings = AppStrings.of(context);
     
-    // 根据模式调用对应的设置方法
+    // 
     if (isDarkMode) {
       settings.setDarkColorScheme(scheme.id);
     } else {
       settings.setLightColorScheme(scheme.id);
     }
     
-    // 关闭对话框
+    // 
     Navigator.pop(context);
     
-    // 显示成功提示
+    // 
     final schemeName = _getSchemeName(context, scheme);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -215,11 +215,11 @@ class _ColorSchemeDialogState extends State<ColorSchemeDialog> {
     );
   }
 
-  /// 获取配色方案名称
+  /// 
   String _getSchemeName(BuildContext context, ColorSchemeData scheme) {
     final strings = AppStrings.of(context);
     
-    // 检查是否为自定义颜色
+    // 
     if (scheme.id.startsWith('custom_')) {
       return strings?.colorSchemeCustom ?? 'Custom';
     }

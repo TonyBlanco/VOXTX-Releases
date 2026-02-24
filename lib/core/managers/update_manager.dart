@@ -14,34 +14,34 @@ class UpdateManager {
 
   final UpdateService _updateService = UpdateService();
   
-  // Android 安装 APK 的 MethodChannel
+  // Android  APK  MethodChannel
   static const _installChannel = MethodChannel('com.flutteriptv/install');
 
-  /// 检查更新并显示更新对话框
+  /// 
   Future<void> checkAndShowUpdateDialog(BuildContext context, {bool forceCheck = false}) async {
     try {
-      ServiceLocator.log.d('UPDATE_MANAGER: 开始检查更新...');
+      ServiceLocator.log.d('UPDATE_MANAGER: ...');
 
       final update = await _updateService.checkForUpdates(forceCheck: forceCheck);
 
       if (update != null && context.mounted) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 发现新版本，显示更新对话框');
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
         _showUpdateDialog(context, update);
       } else {
-        ServiceLocator.log.d('UPDATE_MANAGER: 没有发现新版本');
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 检查更新时发生错误: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
     }
   }
 
-  /// 手动检查更新
+  /// 
   Future<void> manualCheckForUpdate(BuildContext context) async {
     final strings = AppStrings.of(context);
     try {
-      ServiceLocator.log.d('UPDATE_MANAGER: 手动检查更新...');
+      ServiceLocator.log.d('UPDATE_MANAGER: ...');
 
-      // 显示加载提示
+      // 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -64,16 +64,16 @@ class UpdateManager {
 
       final update = await _updateService.checkForUpdates(forceCheck: true);
 
-      // 隐藏加载提示
+      // 
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
 
       if (update != null && context.mounted) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 发现新版本，显示更新对话框');
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
         _showUpdateDialog(context, update);
       } else if (context.mounted) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 已是最新版本');
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(strings?.alreadyLatestVersion ?? 'Already up to date'),
@@ -82,7 +82,7 @@ class UpdateManager {
         );
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 手动检查更新时发生错误: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +95,7 @@ class UpdateManager {
     }
   }
 
-  /// 显示更新对话框
+  /// 
   void _showUpdateDialog(BuildContext context, AppUpdate update) {
     showDialog(
       context: context,
@@ -105,19 +105,19 @@ class UpdateManager {
         onUpdate: () => _handleUpdate(context, update),
         onCancel: () {
           Navigator.of(context).pop();
-          ServiceLocator.log.d('UPDATE_MANAGER: 用户选择稍后更新');
+          ServiceLocator.log.d('UPDATE_MANAGER: ');
         },
       ),
     );
   }
 
-  /// 处理更新操作
+  /// 
   Future<void> _handleUpdate(BuildContext context, AppUpdate update) async {
     final strings = AppStrings.of(context);
     try {
-      ServiceLocator.log.d('UPDATE_MANAGER: 用户选择立即更新');
+      ServiceLocator.log.d('UPDATE_MANAGER: ');
 
-      // 关闭对话框
+      // 
       if (context.mounted) {
         Navigator.of(context).pop();
       }
@@ -127,11 +127,11 @@ class UpdateManager {
       } else if (Platform.isWindows) {
         await _downloadAndInstallWindows(context, update);
       } else {
-        // 其他平台打开下载页面
+        // 
         await _updateService.openDownloadPage();
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 处理更新时发生错误: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -143,7 +143,7 @@ class UpdateManager {
     }
   }
 
-  /// Android 下载并安装 APK
+  /// Android  APK
   Future<void> _downloadAndInstallAndroid(BuildContext context, AppUpdate update) async {
     final strings = AppStrings.of(context);
     double progress = 0;
@@ -196,39 +196,39 @@ class UpdateManager {
       );
 
       if (cancelled) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 用户取消下载');
-        // 删除未完成的下载文件
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
+        // 
         if (file != null && await file.exists()) {
           await file.delete();
         }
         return;
       }
 
-      // 关闭下载对话框
+      // 
       if (dialogContext != null && dialogContext!.mounted) {
         Navigator.of(dialogContext!).pop();
       }
 
       if (file != null) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 下载完成，开始安装: ${file.path}');
+        ServiceLocator.log.d('UPDATE_MANAGER: : ${file.path}');
         await _installApk(file.path);
         
-        // 安装启动后删除缓存文件（延迟删除，确保安装程序已读取文件）
+        // 
         Future.delayed(const Duration(seconds: 5), () async {
           try {
             if (await file.exists()) {
               await file.delete();
-              ServiceLocator.log.d('UPDATE_MANAGER: 已删除安装缓存文件');
+              ServiceLocator.log.d('UPDATE_MANAGER: ');
             }
           } catch (e) {
-            ServiceLocator.log.d('UPDATE_MANAGER: 删除缓存文件失败: $e');
+            ServiceLocator.log.d('UPDATE_MANAGER: : $e');
           }
         });
       } else {
         throw Exception((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst(': {error}', ''));
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 下载失败: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
       if (dialogContext != null && dialogContext!.mounted) {
         Navigator.of(dialogContext!).pop();
       }
@@ -243,17 +243,17 @@ class UpdateManager {
     }
   }
 
-  /// 调用原生方法安装 APK
+  ///  APK
   Future<void> _installApk(String filePath) async {
     try {
       await _installChannel.invokeMethod('installApk', {'filePath': filePath});
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 安装 APK 失败: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER:  APK : $e');
       rethrow;
     }
   }
 
-  /// Windows 下载并安装
+  /// Windows 
   Future<void> _downloadAndInstallWindows(BuildContext context, AppUpdate update) async {
     final strings = AppStrings.of(context);
     double progress = 0;
@@ -307,27 +307,27 @@ class UpdateManager {
       );
 
       if (cancelled) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 用户取消下载');
-        // 删除未完成的下载文件
+        ServiceLocator.log.d('UPDATE_MANAGER: ');
+        // 
         if (file != null && await file.exists()) {
           await file.delete();
-          ServiceLocator.log.d('UPDATE_MANAGER: 已删除未完成的下载文件');
+          ServiceLocator.log.d('UPDATE_MANAGER: ');
         }
         return;
       }
 
-      // 关闭下载对话框
+      // 
       if (dialogOpen) {
         dialogOpen = false;
         navigatorState.pop();
       }
 
-      ServiceLocator.log.d('UPDATE_MANAGER: 对话框已关闭，file=${file?.path}');
+      ServiceLocator.log.d('UPDATE_MANAGER: file=${file?.path}');
 
       if (file != null) {
-        ServiceLocator.log.d('UPDATE_MANAGER: 下载完成: ${file.path}');
+        ServiceLocator.log.d('UPDATE_MANAGER: : ${file.path}');
         
-        // Windows: 启动安装程序
+        // Windows: 
         if (context.mounted) {
           await showDialog(
             context: context,
@@ -338,14 +338,14 @@ class UpdateManager {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(ctx).pop();
-                    // 用户选择稍后，删除下载文件
+                    // 
                     try {
                       if (await file.exists()) {
                         await file.delete();
-                        ServiceLocator.log.d('UPDATE_MANAGER: 已删除下载文件');
+                        ServiceLocator.log.d('UPDATE_MANAGER: ');
                       }
                     } catch (e) {
-                      ServiceLocator.log.d('UPDATE_MANAGER: 删除文件失败: $e');
+                      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
                     }
                   },
                   child: Text(strings?.later ?? 'Later'),
@@ -353,10 +353,10 @@ class UpdateManager {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(ctx).pop();
-                    ServiceLocator.log.d('UPDATE_MANAGER: 启动安装程序: ${file.path}');
-                    // 启动安装程序
+                    ServiceLocator.log.d('UPDATE_MANAGER: : ${file.path}');
+                    // 
                     await Process.start(file.path, [], mode: ProcessStartMode.detached);
-                    // 退出当前应用
+                    // 
                     exit(0);
                   },
                   child: Text(strings?.installNow ?? 'Install Now'),
@@ -365,7 +365,7 @@ class UpdateManager {
             ),
           );
         } else {
-          ServiceLocator.log.d('UPDATE_MANAGER: context not mounted, 直接启动安装');
+          ServiceLocator.log.d('UPDATE_MANAGER: context not mounted, ');
           await Process.start(file.path, [], mode: ProcessStartMode.detached);
           exit(0);
         }
@@ -373,7 +373,7 @@ class UpdateManager {
         throw Exception((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst(': {error}', ''));
       }
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 下载失败: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
       if (dialogOpen) {
         dialogOpen = false;
         navigatorState.pop();
@@ -389,12 +389,12 @@ class UpdateManager {
     }
   }
 
-  /// 获取当前应用版本
+  /// 
   Future<String> getCurrentVersion() async {
     try {
       return await _updateService.getCurrentVersion();
     } catch (e) {
-      ServiceLocator.log.d('UPDATE_MANAGER: 获取当前版本失败: $e');
+      ServiceLocator.log.d('UPDATE_MANAGER: : $e');
       return '0.0.0';
     }
   }

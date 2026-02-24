@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/app_update.dart';
 import '../i18n/app_strings.dart';
-// 注释掉未使用的导入
+// 
 // import '../services/update_service.dart';
 
 class UpdateDialog extends StatelessWidget {
@@ -35,7 +35,7 @@ class UpdateDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 可滚动的内容区域
+            // 
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -43,7 +43,7 @@ class UpdateDialog extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 标题和图标
+                    // 
                     Row(
                       children: [
                         Container(
@@ -87,7 +87,7 @@ class UpdateDialog extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // 发布说明
+                    // 
                     Text(
                       AppStrings.of(context)?.whatsNew ?? 'What\'s new',
                       style: const TextStyle(
@@ -110,7 +110,7 @@ class UpdateDialog extends StatelessWidget {
               ),
             ),
 
-            // 固定在底部的按钮组
+            // 
             Container(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               decoration: BoxDecoration(
@@ -179,16 +179,16 @@ class UpdateDialog extends StatelessWidget {
       return 'No release notes';
     }
 
-    // 简单的Markdown格式化
+    // Markdown
     String formatted = notes;
 
-    // 移除多余的空行
+    // 
     formatted = formatted.replaceAll(RegExp(r'\n\s*\n\s*\n'), '\n\n');
 
-    // 处理列表项
+    // 
     formatted = formatted.replaceAll(RegExp(r'^\s*[-*]\s+', multiLine: true), '• ');
 
-    // 处理标题
+    // 
     formatted = formatted.replaceAll(RegExp(r'^\s*#+\s+(.+)$', multiLine: true), '\\1');
 
     return formatted.trim();

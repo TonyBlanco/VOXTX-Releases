@@ -39,22 +39,22 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
       _error = null;
     });
 
-    // 先导出日志内容
+    // 
     try {
       final logFiles = await ServiceLocator.log.getLogFiles();
       if (logFiles.isEmpty) {
         setState(() {
           _isLoading = false;
-          _error = '没有可用的日志文件';
+          _error = '';
         });
         return;
       }
 
-      // 合并所有日志文件
+      // 
       final buffer = StringBuffer();
       buffer.writeln('========================================');
-      buffer.writeln('VoXTV 日志导出');
-      buffer.writeln('导出时间: ${DateTime.now()}');
+      buffer.writeln('VoXTV ');
+      buffer.writeln(': ${DateTime.now()}');
       buffer.writeln('========================================\n');
 
       for (final file in logFiles) {
@@ -67,15 +67,15 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _error = '读取日志文件失败: $e';
+        _error = ': $e';
       });
       return;
     }
 
-    // 启动服务器
+    // 
     final success = await _serverService.start();
     
-    // 设置日志内容到服务器
+    // 
     if (success && _logContent != null) {
       _serverService.setLogContent(_logContent!);
     }
@@ -84,7 +84,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
       _isLoading = false;
       _isServerRunning = success;
       if (!success) {
-        _error = _serverService.lastError ?? '启动服务器失败，请检查网络连接';
+        _error = _serverService.lastError ?? '';
       }
     });
   }
@@ -93,7 +93,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    // 手机横屏：宽度600-900，高度小于宽度
+    // 600-900
     final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
     final isMobile = screenWidth < 600;
     
@@ -101,7 +101,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
       backgroundColor: AppTheme.getSurfaceColor(context),
       insetPadding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(isLandscape ? 12 : 20),  // 横屏时圆角更小
+        borderRadius: BorderRadius.circular(isLandscape ? 12 : 20),  // 
         child: Container(
           width: isMobile ? null : 520,
           constraints: isMobile ? const BoxConstraints(maxWidth: 250) : null,
@@ -130,7 +130,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '扫码查看日志',
+                      '',
                       style: TextStyle(
                         color: AppTheme.getTextPrimary(context),
                         fontSize: isMobile ? 16 : 18,
@@ -169,7 +169,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('关闭'),
+                    child: const Text(''),
                   ),
                 ),
               ),
@@ -193,7 +193,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
         ),
         const SizedBox(height: 16),
         Text(
-          '正在准备日志...',
+          '...',
           style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
       ],
@@ -223,7 +223,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
               backgroundColor: AppTheme.primaryColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('重试'),
+            child: const Text(''),
           ),
         ),
       ],
@@ -231,11 +231,11 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
   }
 
   Widget _buildQrCodeState(bool isMobile) {
-    // 生成日志查看URL（包含日志内容）
+    // URL
     final logUrl = '${_serverService.serverUrl}/logs';
     
     if (isMobile) {
-      // 手机端：纵向布局
+      // 
       return Column(
         children: [
           // QR Code
@@ -265,11 +265,11 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
             ),
             child: Column(
               children: [
-                _buildStep('1', '使用手机扫描二维码'),
+                _buildStep('1', ''),
                 const SizedBox(height: 8),
-                _buildStep('2', '在浏览器中查看日志内容'),
+                _buildStep('2', ''),
                 const SizedBox(height: 8),
-                _buildStep('3', '可以复制或分享日志给开发者'),
+                _buildStep('3', ''),
               ],
             ),
           ),
@@ -325,7 +325,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '日志已准备就绪，大小: ${(_logContent?.length ?? 0) ~/ 1024} KB',
+                    ': ${(_logContent?.length ?? 0) ~/ 1024} KB',
                     style: const TextStyle(
                       color: Colors.green,
                       fontSize: 12,
@@ -339,7 +339,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
       );
     }
     
-    // TV/桌面端：横向布局
+    // TV/
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -375,11 +375,11 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
                 ),
                 child: Column(
                   children: [
-                    _buildStep('1', '使用手机扫描二维码'),
+                    _buildStep('1', ''),
                     const SizedBox(height: 8),
-                    _buildStep('2', '在浏览器中查看日志内容'),
+                    _buildStep('2', ''),
                     const SizedBox(height: 8),
-                    _buildStep('3', '可以复制或分享日志给开发者'),
+                    _buildStep('3', ''),
                   ],
                 ),
               ),
@@ -433,7 +433,7 @@ class _QrLogExportDialogState extends State<QrLogExportDialog> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '日志已准备就绪，大小: ${(_logContent?.length ?? 0) ~/ 1024} KB',
+                        ': ${(_logContent?.length ?? 0) ~/ 1024} KB',
                         style: const TextStyle(
                           color: Colors.green,
                           fontSize: 13,

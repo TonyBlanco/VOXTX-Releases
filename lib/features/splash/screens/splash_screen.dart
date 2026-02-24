@@ -128,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     }
 
     if (mounted) {
-      // 使用 pushReplacementNamed 替换 splash，这样退出时不会显示 splash
+      //  pushReplacementNamed  splash splash
       Navigator.of(context).pushReplacementNamed(AppRouter.home);
     }
   }

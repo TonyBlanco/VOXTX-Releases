@@ -10,48 +10,48 @@ import '../services/service_locator.dart';
 import '../utils/throttled_state_mixin.dart';
 
 // ========================================
-// ✅ 台标加载性能配置 - 可随意调整这些参数
+// ✅  - 
 // ========================================
 //
-// 调优指南：
-// 1. maxConnectionsPerHost (10): 每个主机的最大连接数
-//    - 增加：加快加载速度，但可能导致服务器拒绝连接
-//    - 减少：更稳定，但加载较慢
+// 
+// 1. maxConnectionsPerHost (10): 
+//    - 
+//    - 
 //
-// 2. connectionTimeout (3s): 连接超时时间
-//    - 增加：给慢速服务器更多时间，但失败时等待更久
-//    - 减少：快速失败，但可能错过慢速但可用的台标
+// 2. connectionTimeout (3s): 
+//    - 
+//    - 
 //
-// 3. idleTimeout (30s): 空闲连接保持时间
-//    - 增加：更好的连接复用，减少握手开销
-//    - 减少：更快释放资源
+// 3. idleTimeout (30s): 
+//    - 
+//    - 
 //
-// 4. maxConcurrentLoads (15): 最大并发加载数
-//    - 增加：加载更快，但可能导致UI卡顿
-//    - 减少：更流畅，但加载较慢
+// 4. maxConcurrentLoads (15): 
+//    - UI
+//    - 
 //
-// 5. maxQueueSize (30): 最大队列大小
-//    - 增加：滚动时缓存更多请求
-//    - 减少：减少内存占用
+// 5. maxQueueSize (30): 
+//    - 
+//    - 
 //
 // ========================================
 
-/// HTTP 连接池配置
+/// HTTP 
 class _HttpPoolConfig {
-  static const int maxConnectionsPerHost = 50; // 每个主机最多连接数
-  static const Duration connectionTimeout = Duration(seconds: 5); // 连接超时
-  static const Duration idleTimeout = Duration(seconds: 30); // 空闲连接保持时间
+  static const int maxConnectionsPerHost = 50; // 
+  static const Duration connectionTimeout = Duration(seconds: 5); // 
+  static const Duration idleTimeout = Duration(seconds: 30); // 
 }
 
-/// 台标加载并发控制配置
+/// 
 class _LogoLoadConfig {
-  static const int maxConcurrentLoads = 50; // 最大并发加载数
-  static const int maxQueueSize = 1000; // 最大队列大小
+  static const int maxConcurrentLoads = 50; // 
+  static const int maxQueueSize = 1000; // 
 }
 
 // ========================================
 
-/// ✅ HTTP连接池：复用连接，减少TCP握手开销
+/// ✅ HTTPTCP
 class _HttpConnectionPool {
   static final _HttpConnectionPool _instance = _HttpConnectionPool._();
   factory _HttpConnectionPool() => _instance;
@@ -63,7 +63,7 @@ class _HttpConnectionPool {
 
   void initialize() {
     if (_initialized) {
-      ServiceLocator.log.d('[HttpPool] 连接池已经初始化，跳过');
+      ServiceLocator.log.d('[HttpPool] ');
       return;
     }
 
@@ -77,12 +77,12 @@ class _HttpConnectionPool {
     _ioClient = io_client.IOClient(_httpClient!);
     _initialized = true;
     ServiceLocator.log.i(
-        '[HttpPool] 连接池已初始化 - 每主机最大连接数: ${_HttpPoolConfig.maxConnectionsPerHost}, 连接超时: ${_HttpPoolConfig.connectionTimeout.inSeconds}s, 空闲超时: ${_HttpPoolConfig.idleTimeout.inSeconds}s');
+        '[HttpPool]  - : ${_HttpPoolConfig.maxConnectionsPerHost}, : ${_HttpPoolConfig.connectionTimeout.inSeconds}s, : ${_HttpPoolConfig.idleTimeout.inSeconds}s');
   }
 
   io_client.IOClient get client {
     if (!_initialized || _ioClient == null) {
-      ServiceLocator.log.w('[HttpPool] 连接池未初始化，立即初始化');
+      ServiceLocator.log.w('[HttpPool] ');
       initialize();
     }
     return _ioClient!;
@@ -92,7 +92,7 @@ class _HttpConnectionPool {
     if (_httpClient != null) {
       _httpClient!.close(force: true);
       _initialized = false;
-      ServiceLocator.log.i('[HttpPool] 连接池已关闭');
+      ServiceLocator.log.i('[HttpPool] ');
     }
   }
 }
@@ -114,7 +114,7 @@ class _TimeoutHttpClient extends http.BaseClient {
 
   @override
   void close() {
-    // 不关闭连接池，让它保持复用
+    // 
   }
 }
 
@@ -143,9 +143,9 @@ class LogoCacheManager extends CacheManager {
             ),
           ),
         ) {
-    // 初始化连接池
+    // 
     _HttpConnectionPool().initialize();
-    ServiceLocator.log.i('[LogoCache] 缓存管理器已初始化，使用连接池');
+    ServiceLocator.log.i('[LogoCache] ');
   }
 }
 
@@ -155,23 +155,23 @@ class _LogoStateManager {
   factory _LogoStateManager() => _instance;
   _LogoStateManager._();
 
-  // 记录 M3U 台标失败的频道（使用频道名称作为 key）
+  //  M3U  key
   final Map<String, bool> _m3uLogoFailed = {};
 
-  // 记录数据库台标 URL（使用频道名称作为 key）
+  //  URL key
   final Map<String, String?> _fallbackLogoUrls = {};
 
-  // 记录已经尝试加载过的频道（即使结果为 null 也不再重试）
+  //  null 
   final Set<String> _fallbackLoaded = {};
 
-  // 正在加载 fallback 的频道
+  //  fallback 
   final Set<String> _loadingFallback = {};
 
-  // ✅ 全局滚动状态：滚动时暂停台标加载
+  // ✅ 
   bool _isScrolling = false;
   final ValueNotifier<bool> scrollingNotifier = ValueNotifier(false);
 
-  // 并发控制：限制同时加载的台标数量
+  // 
   static const int _maxConcurrentLoads = _LogoLoadConfig.maxConcurrentLoads;
   static const int _maxQueueSize = _LogoLoadConfig.maxQueueSize;
   int _currentLoadingCount = 0;
@@ -184,10 +184,10 @@ class _LogoStateManager {
       _isScrolling = scrolling;
       scrollingNotifier.value = scrolling;
       // ServiceLocator.log.d(
-      //     '[LogoState] 滚动状态变化: ${scrolling ? "开始滚动" : "停止滚动"}, 队列: ${_pendingLoads.length}/$_maxQueueSize, 并发: $_currentLoadingCount/$_maxConcurrentLoads');
+      //     '[LogoState] : ${scrolling ? "" : ""}, : ${_pendingLoads.length}/$_maxQueueSize, : $_currentLoadingCount/$_maxConcurrentLoads');
 
       if (!scrolling) {
-        // 滚动停止后，处理一些待加载的台标
+        // 
         _processNextPendingLoad();
       }
     }
@@ -207,7 +207,7 @@ class _LogoStateManager {
 
   void setFallbackLogoUrl(String channelName, String? url) {
     _fallbackLogoUrls[channelName] = url;
-    _fallbackLoaded.add(channelName); // 标记已加载
+    _fallbackLoaded.add(channelName); // 
   }
 
   bool isFallbackLoaded(String channelName) {
@@ -226,64 +226,64 @@ class _LogoStateManager {
     }
   }
 
-  /// 请求加载 fallback logo，如果超过并发限制则排队
+  ///  fallback logo
   Future<void> requestLoadFallback(Function loadFunction) async {
-    // ✅ 滚动时不加载台标，直接加入队列（但限制队列大小）
+    // ✅ 
     if (_isScrolling) {
       if (_pendingLoads.length >= _maxQueueSize) {
         // ServiceLocator.log.d(
-        //     '[LogoState] 滚动中且队列已满(${_pendingLoads.length}/$_maxQueueSize)，丢弃请求');
+        //     '[LogoState] (${_pendingLoads.length}/$_maxQueueSize)');
         return;
       }
       // ServiceLocator.log.d(
-      //     '[LogoState] 滚动中，加入队列，当前队列: ${_pendingLoads.length}/$_maxQueueSize');
+      //     '[LogoState] : ${_pendingLoads.length}/$_maxQueueSize');
       _pendingLoads.add(loadFunction);
       return;
     }
 
     if (_currentLoadingCount < _maxConcurrentLoads) {
       // ServiceLocator.log.d(
-      //     '[LogoState] 开始加载，当前并发: $_currentLoadingCount/$_maxConcurrentLoads');
+      //     '[LogoState] : $_currentLoadingCount/$_maxConcurrentLoads');
       _currentLoadingCount++;
       try {
         await loadFunction();
       } finally {
         _currentLoadingCount--;
         // ServiceLocator.log.d(
-        //     '[LogoState] 加载完成，当前并发: $_currentLoadingCount/$_maxConcurrentLoads');
+        //     '[LogoState] : $_currentLoadingCount/$_maxConcurrentLoads');
         _processNextPendingLoad();
       }
     } else {
-      // 加入队列等待（但限制队列大小）
+      // 
       if (_pendingLoads.length >= _maxQueueSize) {
         // ServiceLocator.log
-        //     .d('[LogoState] 队列已满(${_pendingLoads.length}/$_maxQueueSize)，丢弃请求');
+        //     .d('[LogoState] (${_pendingLoads.length}/$_maxQueueSize)');
         return;
       }
       // ServiceLocator.log.d(
-      //     '[LogoState] 并发已满，加入队列，当前队列: ${_pendingLoads.length}/$_maxQueueSize');
+      //     '[LogoState] : ${_pendingLoads.length}/$_maxQueueSize');
       _pendingLoads.add(loadFunction);
     }
   }
 
   void _processNextPendingLoad() {
-    // ✅ 滚动时不处理队列
+    // ✅ 
     if (_isScrolling) {
-      // ServiceLocator.log.d('[LogoState] 滚动中，暂停处理队列');
+      // ServiceLocator.log.d('[LogoState] ');
       return;
     }
 
-    // ✅ 批量处理队列，一次性启动多个加载任务（填满并发槽位）
+    // ✅ 
     while (_pendingLoads.isNotEmpty &&
         _currentLoadingCount < _maxConcurrentLoads) {
       final nextLoad = _pendingLoads.removeAt(0);
-      // ServiceLocator.log.d('[LogoState] 从队列取出任务，剩余: ${_pendingLoads.length}');
+      // ServiceLocator.log.d('[LogoState] : ${_pendingLoads.length}');
       _currentLoadingCount++;
       nextLoad().then((_) {
         _currentLoadingCount--;
         _processNextPendingLoad();
       }).catchError((e) {
-        ServiceLocator.log.w('[LogoState] 队列任务失败: $e');
+        ServiceLocator.log.w('[LogoState] : $e');
         _currentLoadingCount--;
         _processNextPendingLoad();
       });
@@ -299,35 +299,35 @@ class _LogoStateManager {
     _currentLoadingCount = 0;
   }
 
-  /// 清理待处理的加载队列（但保留已加载的缓存）
+  /// 
   void clearPendingLoads() {
     _pendingLoads.clear();
-    ServiceLocator.log.d('台标加载队列已清理，待处理任务数: 0');
+    ServiceLocator.log.d(': 0');
   }
 }
 
-/// 公共访问点：清理台标加载队列
+/// 
 void clearLogoLoadingQueue() {
   _LogoStateManager().clearPendingLoads();
 }
 
-/// 公共访问点：完全清理台标缓存（包括已加载的）
+/// 
 void clearAllLogoCache() {
   _LogoStateManager().clear();
-  ServiceLocator.log.d('台标缓存已完全清理');
+  ServiceLocator.log.d('');
 }
 
-/// ✅ 公共访问点：设置滚动状态（滚动时暂停台标加载）
+/// ✅ 
 void setLogoLoadingScrolling(bool scrolling) {
   _LogoStateManager().setScrolling(scrolling);
 }
 
-/// ✅ 公共访问点：初始化HTTP连接池
+/// ✅ HTTP
 void initializeLogoConnectionPool() {
   _HttpConnectionPool().initialize();
 }
 
-/// ✅ 公共访问点：清理HTTP连接池
+/// ✅ HTTP
 void disposeLogoConnectionPool() {
   _HttpConnectionPool().dispose();
 }
@@ -337,7 +337,7 @@ void disposeLogoConnectionPool() {
 /// 2. Database logo (fuzzy match by channel name)
 /// 3. Default placeholder image
 ///
-/// ✅ 使用 ValueNotifier 避免 setState() 导致的性能问题
+/// ✅  ValueNotifier  setState() 
 class ChannelLogoWidget extends StatefulWidget {
   final Channel channel;
   final double? width;
@@ -378,14 +378,14 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
     if (_isDisposed) return;
 
     final channelName = widget.channel.name;
-    // 只在第一次失败时标记
+    // 
     if (!_logoState.isM3uLogoFailed(channelName)) {
-      // 标记为失败，避免下次重建时再次尝试无效链接
+      // 
       _logoState.markM3uLogoFailed(channelName);
       
-      // ✅ 不调用 setState，避免大量频道失败时消息队列爆炸
-      // errorWidget 会直接返回 fallback，无需重建
-      // ServiceLocator.log.d('[ChannelLogo] M3U台标失败，标记失败状态 - $channelName');
+      // ✅  setState
+      // errorWidget  fallback
+      // ServiceLocator.log.d('[ChannelLogo] M3U - $channelName');
     }
   }
 
@@ -399,26 +399,26 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
       width: widget.width,
       height: widget.height,
       fit: widget.fit,
-      cacheManager: LogoCacheManager(), // 使用自定义缓存管理器
+      cacheManager: LogoCacheManager(), // 
       placeholder: (context, url) => _buildPlaceholder(),
       errorWidget: (context, url, error) {
         if (isM3uLogo) {
           _onM3uLogoError();
           
-          // ✅ M3U 失败时，立即尝试显示 fallback 台标
+          // ✅ M3U  fallback 
           final fallback = widget.channel.fallbackLogoUrl;
-          ServiceLocator.log.d('[ChannelLogo] M3U台标失败，标记失败状态. fallbackURL - $fallback');
-          // 只在非滚动状态下加载 fallback，避免滚动时的 IO 拥堵
+          ServiceLocator.log.d('[ChannelLogo] M3U. fallbackURL - $fallback');
+          //  fallback IO 
           if (!_logoState.isScrolling && fallback != null && fallback.isNotEmpty) {
-            // 使用轻量级 Image.network 临时显示，不走复杂的缓存逻辑
-            // 下次自然重建时会用 CachedNetworkImage 正确加载
+            //  Image.network 
+            //  CachedNetworkImage 
             return Image.network(
               fallback,
               width: widget.width,
               height: widget.height,
               fit: widget.fit,
               errorBuilder: (_, __, ___) => _buildPlaceholder(),
-              // 添加简单的加载指示
+              // 
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return _buildPlaceholder();
@@ -447,7 +447,7 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
         'assets/images/default_logo.png',
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) {
-          // 如果默认图片也加载失败，显示图标
+          // 
           return Icon(
             Icons.tv,
             size: (widget.width ?? 48) * 0.5,
@@ -463,7 +463,7 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
     return ValueListenableBuilder<bool>(
       valueListenable: _logoState.scrollingNotifier,
       builder: (context, isScrolling, child) {
-        // 滚动时直接显示占位图，避免创建 CachedNetworkImage 导致 IO 拥堵
+        //  CachedNetworkImage  IO 
         if (isScrolling) {
           return _buildPlaceholderWrapper();
         }
@@ -471,20 +471,20 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
         Widget logoWidget;
         final channelName = widget.channel.name;
 
-        // 检查M3U台标是否之前失败过
+        // M3U
         final m3uHasFailed = _logoState.isM3uLogoFailed(channelName);
 
         String? urlToLoad;
         bool isM3u = false;
 
-        // 优先级1: M3U台标 (如果存在且未失败过)
+        // 1: M3U ()
         if (!m3uHasFailed &&
             widget.channel.logoUrl != null &&
             widget.channel.logoUrl!.isNotEmpty) {
           urlToLoad = widget.channel.logoUrl;
           isM3u = true;
         }
-        // 优先级2: 预先计算好的备用台标
+        // 2: 
         else if (widget.channel.fallbackLogoUrl != null &&
             widget.channel.fallbackLogoUrl!.isNotEmpty) {
           urlToLoad = widget.channel.fallbackLogoUrl;
@@ -493,7 +493,7 @@ class _ChannelLogoWidgetState extends State<ChannelLogoWidget> with ThrottledSta
         if (urlToLoad != null) {
           logoWidget = _buildLogo(urlToLoad, isM3uLogo: isM3u);
         } else {
-          // 优先级3: 占位图
+          // 3: 
           logoWidget = _buildPlaceholder();
         }
 

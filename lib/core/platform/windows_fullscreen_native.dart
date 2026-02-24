@@ -2,7 +2,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
 
-// Windows API 函数类型定义
+// Windows API 
 typedef GetForegroundWindowNative = IntPtr Function();
 typedef GetForegroundWindowDart = int Function();
 
@@ -27,7 +27,7 @@ typedef GetSystemMetricsDart = int Function(int nIndex);
 typedef GetWindowRectNative = Int32 Function(IntPtr hWnd, Pointer<RECT> lpRect);
 typedef GetWindowRectDart = int Function(int hWnd, Pointer<RECT> lpRect);
 
-// RECT 结构体
+// RECT 
 final class RECT extends Struct {
   @Int32()
   external int left;
@@ -39,12 +39,12 @@ final class RECT extends Struct {
   external int bottom;
 }
 
-/// Windows 原生全屏 API
+/// Windows  API
 class WindowsFullscreenNative {
   static bool _initialized = false;
   static DynamicLibrary? _user32;
 
-  // Windows API 常量
+  // Windows API 
   static const int gwlStyle = -16;
   static const int wsOverlappedWindow = 0x00CF0000;
   static const int swpFrameChanged = 0x0020;
@@ -54,14 +54,14 @@ class WindowsFullscreenNative {
   static const int swpShowwindow = 0x0040;
   static const int swShow = 5;
 
-  // 保存原始窗口状态
+  // 
   static int? _savedStyle;
   static int? _savedX;
   static int? _savedY;
   static int? _savedWidth;
   static int? _savedHeight;
 
-  // 函数指针
+  // 
   static GetForegroundWindowDart? _getForegroundWindow;
   static GetWindowLongDart? _getWindowLong;
   static SetWindowLongDart? _setWindowLong;
@@ -70,7 +70,7 @@ class WindowsFullscreenNative {
   static GetSystemMetricsDart? _getSystemMetrics;
   static GetWindowRectDart? _getWindowRect;
 
-  /// 初始化 Windows API
+  ///  Windows API
   static bool initialize() {
     if (_initialized) return true;
     if (!Platform.isWindows) return false;
@@ -115,7 +115,7 @@ class WindowsFullscreenNative {
     }
   }
 
-  /// 获取当前窗口句柄
+  /// 
   static int? getWindowHandle() {
     if (!_initialized && !initialize()) return null;
     try {
@@ -127,7 +127,7 @@ class WindowsFullscreenNative {
     }
   }
 
-  /// 检查是否全屏
+  /// 
   static bool isFullScreen() {
     final hwnd = getWindowHandle();
     if (hwnd == null) return false;
@@ -141,16 +141,16 @@ class WindowsFullscreenNative {
     }
   }
 
-  /// 进入全屏
+  /// 
   static bool enterFullScreen() {
     final hwnd = getWindowHandle();
     if (hwnd == null) return false;
 
     try {
-      // 保存当前窗口样式
+      // 
       _savedStyle = _getWindowLong!(hwnd, gwlStyle);
       
-      // 获取并保存当前窗口位置和大小
+      // 
       final rect = calloc<RECT>();
       try {
         if (_getWindowRect!(hwnd, rect) != 0) {
@@ -163,14 +163,14 @@ class WindowsFullscreenNative {
         calloc.free(rect);
       }
 
-      // 获取屏幕尺寸
+      // 
       final screenWidth = _getSystemMetrics!(0); // SM_CXSCREEN
       final screenHeight = _getSystemMetrics!(1); // SM_CYSCREEN
 
-      // 移除窗口边框和标题栏
+      // 
       _setWindowLong!(hwnd, gwlStyle, _savedStyle! & ~wsOverlappedWindow);
 
-      // 设置窗口位置和大小为全屏
+      // 
       _setWindowPos!(
         hwnd,
         0,
@@ -188,18 +188,18 @@ class WindowsFullscreenNative {
     }
   }
 
-  /// 退出全屏
+  /// 
   static bool exitFullScreen() {
     final hwnd = getWindowHandle();
     if (hwnd == null) return false;
 
     try {
-      // 恢复窗口样式
+      // 
       if (_savedStyle != null) {
         _setWindowLong!(hwnd, gwlStyle, _savedStyle!);
       }
 
-      // 恢复窗口位置和大小
+      // 
       if (_savedX != null && _savedY != null && 
           _savedWidth != null && _savedHeight != null) {
         _setWindowPos!(
@@ -213,7 +213,7 @@ class WindowsFullscreenNative {
         );
       }
 
-      // 显示窗口
+      // 
       _showWindow!(hwnd, swShow);
 
       return true;
@@ -223,7 +223,7 @@ class WindowsFullscreenNative {
     }
   }
 
-  /// 切换全屏状态
+  /// 
   static bool toggleFullScreen() {
     try {
       if (isFullScreen()) {
