@@ -1,24 +1,24 @@
 {
-  "version": "1.5.15",
-  "build": 175,
+  "version": "1.5.16",
+  "build": 176,
   "releaseDate": "2026-02-24",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-mobile-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-mobile-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-tv-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-tv-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.15/voxtx-android-tv-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Corregido: se ampliaron traducciones en español en Settings (General/Developer/About)\n- Corregido: Utilities ahora respeta español (Export Logs/Clear Logs y textos relacionados)",
-    "zh": "- Corregido: se ampliaron traducciones en español en Settings (General/Developer/About)\n- Corregido: Utilities ahora respeta español (Export Logs/Clear Logs y textos relacionados)",
-    "en": "- Fixed: expanded Spanish translations in Settings (General/Developer/About)\n- Fixed: Utilities now follows Spanish language selection (Export Logs/Clear Logs and related texts)"
+    "es": "- Añadido: nuevo splash animado estilo OTT con entrada de logo y barra de carga cinematográfica\n- Cambiado: reemplazado el spinner rojo básico por una animación de inicio profesional",
+    "zh": "- Añadido: nuevo splash animado estilo OTT con entrada de logo y barra de carga cinematográfica\n- Cambiado: reemplazado el spinner rojo básico por una animación de inicio profesional",
+    "en": "- Added: new OTT-style animated splash with logo reveal and cinematic loading bar\n- Changed: replaced basic red spinner startup with a professional startup animation"
   },
   "minVersion": "1.0.0"
 }
