@@ -42,8 +42,9 @@ version: MAJOR.MINOR.PATCH+BUILD
 version: 1.5.XX+YYY   # increment both
 ```
 
-### 2. Update CHANGELOG.md
-Add entry at the top under `## [Unreleased]`:
+### 2. Update CHANGELOG.md and docs/version.json
+
+**CHANGELOG.md** — add entry at the top under `## [Unreleased]`:
 ```markdown
 ## [1.5.XX] - YYYY-MM-DD
 
@@ -53,6 +54,36 @@ Add entry at the top under `## [Unreleased]`:
 ### Fixed
 - ...
 ```
+
+**docs/version.json** — this is what the app checks to detect a new version. **Must be updated on every release or the app will never show the update notification.**
+```json
+{
+  "version": "1.5.XX",
+  "build": YYY,
+  "releaseDate": "YYYY-MM-DD",
+  "assets": {
+    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/flutteriptv-Windows-x64-Setup.exe",
+    "android_mobile": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-x86_64-release.apk"
+    },
+    "android_tv": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-x86_64-release.apk"
+    }
+  },
+  "changelog": {
+    "es": "- Resumen en español",
+    "en": "- English summary",
+    "zh": "- English summary"
+  },
+  "minVersion": "1.0.0"
+}
+```
+> APK filenames in the release assets are always the default Flutter names:  
+> `app-arm64-v8a-release.apk`, `app-armeabi-v7a-release.apk`, `app-x86_64-release.apk`
 
 ### 3. Build APKs
 ```bash
@@ -123,6 +154,7 @@ Ignore **info/warning** lines (unused imports, lint hints) unless they are new a
 | Creating GitHub Release on wrong repo | Always `--repo TonyBlanco/VOXTX-Releases` |
 | Using `--notes` with multi-line text | Write to a file, use `--notes-file` |
 | Forgetting to increment BUILD number | `version: X.Y.Z+BUILD` — both must increment |
+| **Forgetting to update `docs/version.json`** | **App will never detect the new version — update it on EVERY release** |
 | `git push` fails (rejected) | Run `git pull --rebase voxtx master` first |
 
 ---
