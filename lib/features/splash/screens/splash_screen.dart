@@ -19,15 +19,19 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+  static const Duration _minimumSplashDuration = Duration(milliseconds: 3200);
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _ambientController;
+  late DateTime _splashStartedAt;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
   late Animation<Offset> _logoSlide;
   late Animation<double> _textOpacity;
   late Animation<Offset> _textSlide;
   late Animation<double> _ambientPulse;
+  late Animation<double> _floatingOffset;
+  late Animation<double> _glowOpacity;
   late Animation<double> _ambientRingScale;
   late Animation<double> _ambientRingOpacity;
   late Animation<double> _loadingShimmer;
@@ -35,6 +39,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+    _splashStartedAt = DateTime.now();
     _logoController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this);
     _textController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
     _ambientController = AnimationController(duration: const Duration(milliseconds: 2800), vsync: this);
@@ -45,8 +50,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
     _textSlide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic));
     _ambientPulse = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.97, end: 1.03), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.03, end: 0.97), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.98, end: 1.04), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.04, end: 0.98), weight: 50),
+    ]).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut));
+    _floatingOffset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 6.0, end: -8.0), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 6.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut));
+    _glowOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.24, end: 0.52), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.52, end: 0.24), weight: 50),
     ]).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut));
     _ambientRingScale = Tween<double>(begin: 0.9, end: 1.35).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeOut));
     _ambientRingOpacity = Tween<double>(begin: 0.28, end: 0.0).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeOut));
@@ -103,8 +116,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ServiceLocator.log.e('应用初始化失败', tag: 'SplashScreen', error: e);
     }
 
-    // Ensure minimum splash display time
-    await Future.delayed(const Duration(milliseconds: 1500));
+    final elapsed = DateTime.now().difference(_splashStartedAt);
+    if (elapsed < _minimumSplashDuration) {
+      await Future.delayed(_minimumSplashDuration - elapsed);
+    }
 
     if (mounted) {
       // 使用 pushReplacementNamed 替换 splash，这样退出时不会显示 splash
@@ -158,8 +173,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             Transform.scale(
                               scale: _ambientRingScale.value,
                               child: Container(
-                                width: 140,
-                                height: 140,
+                                width: 176,
+                                height: 176,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
@@ -169,29 +184,30 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                 ),
                               ),
                             ),
-                            Transform.scale(
-                              scale: _ambientPulse.value,
-                              child: Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  gradient: AppTheme.getGradient(context),
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: primaryColor.withOpacity(0.42),
-                                      blurRadius: 30,
-                                      spreadRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
+                            Transform.translate(
+                              offset: Offset(0, _floatingOffset.value),
+                              child: Transform.scale(
+                                scale: _ambientPulse.value,
+                                child: Container(
+                                  width: 190,
+                                  height: 190,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: primaryColor.withOpacity(_glowOpacity.value),
+                                        blurRadius: 56,
+                                        spreadRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
                                   child: Image.asset(
                                     'assets/icons/app_icon.png',
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
+                                    width: 138,
+                                    height: 138,
+                                    fit: BoxFit.contain,
+                                    filterQuality: FilterQuality.high,
                                   ),
                                 ),
                               ),
@@ -244,48 +260,47 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               // Professional loading bar (without spinner)
               AnimatedBuilder(
                 animation: Listenable.merge([_textController, _ambientController]),
-                builder: (context, child) {
+                builder: (context, _) {
                   return Opacity(
                     opacity: _textOpacity.value,
-                    child: child,
+                    child: SizedBox(
+                      width: 220,
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              height: 6,
+                              color: AppTheme.getSurfaceColor(context),
+                              child: Stack(
+                                children: [
+                                  Transform.translate(
+                                    offset: Offset(_loadingShimmer.value * 120, 0),
+                                    child: Container(
+                                      width: 84,
+                                      decoration: BoxDecoration(
+                                        gradient: AppTheme.getGradient(context),
+                                        borderRadius: BorderRadius.circular(999),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            AppStrings.of(context)?.loading ?? 'Loading...',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.getTextMuted(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
-                child: SizedBox(
-                  width: 220,
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          height: 6,
-                          color: AppTheme.getSurfaceColor(context),
-                          child: Stack(
-                            children: [
-                              Transform.translate(
-                                offset: Offset(_loadingShimmer.value * 120, 0),
-                                child: Container(
-                                  width: 84,
-                                  decoration: BoxDecoration(
-                                    gradient: AppTheme.getGradient(context),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppStrings.of(context)?.loading ?? 'Loading...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.getTextMuted(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),

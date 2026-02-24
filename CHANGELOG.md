@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.17] - 2026-02-24
+
+### Fixed
+- Splash startup now keeps a guaranteed minimum on-screen duration before entering Home
+- Logo is rendered without rounded-square background container to preserve transparent icon appearance
+- Loading bar shimmer animation now updates continuously (fixed frozen frame issue)
+
+### Changed
+- Startup animation motion is now more visible (floating logo + stronger glow pulse)
+
 ## [1.5.16] - 2026-02-24
 
 ### Added

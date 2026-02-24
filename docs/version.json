@@ -1,24 +1,24 @@
 {
-  "version": "1.5.16",
-  "build": 176,
+  "version": "1.5.17",
+  "build": 177,
   "releaseDate": "2026-02-24",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-mobile-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-mobile-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-mobile-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-arm64-v8a.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-armeabi-v7a.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.16/voxtx-android-tv-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-tv-arm64-v8a.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-tv-armeabi-v7a.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.17/voxtx-android-tv-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Añadido: nuevo splash animado estilo OTT con entrada de logo y barra de carga cinematográfica\n- Cambiado: reemplazado el spinner rojo básico por una animación de inicio profesional",
-    "zh": "- Añadido: nuevo splash animado estilo OTT con entrada de logo y barra de carga cinematográfica\n- Cambiado: reemplazado el spinner rojo básico por una animación de inicio profesional",
-    "en": "- Added: new OTT-style animated splash with logo reveal and cinematic loading bar\n- Changed: replaced basic red spinner startup with a professional startup animation"
+    "es": "- Corregido: el splash mantiene una duración mínima visible antes de entrar a Home\n- Corregido: eliminado el fondo cuadrado detrás del logo para respetar transparencia\n- Corregido: barra de carga animada (shimmer) ya no queda estática",
+    "zh": "- Corregido: el splash mantiene una duración mínima visible antes de entrar a Home\n- Corregido: eliminado el fondo cuadrado detrás del logo para respetar transparencia\n- Corregido: barra de carga animada (shimmer) ya no queda estática",
+    "en": "- Fixed: splash now stays visible for a guaranteed minimum duration before Home\n- Fixed: removed square background container behind logo to preserve transparency\n- Fixed: loading shimmer now animates continuously"
   },
   "minVersion": "1.0.0"
 }
