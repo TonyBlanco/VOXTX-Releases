@@ -5,6 +5,7 @@ import '../models/app_update.dart';
 import '../services/update_service.dart';
 import '../widgets/update_dialog.dart';
 import '../services/service_locator.dart';
+import '../i18n/app_strings.dart';
 
 class UpdateManager {
   static final UpdateManager _instance = UpdateManager._internal();
@@ -36,12 +37,13 @@ class UpdateManager {
 
   /// 手动检查更新
   Future<void> manualCheckForUpdate(BuildContext context) async {
+    final strings = AppStrings.of(context);
     try {
       ServiceLocator.log.d('UPDATE_MANAGER: 手动检查更新...');
 
       // 显示加载提示
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
               SizedBox(
@@ -53,7 +55,7 @@ class UpdateManager {
                 ),
               ),
               SizedBox(width: 16),
-              Text('正在检查更新...'),
+              Text(strings?.checkingUpdate ?? 'Checking for updates...'),
             ],
           ),
           duration: Duration(seconds: 2),
@@ -73,8 +75,8 @@ class UpdateManager {
       } else if (context.mounted) {
         ServiceLocator.log.d('UPDATE_MANAGER: 已是最新版本');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('已是最新版本'),
+          SnackBar(
+            content: Text(strings?.alreadyLatestVersion ?? 'Already up to date'),
             backgroundColor: Colors.green,
           ),
         );
@@ -85,7 +87,7 @@ class UpdateManager {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('检查更新失败: $e'),
+            content: Text((strings?.checkUpdateFailed ?? 'Check update failed: {error}').replaceFirst('{error}', '$e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -111,6 +113,7 @@ class UpdateManager {
 
   /// 处理更新操作
   Future<void> _handleUpdate(BuildContext context, AppUpdate update) async {
+    final strings = AppStrings.of(context);
     try {
       ServiceLocator.log.d('UPDATE_MANAGER: 用户选择立即更新');
 
@@ -132,7 +135,7 @@ class UpdateManager {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('更新失败: $e'),
+            content: Text((strings?.updateFailed ?? 'Update failed: {error}').replaceFirst('{error}', '$e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -142,6 +145,7 @@ class UpdateManager {
 
   /// Android 下载并安装 APK
   Future<void> _downloadAndInstallAndroid(BuildContext context, AppUpdate update) async {
+    final strings = AppStrings.of(context);
     double progress = 0;
     bool cancelled = false;
     void Function(void Function())? dialogSetState;
@@ -156,7 +160,7 @@ class UpdateManager {
           builder: (context, setState) {
             dialogSetState = setState;
             return AlertDialog(
-              title: const Text('下载更新'),
+              title: Text(strings?.downloadUpdate ?? 'Download Update'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -171,7 +175,7 @@ class UpdateManager {
                     cancelled = true;
                     Navigator.of(ctx).pop();
                   },
-                  child: const Text('取消'),
+                  child: Text(strings?.cancel ?? 'Cancel'),
                 ),
               ],
             );
@@ -221,7 +225,7 @@ class UpdateManager {
           }
         });
       } else {
-        throw Exception('下载失败');
+        throw Exception((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst(': {error}', ''));
       }
     } catch (e) {
       ServiceLocator.log.d('UPDATE_MANAGER: 下载失败: $e');
@@ -231,7 +235,7 @@ class UpdateManager {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('下载失败: $e'),
+            content: Text((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst('{error}', '$e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -251,6 +255,7 @@ class UpdateManager {
 
   /// Windows 下载并安装
   Future<void> _downloadAndInstallWindows(BuildContext context, AppUpdate update) async {
+    final strings = AppStrings.of(context);
     double progress = 0;
     bool cancelled = false;
     bool dialogOpen = true;
@@ -265,7 +270,7 @@ class UpdateManager {
           builder: (_, setState) {
             dialogSetState = setState;
             return AlertDialog(
-              title: const Text('下载更新'),
+              title: Text(strings?.downloadUpdate ?? 'Download Update'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -281,7 +286,7 @@ class UpdateManager {
                     dialogOpen = false;
                     Navigator.of(ctx).pop();
                   },
-                  child: const Text('取消'),
+                  child: Text(strings?.cancel ?? 'Cancel'),
                 ),
               ],
             );
@@ -327,8 +332,8 @@ class UpdateManager {
           await showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('下载完成'),
-              content: const Text('是否立即运行安装程序？'),
+              title: Text(strings?.downloadComplete ?? 'Download Complete'),
+              content: Text(strings?.runInstallerNow ?? 'Run installer now?'),
               actions: [
                 TextButton(
                   onPressed: () async {
@@ -343,7 +348,7 @@ class UpdateManager {
                       ServiceLocator.log.d('UPDATE_MANAGER: 删除文件失败: $e');
                     }
                   },
-                  child: const Text('稍后'),
+                  child: Text(strings?.later ?? 'Later'),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -354,7 +359,7 @@ class UpdateManager {
                     // 退出当前应用
                     exit(0);
                   },
-                  child: const Text('立即安装'),
+                  child: Text(strings?.installNow ?? 'Install Now'),
                 ),
               ],
             ),
@@ -365,7 +370,7 @@ class UpdateManager {
           exit(0);
         }
       } else {
-        throw Exception('下载失败');
+        throw Exception((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst(': {error}', ''));
       }
     } catch (e) {
       ServiceLocator.log.d('UPDATE_MANAGER: 下载失败: $e');
@@ -376,7 +381,7 @@ class UpdateManager {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('下载失败: $e'),
+            content: Text((strings?.downloadFailed ?? 'Download failed: {error}').replaceFirst('{error}', '$e')),
             backgroundColor: Colors.red,
           ),
         );
