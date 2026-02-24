@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.12] - 2026-02-24
+
 ### Added
 - Channels mini preview panel for TV/Desktop with quick actions (play/favorite)
 - Channel availability status indicator in preview flow
