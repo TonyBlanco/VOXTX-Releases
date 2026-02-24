@@ -6,7 +6,7 @@
     "windows": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
       "arm64-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-armeabi-v7a.apk",
+      "armeabi-v7a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-armeabi-v7a.apk",
       "x86_64": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
