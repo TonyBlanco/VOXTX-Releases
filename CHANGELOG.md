@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.15] - 2026-02-24
+
+### Fixed
+- Spanish localization expanded in Settings (General/Developer/About sections)
+- Utilities labels now respect Spanish language selection (Export Logs/Clear Logs and related texts)
+
 ## [1.5.14] - 2026-02-24
 
 ### Fixed
