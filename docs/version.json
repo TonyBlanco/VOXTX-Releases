@@ -1,24 +1,24 @@
 {
-  "version": "1.5.12",
-  "build": 172,
+  "version": "1.5.13",
+  "build": 173,
   "releaseDate": "2026-02-24",
   "assets": {
     "windows": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-arm64-v8a.apk",
-      "armeabi-v7a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-mobile-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-mobile-arm64-v8a.apk",
+      "armeabi-v7a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-mobile-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-mobile-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-tv-arm64-v8a.apk",
-      "armeabi-v7a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-tv-armeabi-v7a.apk",
-      "x86_64": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.12/voxtx-android-tv-x86_64.apk"
+      "arm64-v8a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-tv-arm64-v8a.apk",
+      "armeabi-v7a": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-tv-armeabi-v7a.apk",
+      "x86_64": "https://gh-proxy.org/https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.13/voxtx-android-tv-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Añadido: panel mini preview en Canales para TV/Escritorio\n- Añadido: indicador de disponibilidad en el preview\n- Corregido: regresiones de estabilidad en flujos Movies/Series\n- Cambiado: fuente de actualización y enlaces migrados a VOXTX-Android",
-    "zh": "- Añadido: panel mini preview en Canales para TV/Escritorio\n- Añadido: indicador de disponibilidad en el preview\n- Corregido: regresiones de estabilidad en flujos Movies/Series\n- Cambiado: fuente de actualización y enlaces migrados a VOXTX-Android",
-    "en": "- Added: Channels mini preview panel for TV/Desktop\n- Added: Channel availability indicator in preview flow\n- Fixed: Stability regressions in Movies/Series flows\n- Changed: Update source and repository links migrated to VOXTX-Android"
+    "es": "- Añadido: presets de proveedor Xtream (incluye hardcoded actual)\n- Añadido: switches para incluir VOD/Series y TV Guide (EPG)\n- Añadido: modal gráfico de carga con métricas LIVE/MOVIES/SERIES y estado de cuenta\n- Corregido: resumen incorrecto que mostraba solo LIVE",
+    "zh": "- Añadido: presets de proveedor Xtream (incluye hardcoded actual)\n- Añadido: switches para incluir VOD/Series y TV Guide (EPG)\n- Añadido: modal gráfico de carga con métricas LIVE/MOVIES/SERIES y estado de cuenta\n- Corregido: resumen incorrecto que mostraba solo LIVE",
+    "en": "- Added: Xtream provider presets (including current hardcoded account)\n- Added: options to include VOD/Series and TV Guide (EPG)\n- Added: graphical loading modal with LIVE/MOVIES/SERIES metrics and account status\n- Fixed: incorrect summary showing only LIVE totals"
   },
   "minVersion": "1.0.0"
 }

@@ -7,6 +7,7 @@ import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../../core/platform/platform_detector.dart';
 import '../widgets/qr_import_dialog.dart';
+import '../widgets/add_xtream_dialog.dart';
 import '../providers/playlist_provider.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
@@ -226,6 +227,14 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
           subtitle: 'Use your phone to scan QR code',
           isPrimary: false,
         ),
+        const SizedBox(height: 16),
+        _buildImportCard(
+          onPressed: () => _showXtreamDialog(context),
+          icon: Icons.dns,
+          title: 'Xtream Codes',
+          subtitle: 'Server URL + user + password',
+          isPrimary: false,
+        ),
       ],
     );
   }
@@ -287,6 +296,14 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
                 onPressed: () => _showQrImportDialog(context),
                 icon: Icons.qr_code_scanner_rounded,
                 label: AppStrings.of(context)?.scanToImport ?? 'Scan QR',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSecondaryButton(
+                onPressed: () => _showXtreamDialog(context),
+                icon: Icons.dns,
+                label: 'Xtream',
               ),
             ),
           ],
@@ -572,6 +589,23 @@ class _PlaylistManagerScreenState extends State<PlaylistManagerScreen> {
         ),
       );
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _showXtreamDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => const AddXtreamDialog(),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.of(context)?.playlistImported ?? 'Playlist imported successfully'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+      Navigator.pop(context, true);
     }
   }
 

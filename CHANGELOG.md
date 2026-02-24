@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.13] - 2026-02-24
+
+### Added
+- Xtream provider presets (including the current hardcoded provider) in Xtream dialog
+- Xtream import options: include/exclude VOD+Series and include/exclude TV Guide (EPG)
+- Detailed Xtream import progress view with account status and LIVE/MOVIES/SERIES counters
+- Quick Xtream access added to Playlist Manager (TV/Desktop)
+
+### Changed
+- Xtream import UX now validates account and shows provider metrics before ingest
+- Import progress now reaches explicit 100% success state (green)
+
+### Fixed
+- Corrected misleading LIVE-only top summary by showing separate LIVE/MOVIES/SERIES totals
+- Improved update note language fallback behavior for OTA dialogs
+
 ## [1.5.12] - 2026-02-24
 
 ### Added
