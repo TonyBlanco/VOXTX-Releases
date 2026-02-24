@@ -80,10 +80,10 @@ class EpgProvider extends ChangeNotifier {
       success = false;
     } finally {
       _isLoading = false;
-      // Only notify if not silent (user-initiated refresh)
-      if (!silent) {
-        notifyListeners();
-      }
+      // Always notify so the UI (channel cards) refreshes with EPG data.
+      // For silent=true we skip the initial loading-state notification above,
+      // but we still need to notify after the data is ready.
+      notifyListeners();
     }
     
     return success;

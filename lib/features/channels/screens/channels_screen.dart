@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/navigation/app_router.dart';
@@ -70,6 +73,11 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
   final Set<String> _channelAvailabilityLoading = {};
   Channel? _previewChannel;
 
+  // Mini player (TV preview panel)
+  Player? _miniPlayer;
+  VideoController? _miniVideoController;
+  Timer? _miniPlayTimer; // debounce before starting stream
+
   String _tr(String es, String en) {
     final lang = Localizations.localeOf(context).languageCode;
     return lang == 'es' ? es : en;
@@ -79,6 +87,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
   void initState() {
     super.initState();
     _selectedGroup = widget.groupName;
+
+    // Initialize TV mini player
+    _miniPlayer = Player();
+    _miniVideoController = VideoController(_miniPlayer!);
 
     // ✅ 
     _scrollController.addListener(_onScroll);
@@ -132,6 +144,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     _groupSelectTimer?.cancel();
     _scrollEndTimer?.cancel();
     _previewStatusTimer?.cancel();
+    _miniPlayTimer?.cancel();
+    _miniPlayer?.dispose();
     _scrollController.dispose();
     _groupScrollController.dispose();
     for (final node in _groupFocusNodes) {
@@ -153,6 +167,18 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       _previewChannel = channel;
     });
     _scheduleAvailabilityCheck(channel);
+
+    // Debounce mini player — wait 500ms before starting the stream to avoid
+    // hammering the server as the user scrolls through channel cards.
+    _miniPlayTimer?.cancel();
+    _miniPlayTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted && _miniPlayer != null) {
+        final url = channel.sources.isNotEmpty
+            ? channel.sources[channel.currentSourceIndex.clamp(0, channel.sources.length - 1)]
+            : channel.url;
+        _miniPlayer!.open(Media(url));
+      }
+    });
   }
 
   void _scheduleAvailabilityCheck(Channel channel) {
@@ -184,6 +210,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
   }
 
   Future<void> _playFromPreview(Channel channel) async {
+    // Stop mini player before launching fullscreen player
+    _miniPlayTimer?.cancel();
+    _miniPlayer?.stop();
     Navigator.pushNamed(
       context,
       AppRouter.player,
@@ -201,118 +230,380 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     return Container(
       width: 300,
       margin: const EdgeInsets.only(right: 12, top: 12, bottom: 12),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.getGlassBorderColor(context)),
       ),
-      child: channel == null
-          ? Center(
-              child: Text(
-                _tr('Selecciona un canal para previsualizar', 'Select a channel to preview'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.getTextSecondary(context)),
-              ),
-            )
-          : Consumer<FavoritesProvider>(
-              builder: (context, favorites, _) {
-                final key = _channelKey(channel);
-                final isLoading = _channelAvailabilityLoading.contains(key);
-                final isAvailable = _channelAvailability[key];
-                final isFavorite = favorites.isFavorite(channel.id ?? 0);
-
-                Color statusColor;
-                String statusLabel;
-                if (isLoading) {
-                  statusColor = AppTheme.getTextMuted(context);
-                  statusLabel = _tr('Comprobando...', 'Checking...');
-                } else if (isAvailable == true) {
-                  statusColor = Colors.green;
-                  statusLabel = _tr('Activo', 'Active');
-                } else if (isAvailable == false) {
-                  statusColor = AppTheme.errorColor;
-                  statusLabel = _tr('No disponible', 'Unavailable');
-                } else {
-                  statusColor = AppTheme.getTextMuted(context);
-                  statusLabel = _tr('Sin comprobar', 'Not checked');
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _tr('Mini preview', 'Mini preview'),
-                      style: TextStyle(
-                        color: AppTheme.getTextPrimary(context),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Video player area ──────────────────────────────────────────
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: channel == null
+                  ? Container(
+                      color: Colors.black,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.live_tv_outlined,
+                                size: 40,
+                                color: AppTheme.getTextMuted(context)
+                                    .withOpacity(0.5)),
+                            const SizedBox(height: 8),
+                            Text(
+                              _tr('Selecciona un canal',
+                                  'Select a channel'),
+                              style: TextStyle(
+                                color: AppTheme.getTextMuted(context),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: ChannelCard(
-                        name: channel.name,
-                        logoUrl: channel.logoUrl,
-                        channel: channel,
-                        groupName: channel.groupName,
-                        isFavorite: isFavorite,
-                        isPlaying: isAvailable == true,
-                        onTap: () => _playFromPreview(channel),
-                        onFavoriteToggle: () => favorites.toggleFavorite(channel),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
+                    )
+                  : Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
+                        // Black background
+                        Container(color: Colors.black),
+                        // Media Kit Video player
+                        if (_miniVideoController != null)
+                          Video(
+                            controller: _miniVideoController!,
+                            controls: NoVideoControls,
+                          ),
+                        // Logo overlay (visible while buffering / on error)
+                        if (channel.logoUrl != null &&
+                            channel.logoUrl!.isNotEmpty)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: CachedNetworkImage(
+                                imageUrl: channel.logoUrl!,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.contain,
+                                errorWidget: (_, __, ___) =>
+                                    const SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
+                        // Tap to go fullscreen
+                        Positioned.fill(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: channel != null
+                                  ? () => _playFromPreview(channel)
+                                  : null,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          statusLabel,
-                          style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () {
-                            _channelAvailability.remove(key);
-                            _scheduleAvailabilityCheck(channel);
-                            immediateSetState(() {});
-                          },
-                          child: Text(_tr('Revisar', 'Recheck')),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => favorites.toggleFavorite(channel),
-                            icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border_rounded, size: 16),
-                            label: Text(_tr('Favorito', 'Favorite')),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _playFromPreview(channel),
-                            icon: const Icon(Icons.play_arrow_rounded, size: 16),
-                            label: Text(_tr('Play', 'Play')),
+                        // Fullscreen icon hint
+                        Positioned(
+                          bottom: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(Icons.fullscreen_rounded,
+                                color: Colors.white, size: 14),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                );
-              },
             ),
+          ),
+
+          // ── Info area ─────────────────────────────────────────────────
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: channel == null
+                  ? Center(
+                      child: Text(
+                        _tr('Selecciona un canal para previsualizar',
+                            'Select a channel to preview'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppTheme.getTextSecondary(context),
+                          fontSize: 11,
+                        ),
+                      ),
+                    )
+                  : Consumer2<FavoritesProvider, EpgProvider>(
+                      builder: (context, favorites, epgProvider, _) {
+                        final key = _channelKey(channel);
+                        final isLoading =
+                            _channelAvailabilityLoading.contains(key);
+                        final isAvailable = _channelAvailability[key];
+                        final isFavorite =
+                            favorites.isFavorite(channel.id ?? 0);
+                        final currentProgram = epgProvider.getCurrentProgram(
+                            channel.epgId, channel.name);
+                        final nextProgram = epgProvider.getNextProgram(
+                            channel.epgId, channel.name);
+
+                        Color statusColor;
+                        String statusLabel;
+                        if (isLoading) {
+                          statusColor = AppTheme.getTextMuted(context);
+                          statusLabel =
+                              _tr('Comprobando...', 'Checking...');
+                        } else if (isAvailable == true) {
+                          statusColor = Colors.green;
+                          statusLabel = _tr('Activo', 'Active');
+                        } else if (isAvailable == false) {
+                          statusColor = AppTheme.errorColor;
+                          statusLabel =
+                              _tr('No disponible', 'Unavailable');
+                        } else {
+                          statusColor = AppTheme.getTextMuted(context);
+                          statusLabel =
+                              _tr('Sin comprobar', 'Not checked');
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Channel name
+                            Text(
+                              channel.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: AppTheme.getTextPrimary(context),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (channel.groupName != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                channel.groupName!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: AppTheme.getTextMuted(context),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+
+                            // EPG info
+                            if (currentProgram != null) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppTheme.getPrimaryColor(context),
+                                      borderRadius:
+                                          BorderRadius.circular(3),
+                                    ),
+                                    child: const Text('NOW',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      currentProgram.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color:
+                                            AppTheme.getTextPrimary(context),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Progress bar for current program
+                              const SizedBox(height: 3),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: currentProgram.progress,
+                                  minHeight: 3,
+                                  backgroundColor:
+                                      AppTheme.getCardColor(context),
+                                  valueColor: AlwaysStoppedAnimation(
+                                      AppTheme.getPrimaryColor(context)),
+                                ),
+                              ),
+                              Text(
+                                _tr(
+                                  'Termina en ${currentProgram.remainingMinutes}min',
+                                  'Ends in ${currentProgram.remainingMinutes}min',
+                                ),
+                                style: TextStyle(
+                                  color: AppTheme.getTextMuted(context),
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
+                            if (nextProgram != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.getTextMuted(context)
+                                          .withOpacity(0.3),
+                                      borderRadius:
+                                          BorderRadius.circular(3),
+                                    ),
+                                    child: const Text('NEXT',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      nextProgram.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppTheme.getTextSecondary(
+                                            context),
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+
+                            const Spacer(),
+
+                            // Status row
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: statusColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  statusLabel,
+                                  style: TextStyle(
+                                      color: AppTheme.getTextSecondary(
+                                          context),
+                                      fontSize: 10),
+                                ),
+                                const Spacer(),
+                                GestureDetector(
+                                  onTap: () {
+                                    _channelAvailability.remove(key);
+                                    _scheduleAvailabilityCheck(channel);
+                                    immediateSetState(() {});
+                                  },
+                                  child: Text(
+                                    _tr('Reintentar', 'Retry'),
+                                    style: TextStyle(
+                                      color: AppTheme.getPrimaryColor(
+                                          context),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Action buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 28,
+                                    child: OutlinedButton(
+                                      style: OutlinedButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        side: BorderSide(
+                                          color:
+                                              isFavorite
+                                                  ? AppTheme.accentColor
+                                                  : AppTheme.getGlassBorderColor(context),
+                                        ),
+                                      ),
+                                      onPressed: () => favorites
+                                          .toggleFavorite(channel),
+                                      child: Icon(
+                                        isFavorite
+                                            ? Icons.favorite
+                                            : Icons.favorite_border_rounded,
+                                        size: 14,
+                                        color: isFavorite
+                                            ? AppTheme.accentColor
+                                            : AppTheme.getTextSecondary(
+                                                context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  flex: 2,
+                                  child: SizedBox(
+                                    height: 28,
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6),
+                                        backgroundColor:
+                                            AppTheme.getPrimaryColor(context),
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      onPressed: () =>
+                                          _playFromPreview(channel),
+                                      icon: const Icon(
+                                          Icons.play_arrow_rounded,
+                                          size: 14),
+                                      label: Text(
+                                        _tr('Play', 'Play'),
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1382,6 +1673,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                             },
                             onTest: () => _testSingleChannel(context, channel),
                             onTap: () async {
+                              // Stop mini player preview before launching fullscreen
+                              _miniPlayTimer?.cancel();
+                              _miniPlayer?.stop();
+
                               final settingsProvider =
                                   context.read<SettingsProvider>();
 

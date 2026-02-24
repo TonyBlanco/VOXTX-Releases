@@ -42,8 +42,8 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   void initState() {
     super.initState();
-    // 8
-    for (int i = 0; i < 8; i++) {
+    // 9
+    for (int i = 0; i < 9; i++) {
       _menuFocusNodes.add(FocusNode());
     }
     // 
@@ -74,6 +74,7 @@ class _TVSidebarState extends State<TVSidebar> {
     final items = [
       _NavItem(icon: Icons.home_rounded, label: AppStrings.of(context)?.home ?? 'Home', route: null),
       _NavItem(icon: Icons.live_tv_rounded, label: AppStrings.of(context)?.channels ?? 'Channels', route: AppRouter.channels),
+      _NavItem(icon: Icons.event_note_rounded, label: 'Program Guide', route: AppRouter.epg),
       _NavItem(icon: Icons.movie_rounded, label: AppStrings.of(context)?.movies ?? 'Movies', route: AppRouter.movies),
       _NavItem(icon: Icons.video_library_rounded, label: AppStrings.of(context)?.series ?? 'Series', route: AppRouter.series),
       _NavItem(icon: Icons.playlist_play_rounded, label: AppStrings.of(context)?.playlistList ?? 'Playlist List', route: AppRouter.playlistList),
@@ -263,8 +264,8 @@ class _TVSidebarState extends State<TVSidebar> {
             // 
             return KeyEventResult.handled;
           }
-          if (key == LogicalKeyboardKey.arrowDown && index == 7) {
-            // 87
+          if (key == LogicalKeyboardKey.arrowDown && index == 8) {
+            // 98
             return KeyEventResult.handled;
           }
           
