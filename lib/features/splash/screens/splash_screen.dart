@@ -21,21 +21,38 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _textController;
+  late AnimationController _ambientController;
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
+  late Animation<Offset> _logoSlide;
   late Animation<double> _textOpacity;
   late Animation<Offset> _textSlide;
+  late Animation<double> _ambientPulse;
+  late Animation<double> _ambientRingScale;
+  late Animation<double> _ambientRingOpacity;
+  late Animation<double> _loadingShimmer;
 
   @override
   void initState() {
     super.initState();
     _logoController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this);
     _textController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
+    _ambientController = AnimationController(duration: const Duration(milliseconds: 2800), vsync: this);
 
-    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
+    _logoScale = Tween<double>(begin: 0.72, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack));
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: const Interval(0.0, 0.5, curve: Curves.easeOut)));
+    _logoSlide = Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic));
     _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
     _textSlide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic));
+    _ambientPulse = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.97, end: 1.03), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.03, end: 0.97), weight: 50),
+    ]).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut));
+    _ambientRingScale = Tween<double>(begin: 0.9, end: 1.35).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeOut));
+    _ambientRingOpacity = Tween<double>(begin: 0.28, end: 0.0).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeOut));
+    _loadingShimmer = Tween<double>(begin: -1.1, end: 1.1).animate(CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut));
+
+    _ambientController.repeat();
 
     _startAnimations();
   }
@@ -99,6 +116,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void dispose() {
     _logoController.dispose();
     _textController.dispose();
+    _ambientController.dispose();
     super.dispose();
   }
 
@@ -124,42 +142,66 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Animated Logo
+              // OTT-style animated logo with ambient pulse
               AnimatedBuilder(
-                animation: _logoController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _logoScale.value,
-                    child: Opacity(
-                      opacity: _logoOpacity.value,
-                      child: child,
+                animation: Listenable.merge([_logoController, _ambientController]),
+                builder: (context, _) {
+                  return SlideTransition(
+                    position: _logoSlide,
+                    child: Transform.scale(
+                      scale: _logoScale.value,
+                      child: Opacity(
+                        opacity: _logoOpacity.value,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Transform.scale(
+                              scale: _ambientRingScale.value,
+                              child: Container(
+                                width: 140,
+                                height: 140,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: primaryColor.withOpacity(_ambientRingOpacity.value),
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.scale(
+                              scale: _ambientPulse.value,
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  gradient: AppTheme.getGradient(context),
+                                  borderRadius: BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withOpacity(0.42),
+                                      blurRadius: 30,
+                                      spreadRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/icons/app_icon.png',
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.getGradient(context),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primaryColor.withOpacity(0.4),
-                        blurRadius: 30,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/icons/app_icon.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
               ),
 
               const SizedBox(height: 32),
@@ -199,9 +241,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
               const SizedBox(height: 60),
 
-              // Loading indicator
+              // Professional loading bar (without spinner)
               AnimatedBuilder(
-                animation: _textController,
+                animation: Listenable.merge([_textController, _ambientController]),
                 builder: (context, child) {
                   return Opacity(
                     opacity: _textOpacity.value,
@@ -209,15 +251,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   );
                 },
                 child: SizedBox(
-                  width: 200,
+                  width: 220,
                   child: Column(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          backgroundColor: AppTheme.getSurfaceColor(context),
-                          color: primaryColor,
-                          minHeight: 4,
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          height: 6,
+                          color: AppTheme.getSurfaceColor(context),
+                          child: Stack(
+                            children: [
+                              Transform.translate(
+                                offset: Offset(_loadingShimmer.value * 120, 0),
+                                child: Container(
+                                  width: 84,
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.getGradient(context),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
