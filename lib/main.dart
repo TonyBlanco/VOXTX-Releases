@@ -223,45 +223,9 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       // 初始化自动刷新服务
       ServiceLocator.log.d('addPostFrameCallback ejecutado', tag: 'AutoRefresh');
       _initAutoRefresh();
-      // 尝试在首次运行时导入预配置的 Xtream (如果未导入过)
-      _maybeImportXtreamPreset();
       // 应用屏幕方向设置
       _applyOrientationSettings();
     });
-  }
-
-  /// Intentar importar una lista de Xtream Codes preconfigurada en la primera ejecución
-  Future<void> _maybeImportXtreamPreset() async {
-    try {
-      final prefs = ServiceLocator.prefs;
-      const prefKey = 'xtream_preset_imported_v1';
-      if (prefs.getBool(prefKey) == true) {
-        ServiceLocator.log.d('Xtream preset ya importado, omitiendo', tag: 'XtreamPreset');
-        return;
-      }
-
-      // Datos proporcionados por el usuario — cambia aquí si necesitas otros valores
-      const xtreamName = 'XTREAM - nextv';
-      const m3uUrl = 'http://nextv.ottb.xyz/get.php?username=890395263975&password=957195541666&output=ts&type=m3u_plus';
-
-      ServiceLocator.log.i('Intentando importar preset Xtream: $xtreamName', tag: 'XtreamPreset');
-
-      // Agregar playlist desde URL
-      final playlistProvider = context.read<PlaylistProvider>();
-      try {
-        final playlist = await playlistProvider.addPlaylistFromUrl(xtreamName, m3uUrl);
-        if (playlist != null) {
-          ServiceLocator.log.i('Preset Xtream importado con éxito: ${playlist.name}', tag: 'XtreamPreset');
-          prefs.setBool(prefKey, true);
-        } else {
-          ServiceLocator.log.w('Importación de preset Xtream devolvió vacío', tag: 'XtreamPreset');
-        }
-      } catch (e) {
-        ServiceLocator.log.w('Error al importar preset Xtream: $e', tag: 'XtreamPreset');
-      }
-    } catch (e) {
-      ServiceLocator.log.w('Error al comprobar/importar preset Xtream: $e', tag: 'XtreamPreset');
-    }
   }
 
   /// 应用屏幕方向设置

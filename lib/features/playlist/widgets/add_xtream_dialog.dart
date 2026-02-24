@@ -28,14 +28,6 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
 
   static const List<_XtreamPreset> _presets = [
     _XtreamPreset(
-      id: 'nextv',
-      label: 'XTREAM - nextv (hardcoded)',
-      server: 'http://nextv.ottb.xyz',
-      username: '890395263975',
-      password: '957195541666',
-      suggestedName: 'XTREAM - nextv',
-    ),
-    _XtreamPreset(
       id: 'custom',
       label: 'Custom provider',
       server: '',
@@ -45,7 +37,7 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
     ),
   ];
 
-  String _selectedPresetId = 'nextv';
+  String _selectedPresetId = 'custom';
   bool _includeVodSeries = true;
   bool _includeEpg = true;
 
