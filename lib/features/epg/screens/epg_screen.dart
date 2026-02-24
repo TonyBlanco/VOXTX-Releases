@@ -13,6 +13,7 @@ import '../../../core/services/epg_service.dart';
 import '../../../core/models/channel.dart';
 
 import '../../channels/providers/channel_provider.dart';
+import '../../player/screens/player_screen.dart';
 import '../providers/epg_provider.dart';
 
 class EpgScreen extends StatefulWidget {
@@ -26,6 +27,8 @@ class EpgScreen extends StatefulWidget {
 
 class _EpgScreenState extends State<EpgScreen> {
   Channel? _selectedChannel;
+  String? _selectedGroup;
+  List<String> _groups = [];
 
   late final Player _player;
   late final VideoController _videoController;
@@ -34,6 +37,7 @@ class _EpgScreenState extends State<EpgScreen> {
 
   final ScrollController _channelScrollController = ScrollController();
   final ScrollController _programScrollController = ScrollController();
+  final ScrollController _groupScrollController = ScrollController();
 
   String _tr(String es, String en) {
     final lang = Localizations.localeOf(context).languageCode;
@@ -53,6 +57,14 @@ class _EpgScreenState extends State<EpgScreen> {
     final channels = context.read<ChannelProvider>().allChannels;
     if (channels.isEmpty) return;
 
+    final seen = <String>{};
+    final groups = <String>[];
+    for (final ch in channels) {
+      final g = ch.groupName;
+      if (g != null && g.isNotEmpty && seen.add(g)) groups.add(g);
+    }
+    groups.sort();
+
     Channel? target;
     if (widget.channelId != null) {
       try {
@@ -61,7 +73,39 @@ class _EpgScreenState extends State<EpgScreen> {
         );
       } catch (_) {}
     }
-    setState(() => _selectedChannel = target ?? channels.first);
+    setState(() {
+      _groups = groups;
+      _selectedChannel = target ?? channels.first;
+      if (_selectedChannel?.groupName != null) {
+        _selectedGroup = _selectedChannel!.groupName;
+      }
+    });
+  }
+
+  void _selectGroup(String? group) {
+    final all = context.read<ChannelProvider>().allChannels;
+    final filtered = group == null ? all : all.where((c) => c.groupName == group).toList();
+    setState(() {
+      _selectedGroup = group;
+      if (filtered.isNotEmpty && !filtered.any((c) => c.url == _selectedChannel?.url)) {
+        _selectedChannel = filtered.first;
+      }
+    });
+    _channelScrollController.animateTo(0,
+        duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+  }
+
+  void _openFullscreen() {
+    final ch = _selectedChannel;
+    if (ch == null) return;
+    _stopPlaying();
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => PlayerScreen(
+        channelUrl: ch.url,
+        channelName: ch.name,
+        channelLogo: ch.logoUrl,
+      ),
+    ));
   }
 
   void _selectChannel(Channel channel) {
@@ -89,6 +133,7 @@ class _EpgScreenState extends State<EpgScreen> {
     _player.dispose();
     _channelScrollController.dispose();
     _programScrollController.dispose();
+    _groupScrollController.dispose();
     super.dispose();
   }
 
@@ -113,7 +158,15 @@ class _EpgScreenState extends State<EpgScreen> {
         Expanded(
           child: Row(
             children: [
-              SizedBox(width: 130, child: _buildChannelList(compact: true)),
+              SizedBox(
+                width: 140,
+                child: Column(
+                  children: [
+                    _buildGroupChips(compact: true),
+                    Expanded(child: _buildChannelList(compact: true)),
+                  ],
+                ),
+              ),
               const VerticalDivider(width: 1),
               Expanded(child: _buildProgramList()),
             ],
@@ -127,10 +180,11 @@ class _EpgScreenState extends State<EpgScreen> {
     return Row(
       children: [
         SizedBox(
-          width: 220,
+          width: 230,
           child: Column(
             children: [
               _buildAppBar(slim: true),
+              _buildGroupChips(compact: false),
               Expanded(child: _buildChannelList()),
             ],
           ),
@@ -187,6 +241,58 @@ class _EpgScreenState extends State<EpgScreen> {
     );
   }
 
+  // ─── Group Chips ───────────────────────────────────────────────────────────
+
+  Widget _buildGroupChips({required bool compact}) {
+    if (_groups.isEmpty) return const SizedBox.shrink();
+    return Container(
+      height: compact ? 36 : 42,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+              color: AppTheme.getCardColor(context).withOpacity(0.5), width: 1),
+        ),
+      ),
+      child: ListView.separated(
+        controller: _groupScrollController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        itemCount: _groups.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(width: 5),
+        itemBuilder: (context, index) {
+          final isAll = index == 0;
+          final group = isAll ? null : _groups[index - 1];
+          final isSelected = _selectedGroup == group;
+          return GestureDetector(
+            onTap: () => _selectGroup(group),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 8 : 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.getPrimaryColor(context)
+                    : AppTheme.getCardColor(context).withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                isAll ? _tr('Todos', 'All') : (group ?? ''),
+                maxLines: 1,
+                style: TextStyle(
+                  color: isSelected
+                      ? Colors.white
+                      : AppTheme.getTextSecondary(context),
+                  fontSize: compact ? 10 : 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   // ─── Now Playing Header (desktop) ─────────────────────────────────────────
 
   Widget _buildNowPlayingHeader() {
@@ -206,14 +312,7 @@ class _EpgScreenState extends State<EpgScreen> {
         ),
         child: Row(
           children: [
-            if (ch.logoUrl != null && ch.logoUrl!.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: ch.logoUrl!,
-                width: 32,
-                height: 32,
-                fit: BoxFit.contain,
-                errorWidget: (_, __, ___) => const SizedBox.shrink(),
-              ),
+            _ChannelLogo(logoUrl: ch.logoUrl, size: 32),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -237,6 +336,12 @@ class _EpgScreenState extends State<EpgScreen> {
               ),
             ),
             IconButton(
+              icon: Icon(Icons.fullscreen_rounded,
+                  color: AppTheme.getPrimaryColor(context), size: 26),
+              tooltip: _tr('Pantalla completa', 'Full screen'),
+              onPressed: _openFullscreen,
+            ),
+            IconButton(
               icon: Icon(
                 _playerActive
                     ? Icons.stop_circle_outlined
@@ -258,30 +363,39 @@ class _EpgScreenState extends State<EpgScreen> {
   Widget _buildDesktopPlayer() {
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: Container(
-        color: Colors.black,
-        child: _playerActive
-            ? Video(controller: _videoController, controls: NoVideoControls)
-            : Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.play_circle_outline_rounded,
-                        size: 48,
-                        color: AppTheme.getTextMuted(context).withOpacity(0.4)),
-                    const SizedBox(height: 8),
-                    Text(
-                      _selectedChannel == null
-                          ? _tr('Selecciona un canal', 'Select a channel')
-                          : _tr('Pulsa Play para ver', 'Press Play to watch'),
-                      style: TextStyle(
-                        color: AppTheme.getTextMuted(context),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(color: Colors.black),
+          if (_playerActive)
+            Video(controller: _videoController, controls: NoVideoControls),
+          if (!_playerActive)
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.play_circle_outline_rounded,
+                      size: 48,
+                      color: AppTheme.getTextMuted(context).withOpacity(0.4)),
+                  const SizedBox(height: 8),
+                  Text(
+                    _selectedChannel == null
+                        ? _tr('Selecciona un canal', 'Select a channel')
+                        : _tr('Pulsa Play para ver', 'Press Play to watch'),
+                    style: TextStyle(
+                        color: AppTheme.getTextMuted(context), fontSize: 12),
+                  ),
+                ],
               ),
+            ),
+          if (_playerActive)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _OverlayBtn(
+                  icon: Icons.fullscreen_rounded, onTap: _openFullscreen),
+            ),
+        ],
       ),
     );
   }
@@ -303,13 +417,7 @@ class _EpgScreenState extends State<EpgScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (ch?.logoUrl != null && ch!.logoUrl!.isNotEmpty)
-                      CachedNetworkImage(
-                        imageUrl: ch.logoUrl!,
-                        height: 48,
-                        fit: BoxFit.contain,
-                        errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                      ),
+                    _ChannelLogo(logoUrl: ch?.logoUrl, size: 48),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -331,23 +439,19 @@ class _EpgScreenState extends State<EpgScreen> {
                 ),
               ),
             ),
-          if (_playerActive)
+          if (_playerActive) ...[  
+            Positioned(
+              top: 6,
+              right: 36,
+              child: _OverlayBtn(
+                  icon: Icons.fullscreen_rounded, onTap: _openFullscreen),
+            ),
             Positioned(
               top: 6,
               right: 6,
-              child: GestureDetector(
-                onTap: _stopPlaying,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(Icons.close_rounded,
-                      color: Colors.white, size: 16),
-                ),
-              ),
+              child: _OverlayBtn(icon: Icons.close_rounded, onTap: _stopPlaying),
             ),
+          ],
         ],
       ),
     );
@@ -358,7 +462,11 @@ class _EpgScreenState extends State<EpgScreen> {
   Widget _buildChannelList({bool compact = false}) {
     return Consumer2<ChannelProvider, EpgProvider>(
       builder: (context, channelProvider, epgProvider, _) {
-        final channels = channelProvider.allChannels;
+        final channels = _selectedGroup == null
+            ? channelProvider.allChannels
+            : channelProvider.allChannels
+                .where((c) => c.groupName == _selectedGroup)
+                .toList();
         if (channels.isEmpty) {
           return Center(
             child: Text(
@@ -454,6 +562,56 @@ class _EpgScreenState extends State<EpgScreen> {
   }
 }
 
+// ─── Overlay Button ───────────────────────────────────────────────────────
+
+class _OverlayBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _OverlayBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+            color: Colors.black54, borderRadius: BorderRadius.circular(4)),
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
+}
+
+// ─── Channel Logo ───────────────────────────────────────────────────────────
+
+class _ChannelLogo extends StatelessWidget {
+  final String? logoUrl;
+  final double size;
+  const _ChannelLogo({required this.logoUrl, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    if (logoUrl == null || logoUrl!.isEmpty) return _fallback(context);
+    return CachedNetworkImage(
+      imageUrl: logoUrl!,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      placeholder: (_, __) => _fallback(context),
+      errorWidget: (_, __, ___) => _fallback(context),
+    );
+  }
+
+  Widget _fallback(BuildContext context) => SizedBox(
+        width: size,
+        height: size,
+        child: Icon(Icons.tv_rounded,
+            size: size * 0.55,
+            color: AppTheme.getTextMuted(context).withOpacity(0.4)),
+      );
+}
+
 // ─── Channel List Tile ────────────────────────────────────────────────────────
 
 class _ChannelListTile extends StatelessWidget {
@@ -473,6 +631,7 @@ class _ChannelListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = compact ? 28.0 : 36.0;
     return InkWell(
       onTap: onTap,
       child: AnimatedContainer(
@@ -498,16 +657,7 @@ class _ChannelListTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
-              child: channel.logoUrl != null && channel.logoUrl!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: channel.logoUrl!,
-                      width: compact ? 28 : 36,
-                      height: compact ? 28 : 36,
-                      fit: BoxFit.contain,
-                      errorWidget: (_, __, ___) =>
-                          _placeholder(context, compact),
-                    )
-                  : _placeholder(context, compact),
+              child: _ChannelLogo(logoUrl: channel.logoUrl, size: size),
             ),
             SizedBox(width: compact ? 6 : 10),
             Expanded(
@@ -549,17 +699,6 @@ class _ChannelListTile extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(BuildContext context, bool compact) => Container(
-        width: compact ? 28 : 36,
-        height: compact ? 28 : 36,
-        decoration: BoxDecoration(
-          color: AppTheme.getCardColor(context),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Icon(Icons.tv_rounded,
-            size: compact ? 16 : 20,
-            color: AppTheme.getTextMuted(context).withOpacity(0.5)),
-      );
 }
 
 // ─── Program List Tile ────────────────────────────────────────────────────────
