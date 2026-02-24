@@ -1,206 +1,87 @@
 # VoXTV
 
 <p align="center">
-  <img src="assets/icons/app_icon.png" width="120" alt="VoXTV Logo">
+  <img src="assets/icons/app_icon.png" width="120" alt="Logo de VoXTV">
 </p>
 
 <p align="center">
-  <strong>现代化 IPTV 播放器 - 支持 Windows、Android 和 Android TV</strong>
+  <strong>Reproductor IPTV moderno para Windows, Android y Android TV</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/TonyBlanco/VOXTX-Android/releases">
-    <img src="https://img.shields.io/github/v/release/TonyBlanco/VOXTX-Android?include_prereleases" alt="最新版本">
+    <img src="https://img.shields.io/github/v/release/TonyBlanco/VOXTX-Android?include_prereleases" alt="Última versión">
   </a>
   <a href="https://github.com/TonyBlanco/VOXTX-Android/actions/workflows/build-release.yml">
-    <img src="https://github.com/TonyBlanco/VOXTX-Android/actions/workflows/build-release.yml/badge.svg?branch=master" alt="构建状态">
+    <img src="https://github.com/TonyBlanco/VOXTX-Android/actions/workflows/build-release.yml/badge.svg?branch=master" alt="Estado de compilación">
   </a>
   <a href="https://github.com/TonyBlanco/VOXTX-Android/releases">
-    <img src="https://img.shields.io/github/downloads/TonyBlanco/VOXTX-Android/total" alt="下载量">
+    <img src="https://img.shields.io/github/downloads/TonyBlanco/VOXTX-Android/total" alt="Descargas">
   </a>
 </p>
 
 <p align="center">
-  <a href="README_EN.md">English</a> | <strong>中文</strong>
+  <strong>Español</strong> | <a href="README_EN.md">English</a>
 </p>
 
-VoXTV 是一款基于 Flutter 开发的现代化高性能 IPTV 播放器（支持分屏播放）。采用精美的多主题 UI，渐变色调，针对桌面、移动端和电视平台进行了深度优化。
+VoXTV es un reproductor IPTV de alto rendimiento desarrollado con Flutter, optimizado para escritorio, móvil y TV.
 
-> **💡 欢迎反馈**  
-> 欢迎大家提出 [Issue](https://github.com/TonyBlanco/VOXTX-Android/issues)！因为没有你们提出的 bug 或者改进建议，软件就没有希望！您的每一个反馈都是推动项目进步的动力。
+## Aviso legal
 
-## 📸 软件截图
+1. Esta aplicación es solo un reproductor multimedia y no provee, aloja ni distribuye contenido audiovisual.
+2. La app no incluye listas M3U/M3U8/TXT preconfiguradas.
+3. Cada usuario es responsable de usar fuentes y contenidos legales.
+4. El desarrollador no asume responsabilidad por el contenido reproducido por terceros.
 
-<table>
-  <tr>
-    <td align="center"><img src="assets/screenshots/s1.jpg" width="100%" alt="主页"><br><sub>🏠 主页(暗黑模式)</sub></td>
-    <td align="center"><img src="assets/screenshots/s10.jpg" width="100%" alt="主页明亮模式"><br><sub>🏠 主页(明亮模式)</sub></td>
-    <td align="center"><img src="assets/screenshots/s2.jpg" width="100%" alt="频道列表"><br><sub>📡 频道列表</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/screenshots/s5.jpg" width="100%" alt="播放界面"><br><sub>▶️ 播放界面</sub></td>
-    <td align="center"><img src="assets/screenshots/s3.jpg" width="100%" alt="收藏夹"><br><sub>❤️ 收藏夹</sub></td>
-    <td align="center"><img src="assets/screenshots/setting_screen.jpg" width="100%" alt="设置"><br><sub>⚙️ 设置</sub></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="assets/screenshots/s12.jpg" width="100%" alt="播放列表管理"><br><sub>📂 播放列表管理</sub></td>
-    <td align="center"><img src="assets/screenshots/mini.jpg" width="100%" alt="Mini播放页面"><br><sub>📺 Mini播放页面</sub></td>
-    <td align="center"><img src="assets/screenshots/s8.jpg" width="100%" alt="分屏播放"><br><sub>📺 分屏播放</sub></td>
-  </tr>
-  </tr>
-</table>
+## Descargas
 
-## ⚠️ 免责声明
+Descarga la versión más reciente desde:
 
-1. 本应用程序仅为通用媒体播放器工具，本身不提供、不存储、不分发任何音视频内容或播放源。
-2. 本应用不内置任何 M3U / M3U8 播放列表，所有播放内容均由用户自行添加。
-3. 用户应确保其所使用的播放源及内容来源合法，并已获得相关权利人的授权。
-4. 对于用户通过本应用播放的任何内容，其版权及合法性责任均由内容提供方及用户自行承担。
+- Releases: https://github.com/TonyBlanco/VOXTX-Android/releases/latest
 
+Plataformas disponibles:
 
-## ✨ 功能特性
+- Windows x64 (`.exe`)
+- Android móvil (`arm64-v8a`, `armeabi-v7a`, `x86_64`)
+- Android TV (`arm64-v8a`, `armeabi-v7a`, `x86_64`)
 
-### 🎨 多色主题系统
-- **12 种预设配色方案**: 深色主题 6 种 + 浅色主题 6 种
-- **动态主题切换**: 一键切换整个 UI 配色
-- **配色方案**: 莲花粉、海洋蓝、森林绿、日落橙、皇家紫、樱桃红
-- 玻璃拟态风格卡片（桌面/移动端）
-- TV 端专属优化界面，流畅性能
-- 自动折叠侧边栏导航
-- 主题色全局应用：选择框、按钮、图标、渐变背景
+## Funciones principales
 
-### 📺 多平台支持
-- **Windows**: 桌面优化 UI，支持键盘快捷键和迷你模式
-- **Android 手机**: 触摸友好界面，支持手势控制
-- **Android TV**: 完整 D-Pad 导航，遥控器全面支持
+- Reproducción IPTV con soporte para múltiples formatos (HLS, MP4, MKV, RTMP/RTSP)
+- Gestión de listas M3U/M3U8/TXT por URL, archivo local y QR
+- Favoritos, historial y búsqueda de canales
+- Soporte para multi-fuente y modo multiventana
+- EPG (XMLTV) y soporte DLNA
 
-### ⚡ 高性能播放
-- **桌面/移动端**: 基于 `media_kit` 硬件加速
-- **Android TV**: 原生 ExoPlayer (Media3) 支持 4K 视频播放
-- 实时 FPS 帧率显示（可在设置中配置）
-- 视频参数显示（分辨率、编解码器信息）
-- 支持 HLS (m3u8)、MP4、MKV、RTMP/RTSP 等多种格式
+## Desarrollo
 
-### 📂 智能播放列表管理
-- 支持从本地文件或 URL 导入 M3U/M3U8/TXT 播放列表
-- 二维码导入，方便手机到电视的快速传输
-- 根据 `group-title` 自动分组
-- 保持 M3U 文件原始分类顺序
-- 频道可用性检测，支持批量操作
+Requisitos:
 
-#### 支持的播放列表格式
-- **M3U/M3U8**: 标准 IPTV 播放列表格式，支持 EPG 和台标
-- **TXT**: 简化的文本格式，使用 `,#genre#` 作为分类标记
-  ```
-  分类名称,#genre#
-  频道名称,频道URL
-  频道名称,频道URL
-  ```
+- Flutter SDK `>=3.5.0`
+- Android Studio (Android/TV)
+- Visual Studio (Windows)
 
-### ❤️ 用户功能
-- 收藏管理，支持长按操作
-- 频道搜索（按名称或分组）
-- 播放器内分类面板（按左键打开）
-- 双击返回键退出播放器（防止误触）
-- 观看历史记录
-- **频道台标自动匹配**: 预埋 1088+ 条频道台标，智能模糊匹配
-  - TXT 格式播放列表自动显示台标（无台标信息）
-  - 三级优先级加载：M3U 台标 → 数据库台标 → 默认图片
-  - 智能匹配："CCTV1-综合" 匹配 "CCTV1"，"湖南卫视高清" 匹配 "湖南卫视"
-  - GitHub 代理加速台标图片加载
-- **启动自动播放**: 可选择应用启动后自动继续播放（默认关闭）
-- **多源切换**: 同名频道自动合并，左右键切换源
-- **分屏模式** (桌面端 & TV端): 2x2 分屏同时观看 4 个频道，独立 EPG 显示，桌面端支持迷你模式
+Comandos básicos:
 
-### 📡 EPG 电子节目单
-- 支持 XMLTV 格式 EPG 数据
-- 自动从 M3U 的 `x-tvg-url` 属性加载 EPG
-- 设置中可手动配置 EPG 地址
-- 播放器中显示当前和即将播出的节目
-- 节目剩余时间提示
-
-### 📺 DLNA 投屏
-- 内置 DLNA 渲染器 (DMR) 服务
-- 支持从其他设备投屏到 VoXTV
-- 支持常见视频格式
-- 投屏设备可控制播放（播放/暂停/快进/音量）
-- 可设置自动启动 DLNA 服务
-
-
-## 🚀 下载安装
-
-从 [Releases 页面](https://github.com/TonyBlanco/VOXTX-Android/releases/latest) 下载最新版本。
-
-### 支持平台
-- **Windows**: x64 安装包 (.exe)
-- **Android 手机**: APK (arm64-v8a, armeabi-v7a, x86_64)
-- **Android TV**: APK (arm64-v8a, armeabi-v7a, x86_64)
-
-## 🎮 操作控制
-
-### 桌面端/移动端
-
-| 动作 | 键盘 | 鼠标/触摸 |
-|------|------|-----------|
-| 播放/暂停 | 空格/回车 | 点击 |
-| 上一频道 | ↑ | 上滑 |
-| 下一频道 | ↓ | 下滑 |
-| 打开分类面板 | ← | - |
-| 切换源 | ←/→ | - |
-| 收藏 | F | 长按 |
-| 静音 | M | - |
-| 退出播放器 | 双击 Esc | - |
-| 进入分屏 | - | 点击按钮 |
-
-### Android TV 电视端
-
-| 动作 | 遥控器按键 | 说明 |
-|------|-----------|------|
-| 播放/暂停 | 确认键（短按） | 切换播放状态 |
-| 上/下一频道 | 方向键 上/下 | 切换频道 |
-| 打开分类面板 | 方向键 左（长按） | 显示分类列表 |
-| 切换源 | 方向键 左/右 | 切换播放源 |
-| 收藏 | 确认键（双击） | 添加/取消收藏 |
-| 进入分屏 | 确认键（长按） | 进入 2x2 分屏模式 |
-| 退出播放器 | 返回键（双击） | 返回频道列表 |
-
-### TV 分屏模式
-
-| 动作 | 遥控器按键 | 说明 |
-|------|-----------|------|
-| 移动焦点 | 方向键 | 在4个屏幕间移动（同时切换音频） |
-| 选择频道 | 确认键（短按） | 打开频道选择器 |
-| 清除屏幕 | 确认键（长按） | 清除当前屏幕的频道 |
-| 退出分屏 | 返回键 | 返回单屏播放（如有频道）或退出 |
-
-## 🛠️ 开发构建
-
-### 环境要求
-- Flutter SDK (>=3.5.0)
-- Android Studio（用于 Android/TV 构建）
-- Visual Studio（用于 Windows 构建）
-
-### 构建步骤
 ```bash
 git clone https://github.com/TonyBlanco/VOXTX-Android.git
 cd VOXTX-Android
 flutter pub get
 
-# 运行
+# Ejecutar
 flutter run -d windows
 flutter run -d <android_device>
 
-# 构建发布版
+# Compilar release
 flutter build windows
 flutter build apk --release
 ```
 
-## 🤝 参与贡献
+## Soporte
 
-欢迎提交 Pull Request！
+- Issues: https://github.com/TonyBlanco/VOXTX-Android/issues
+- Repositorio: https://github.com/TonyBlanco/VOXTX-Android
 
+## Licencia
 
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。
+MIT
