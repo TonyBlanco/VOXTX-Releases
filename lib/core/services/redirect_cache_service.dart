@@ -195,7 +195,7 @@ class RedirectCacheService {
       
       final totalTime = DateTime.now().difference(startTime).inMilliseconds;
       if (depth == 0) {
-        ServiceLocator.log.d('✓  (${totalTime}ms): $responseCodeURL: $url');
+        ServiceLocator.log.d('✓  (${totalTime}ms): $responseCode URL: $url');
       } else {
         ServiceLocator.log.d('✓ ${depth + 1} (:${totalTime}ms)URL: $url');
       }
