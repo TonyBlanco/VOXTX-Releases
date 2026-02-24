@@ -486,11 +486,11 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
     <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
   <friendlyName>$_deviceName</friendlyName>
   <manufacturer>VoXTV</manufacturer>
-  <manufacturerURL>https://github.com/shnulaa/FlutterIPTV</manufacturerURL>
+  <manufacturerURL>https://github.com/TonyBlanco/VOXTX-Android</manufacturerURL>
   <modelDescription>VoXTV Media Renderer</modelDescription>
   <modelName>VoXTV</modelName>
     <modelNumber>1.0</modelNumber>
-    <modelURL>https://github.com/shnulaa/FlutterIPTV</modelURL>
+    <modelURL>https://github.com/TonyBlanco/VOXTX-Android</modelURL>
     <UDN>$_deviceUuid</UDN>
     <dlna:X_DLNADOC>DMR-1.50</dlna:X_DLNADOC>
     <serviceList>
