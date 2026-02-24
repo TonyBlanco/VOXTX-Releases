@@ -12,7 +12,7 @@ class UpdateService {
   //  GitHub Pages 
   //  VOXTX-Android 
 
-  static const String _versionJsonUrl = 'https://raw.githubusercontent.com/TonyBlanco/VOXTX-Android/master/docs/version.json';
+  static const String _versionJsonUrl = 'https://raw.githubusercontent.com/TonyBlanco/VOXTX-Releases/main/version.json';
   static const String _githubReleasesUrl = 'https://github.com/TonyBlanco/VOXTX-Android/releases';
 
   // 
