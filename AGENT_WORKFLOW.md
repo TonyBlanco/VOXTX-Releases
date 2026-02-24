@@ -5,19 +5,22 @@
 
 ---
 
-## Git Remotes
+## Git Remotes (this repo only)
 
 ```
-origin    https://github.com/shnulaa/FlutterIPTV.git    ← UPSTREAM FORK — NEVER PUSH HERE
-voxtx     https://github.com/TonyBlanco/VOXTX-Android.git   ← PRIVATE DEV REPO
-releases  https://github.com/TonyBlanco/VOXTX-Releases.git  ← PUBLIC RELEASES REPO
+origin  https://github.com/shnulaa/FlutterIPTV.git      ← UPSTREAM FORK — NEVER PUSH HERE
+voxtx   https://github.com/TonyBlanco/VOXTX-Android.git ← PRIVATE DEV REPO — push all dev work here
 ```
 
-| Remote | Purpose | Push dev commits? | Push release tags? | Push APKs? |
-|--------|---------|:-----------------:|:-----------------:|:----------:|
-| `origin` | Upstream fork (read-only reference) | ❌ NEVER | ❌ NEVER | ❌ NEVER |
-| `voxtx` | Private dev work | ✅ YES | ✅ YES | ❌ |
-| `releases` | Public releases for users | ✅ YES (master only) | ✅ YES | ✅ via `gh release` |
+| Remote | Purpose | Push? |
+|--------|---------|:-----:|
+| `origin` | Upstream fork (read-only reference) | ❌ NEVER |
+| `voxtx` | Private dev work | ✅ YES |
+
+> **⚠️ VOXTX-Releases (`https://github.com/TonyBlanco/VOXTX-Releases`) is NOT a remote in this repo.**  
+> It is a **separate, standalone repo** that contains ONLY `version.json` + GitHub Releases with APK assets.  
+> **NEVER add it as a remote here. NEVER push source code to it.**  
+> The only way to interact with it is via `gh release create` (attach APKs) and a separate clone for version.json updates (see below).
 
 ---
 
@@ -114,12 +117,22 @@ git push voxtx master
 git push voxtx v1.5.XX
 ```
 
-### 6. Push to public releases repo
+### 6. Update version.json in VOXTX-Releases
+
+**NEVER** add VOXTX-Releases as a remote in this repo. Clone it separately, edit `version.json`, push, then delete the clone:
+
 ```bash
-# VOXTX-Releases default branch is 'main', not 'master'
-git push releases master:main --force-with-lease
-git push releases v1.5.XX
+cd /tmp
+git clone https://github.com/TonyBlanco/VOXTX-Releases.git voxtx-releases-tmp
+cd voxtx-releases-tmp
+# Edit version.json: bump version, build, changelog, and APK download URLs
+git add version.json
+git commit -m "version: bump to v1.5.XX"
+git push origin main
+cd /tmp && rm -rf voxtx-releases-tmp
 ```
+
+> VOXTX-Releases must contain ONLY `version.json`. No source code, no branches from this repo, ever.
 
 ### 7. Create GitHub Release with APKs
 
@@ -156,14 +169,15 @@ Ignore **info/warning** lines (unused imports, lint hints) unless they are new a
 | Mistake | Correct Action |
 |---------|---------------|
 | Pushing to `origin` | `origin` is the upstream fork — never push |
-| Pushing APKs only to `voxtx` | APKs + GitHub Release go to `releases` |
-| Using `git push` without specifying remote | Always specify: `git push voxtx` or `git push releases` |
+| **Adding VOXTX-Releases as a git remote in this repo** | **FORBIDDEN — it caused 319MB source code to leak to the public releases repo; use a separate `/tmp` clone instead** |
+| **Doing `git push [any-remote] [anything]` to VOXTX-Releases** | **Only update VOXTX-Releases via a separate clone in /tmp; then delete that clone** |
+| Pushing APKs only to `voxtx` | APKs go to VOXTX-Releases via `gh release create --repo TonyBlanco/VOXTX-Releases` |
+| Using `git push` without specifying remote | Always specify: `git push voxtx master` |
 | Creating GitHub Release on wrong repo | Always `--repo TonyBlanco/VOXTX-Releases` |
 | Using `--notes` with multi-line text | Write to a file, use `--notes-file` |
 | Forgetting to increment BUILD number | `version: X.Y.Z+BUILD` — both must increment |
-| **Forgetting to update `docs/version.json`** | **App will never detect the new version — update it on EVERY release** |
-| **Forgetting to update root `version.json`** | **Same — the app fetches the root one; `docs/version.json` is for the website** |
-| Pushing `releases master` instead of `releases master:main` | `VOXTX-Releases` default branch is `main` — always use `git push releases master:main` |
+| **Forgetting to update `docs/version.json`** | **Keep in sync for the GitHub Pages website** |
+| **Forgetting to update root `version.json` in VOXTX-Releases** | **The app fetches this URL — 404 = no update detected** |
 | `git push` fails (rejected) | Run `git pull --rebase voxtx master` first |
 
 ---
