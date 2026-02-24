@@ -12,6 +12,7 @@ import '../../favorites/providers/favorites_provider.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
 import 'qr_import_dialog.dart';
+import 'add_xtream_dialog.dart';
 
 class AddPlaylistDialog extends StatefulWidget {
   const AddPlaylistDialog({super.key});
@@ -471,6 +472,14 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
                 label: AppStrings.of(context)?.scanToImport ?? 'QR',
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSecondaryButton(
+                onPressed: () => _showXtreamDialog(context),
+                icon: Icons.dns,
+                label: 'Xtream',
+              ),
+            ),
           ],
         ),
       ],
@@ -496,6 +505,15 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
           icon: Icons.qr_code_scanner_rounded,
           title: AppStrings.of(context)?.scanToImport ?? 'Scan to Import',
           subtitle: AppStrings.of(context)?.scanQrToImport ?? 'Use your phone to scan QR code',
+          isPrimary: false,
+          autofocus: false,
+        ),
+        const SizedBox(height: 12),
+        _buildImportCard(
+          onPressed: () => _showXtreamDialog(context),
+          icon: Icons.dns,
+          title: 'Xtream Codes',
+          subtitle: 'Añadir por servidor, usuario y contraseña',
           isPrimary: false,
           autofocus: false,
         ),
@@ -562,6 +580,14 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
                 onPressed: () => _showQrImportDialog(context),
                 icon: Icons.qr_code_scanner_rounded,
                 label: AppStrings.of(context)?.scanToImport ?? 'QR',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSecondaryButton(
+                onPressed: () => _showXtreamDialog(context),
+                icon: Icons.dns,
+                label: 'Xtream',
               ),
             ),
           ],
@@ -865,6 +891,23 @@ class _AddPlaylistDialogState extends State<AddPlaylistDialog> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => const QrImportDialog(),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.of(context)?.playlistImported ?? 'Playlist imported successfully'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _showXtreamDialog(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => const AddXtreamDialog(),
     );
 
     if (result == true && mounted) {

@@ -1,7 +1,7 @@
-# Lotus IPTV
+# VoXTv Players
 
 <p align="center">
-  <img src="assets/icons/app_icon.png" width="120" alt="Lotus IPTV Logo">
+  <img src="assets/icons/app_icon.png" width="120" alt="VoXTV Logo">
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
   <strong>中文</strong> | <a href="README_ZH.md">中文</a>
 </p>
 
-Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Features a beautiful Lotus-themed UI with pink/purple gradient accents(Split-screen support), optimized for seamless viewing across desktop, mobile, and TV platforms.
+VoXTV is a modern, high-performance IPTV player built with Flutter. Features a beautiful Lotus-themed UI with pink/purple gradient accents (Split-screen support), optimized for seamless viewing across desktop, mobile, and TV platforms.
 
 > **💡 Feedback Welcome**  
 > We welcome everyone to submit [Issues](https://github.com/shnulaa/FlutterIPTV/issues)! Without your bug reports and improvement suggestions, the software has no hope of progress! Every piece of feedback you provide is the driving force behind the project's advancement.
@@ -62,7 +62,7 @@ Lotus IPTV is a modern, high-performance IPTV player built with Flutter. Feature
 To start watching channels, you need to add M3U/M3U8/TXT playlist sources:
 
 **How to add:**
-1. Open Lotus IPTV
+1. Open VoXTV
 2. Click "Add Playlist" or "+" button
 3. Select "From URL"
 4. Paste the URL
@@ -183,7 +183,7 @@ Download the latest version from [Releases Page](https://github.com/shnulaa/Flut
 
 ### 📺 DLNA Screen Casting
 - Built-in DLNA renderer (DMR) service
-- Cast videos from other devices to Lotus IPTV
+- Cast videos from other devices to VoXTV
 - Support for common video formats
 - Playback control from casting device (play/pause/seek/volume)
 - Auto-start DLNA service option

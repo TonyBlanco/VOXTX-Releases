@@ -18,6 +18,8 @@ class Channel {
   final String? epgId;
   final bool isActive;
   final DateTime createdAt;
+  /// Stored channel type: 'live' | 'vod' | 'series'
+  final String channelType;
 
   // Runtime properties (not stored in database)
   bool isFavorite;
@@ -41,6 +43,7 @@ class Channel {
     this.isCurrentlyPlaying = false,
     this.currentSourceIndex = 0,
     this.fallbackLogoUrl,
+    this.channelType = 'live',
   }) : sources = sources ?? [url],
        createdAt = createdAt ?? DateTime.now();
 
@@ -140,6 +143,7 @@ class Channel {
       epgId: map['epg_id'] as String?,
       isActive: (map['is_active'] as int?) == 1,
       createdAt: map['created_at'] != null ? DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int) : DateTime.now(),
+      channelType: (map['channel_type'] as String?) ?? 'live',
     );
   }
 
@@ -156,6 +160,7 @@ class Channel {
       'epg_id': epgId,
       'is_active': isActive ? 1 : 0,
       'created_at': createdAt.millisecondsSinceEpoch,
+      'channel_type': channelType,
     };
   }
 
@@ -174,6 +179,7 @@ class Channel {
     bool? isCurrentlyPlaying,
     int? currentSourceIndex,
     String? fallbackLogoUrl,
+    String? channelType,
   }) {
     return Channel(
       id: id ?? this.id,
@@ -190,6 +196,7 @@ class Channel {
       isCurrentlyPlaying: isCurrentlyPlaying ?? this.isCurrentlyPlaying,
       currentSourceIndex: currentSourceIndex ?? this.currentSourceIndex,
       fallbackLogoUrl: fallbackLogoUrl ?? this.fallbackLogoUrl,
+      channelType: channelType ?? this.channelType,
     );
   }
 

@@ -50,6 +50,11 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
   List<ChannelTestResult> _results = [];
   bool _showOnlyFailed = false;
 
+  String _tr(String es, String en) {
+    final lang = Localizations.localeOf(context).languageCode;
+    return lang == 'es' ? es : en;
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();
@@ -192,7 +197,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '频道测试',
+                        _tr('Prueba de canales', 'Channel test'),
                         style: TextStyle(
                           color: AppTheme.textPrimary,
                           fontSize: isLandscape ? 14 : 20,  // 横屏时字体更小
@@ -200,7 +205,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                         ),
                       ),
                       Text(
-                        '共 ${widget.channels.length} 个频道',
+                        _tr('${widget.channels.length} canales', '${widget.channels.length} channels'),
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: isLandscape ? 11 : 14,  // 横屏时字体更小
@@ -238,9 +243,9 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem('已测试', '$_completed/$_total', AppTheme.textPrimary, isLandscape),
-                  _buildStatItem('可用', '$_available', Colors.green, isLandscape),
-                  _buildStatItem('不可用', '$_unavailable', AppTheme.errorColor, isLandscape),
+                  _buildStatItem(_tr('Probados', 'Tested'), '$_completed/$_total', AppTheme.textPrimary, isLandscape),
+                  _buildStatItem(_tr('Disponibles', 'Available'), '$_available', Colors.green, isLandscape),
+                  _buildStatItem(_tr('No disponibles', 'Unavailable'), '$_unavailable', AppTheme.errorColor, isLandscape),
                 ],
               ),
 
@@ -267,7 +272,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                       SizedBox(width: isLandscape ? 8 : 12),  // 横屏时间距更小
                       Expanded(
                         child: Text(
-                          '正在测试: $_currentChannelName',
+                          _tr('Probando: $_currentChannelName', 'Testing: $_currentChannelName'),
                           style: TextStyle(
                             color: AppTheme.textSecondary,
                             fontSize: isLandscape ? 11 : 13,  // 横屏时字体更小
@@ -287,7 +292,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                 Row(
                   children: [
                     Text(
-                      '测试结果',
+                      _tr('Resultados', 'Results'),
                       style: TextStyle(
                         color: AppTheme.textPrimary,
                         fontSize: isLandscape ? 13 : 16,  // 横屏时字体更小
@@ -296,7 +301,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                     ),
                     const Spacer(),
                     FilterChip(
-                      label: Text('仅显示失败 ($_unavailable)'),
+                      label: Text(_tr('Solo fallidos ($_unavailable)', 'Only failed ($_unavailable)')),
                       selected: _showOnlyFailed,
                       onSelected: (v) => setState(() => _showOnlyFailed = v),
                       selectedColor: AppTheme.errorColor.withOpacity(0.2),
@@ -324,7 +329,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                           child: Padding(
                             padding: EdgeInsets.all(isLandscape ? 16 : 24),  // 横屏时padding更小
                             child: Text(
-                              '暂无结果',
+                              _tr('Sin resultados', 'No results yet'),
                               style: TextStyle(
                                 color: AppTheme.textMuted,
                                 fontSize: isLandscape ? 12 : 14,  // 横屏时字体更小
@@ -364,7 +369,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                     ),
                     SizedBox(height: isLandscape ? 10 : 16),  // 横屏时间距更小
                     Text(
-                      '点击开始测试按钮检测频道可用性',
+                      _tr('Pulsa iniciar para comprobar los canales', 'Press start to check channel availability'),
                       style: TextStyle(
                         color: AppTheme.textSecondary,
                         fontSize: isLandscape ? 12 : 14,  // 横屏时字体更小
@@ -373,7 +378,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                     ),
                     SizedBox(height: isLandscape ? 6 : 8),  // 横屏时间距更小
                     Text(
-                      '测试将检查每个频道的连接状态',
+                      _tr('Se comprobará el estado de conexión de cada canal', 'The test checks each channel connection status'),
                       style: TextStyle(
                         color: AppTheme.textMuted,
                         fontSize: isLandscape ? 10 : 12,  // 横屏时字体更小
@@ -400,7 +405,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                             onPressed: () => _moveToUnavailableGroup(context),
                             icon: Icon(Icons.folder_special_rounded, size: isLandscape ? 14 : 18),  // 横屏时图标更小
                             label: Text(
-                              '移至失效分类',
+                              _tr('Mover a no disponibles', 'Move to unavailable'),
                               style: TextStyle(fontSize: isLandscape ? 11 : 14),  // 横屏时字体更小
                             ),
                             style: OutlinedButton.styleFrom(
@@ -427,7 +432,9 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                             size: isLandscape ? 16 : 20,  // 横屏时图标更小
                           ),
                           label: Text(
-                            _isTesting ? '停止测试' : (_isComplete ? '完成' : '开始测试'),
+                            _isTesting
+                                ? _tr('Detener prueba', 'Stop test')
+                                : (_isComplete ? _tr('Listo', 'Done') : _tr('Iniciar prueba', 'Start test')),
                             style: TextStyle(fontSize: isLandscape ? 11 : 14),  // 横屏时字体更小
                           ),
                           style: ElevatedButton.styleFrom(
@@ -454,7 +461,7 @@ class _ChannelTestDialogState extends State<ChannelTestDialog> {
                         onPressed: () => _runInBackground(context),
                         icon: Icon(Icons.open_in_new_rounded, size: isLandscape ? 14 : 18),  // 横屏时图标更小
                         label: Text(
-                          '后台执行',
+                          _tr('Ejecutar en segundo plano', 'Run in background'),
                           style: TextStyle(fontSize: isLandscape ? 11 : 14),  // 横屏时字体更小
                         ),
                         style: OutlinedButton.styleFrom(
@@ -631,7 +638,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        '后台测试',
+                        'Background test',
                         style: TextStyle(
                           color: AppTheme.textPrimary,
                           fontSize: 18,
@@ -639,7 +646,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
                         ),
                       ),
                       Text(
-                        _progress.isRunning ? '测试进行中...' : '测试完成',
+                        _progress.isRunning ? 'Running test...' : 'Test completed',
                         style: const TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 13,
@@ -675,9 +682,9 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem('已测试', '${_progress.completed}/${_progress.total}', AppTheme.textPrimary),
-                _buildStatItem('可用', '${_progress.available}', Colors.green),
-                _buildStatItem('不可用', '${_progress.unavailable}', AppTheme.errorColor),
+                _buildStatItem('Tested', '${_progress.completed}/${_progress.total}', AppTheme.textPrimary),
+                _buildStatItem('Available', '${_progress.available}', Colors.green),
+                _buildStatItem('Unavailable', '${_progress.unavailable}', AppTheme.errorColor),
               ],
             ),
 
@@ -703,7 +710,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '正在测试: ${_progress.currentChannelName}',
+                        'Testing: ${_progress.currentChannelName}',
                         style: const TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 13,
@@ -727,7 +734,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
                     child: OutlinedButton.icon(
                       onPressed: () => _moveToUnavailableGroup(context),
                       icon: const Icon(Icons.folder_special_rounded, size: 18),
-                      label: const Text('移至失效分类'),
+                      label: const Text('Move to unavailable'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.orange,
                         side: const BorderSide(color: Colors.orange),
@@ -754,7 +761,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
                       _progress.isRunning ? Icons.stop_rounded : Icons.check_rounded,
                       size: 20,
                     ),
-                    label: Text(_progress.isRunning ? '停止测试' : '完成'),
+                    label: Text(_progress.isRunning ? 'Stop test' : 'Done'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _progress.isRunning ? AppTheme.errorColor : AppTheme.primaryColor,
                       foregroundColor: Colors.white,
@@ -811,7 +818,7 @@ class _BackgroundTestProgressDialogState extends State<BackgroundTestProgressDia
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已将 ${unavailableChannelIds.length} 个失效频道移至失效分类'),
+          content: Text('Moved ${unavailableChannelIds.length} unavailable channels'),
           backgroundColor: Colors.orange,
         ),
       );

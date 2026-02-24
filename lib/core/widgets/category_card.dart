@@ -100,7 +100,7 @@ class _CategoryCardState extends State<CategoryCard> {
                   forceScroll: _isHovered || _isFocused,
                 ),
                 const SizedBox(height: 3),
-                Text('${widget.channelCount} 频道', style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 11)),
+                Text('${widget.channelCount} channels', style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 11)),
               ],
             ),
           ],

@@ -310,7 +310,7 @@ class LogService {
       // 合并所有日志文件
       final buffer = StringBuffer();
       buffer.writeln('========================================');
-      buffer.writeln('Lotus IPTV 日志导出');
+      buffer.writeln('VoXTV 日志导出');
       buffer.writeln('导出时间: ${DateTime.now()}');
       buffer.writeln('========================================\n');
 

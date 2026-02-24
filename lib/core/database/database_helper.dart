@@ -9,7 +9,7 @@ import '../services/service_locator.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _databaseName = 'flutter_iptv.db';
-  static const int _databaseVersion = 8; // Added backup_path and last_backup_time to playlists
+  static const int _databaseVersion = 9; // Added channel_type to channels
 
   Future<void> initialize() async {
     ServiceLocator.log.d('DatabaseHelper: 开始初始化数据库');
@@ -95,6 +95,7 @@ class DatabaseHelper {
         epg_id TEXT,
         is_active INTEGER DEFAULT 1,
         created_at INTEGER NOT NULL,
+        channel_type TEXT DEFAULT 'live',
         FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
       )
     ''');
@@ -303,17 +304,24 @@ class DatabaseHelper {
     if (oldVersion < 8) {
       // Add backup_path and last_backup_time columns to playlists table
       try {
-        await db.execute(
-            'ALTER TABLE playlists ADD COLUMN backup_path TEXT');
+        await db.execute('ALTER TABLE playlists ADD COLUMN backup_path TEXT');
         ServiceLocator.log.i('数据库迁移: 添加 backup_path 字段到 playlists 表');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
-      
+      try {
+        await db.execute('ALTER TABLE playlists ADD COLUMN last_backup_time INTEGER');
+        ServiceLocator.log.i('数据库迁移: 添加 last_backup_time 字段到 playlists 表');
+      } catch (e) {
+        ServiceLocator.log.d('Migration error (ignored): $e');
+      }
+    }
+    if (oldVersion < 9) {
+      // Add channel_type column to channels table (live / vod / series)
       try {
         await db.execute(
-            'ALTER TABLE playlists ADD COLUMN last_backup_time INTEGER');
-        ServiceLocator.log.i('数据库迁移: 添加 last_backup_time 字段到 playlists 表');
+            "ALTER TABLE channels ADD COLUMN channel_type TEXT DEFAULT 'live'");
+        ServiceLocator.log.i('数据库迁移: 添加 channel_type 字段到 channels 表');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }

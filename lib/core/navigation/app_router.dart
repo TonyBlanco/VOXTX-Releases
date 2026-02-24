@@ -10,6 +10,8 @@ import '../../features/favorites/screens/favorites_screen.dart';
 import '../../features/search/screens/search_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/epg/screens/epg_screen.dart';
+import '../../features/movies/screens/movies_screen.dart';
+import '../../features/series/screens/series_screen.dart';
 
 class AppRouter {
   // Route observer for tracking navigation
@@ -26,6 +28,8 @@ class AppRouter {
   static const String search = '/search';
   static const String settings = '/settings';
   static const String epg = '/epg';
+  static const String movies = '/movies';
+  static const String series = '/series';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -80,6 +84,12 @@ class AppRouter {
           ),
           settings,
         );
+
+      case movies:
+        return _buildRoute(const MoviesScreen(), settings);
+
+      case series:
+        return _buildRoute(const SeriesScreen(), settings);
 
       default:
         return _buildRoute(

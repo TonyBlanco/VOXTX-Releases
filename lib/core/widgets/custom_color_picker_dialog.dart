@@ -188,7 +188,7 @@ class _CustomColorPickerDialogState extends State<CustomColorPickerDialog> {
               // 提示文字
               Center(
                 child: Text(
-                  '按 OK 应用颜色 · 按返回键取消',
+                  'Press OK to apply color · Back to cancel',
                   style: TextStyle(
                     color: AppTheme.getTextMuted(context),
                     fontSize: 12,

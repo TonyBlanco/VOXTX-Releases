@@ -218,7 +218,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 2, // Playlist sources page
+            selectedIndex: 4, // Playlist sources page
             onRight: () {
               final provider = context.read<PlaylistProvider>();
               final sortedPlaylists = List.from(provider.playlists)

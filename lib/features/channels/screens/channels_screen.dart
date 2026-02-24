@@ -28,6 +28,7 @@ import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
 import '../../multi_screen/providers/multi_screen_provider.dart';
 import '../../playlist/providers/playlist_provider.dart';
+import '../../player/providers/player_provider.dart';
 
 class ChannelsScreen extends StatefulWidget {
   final String? groupName;
@@ -63,6 +64,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
   // ✅ 滚动状态管理：用于暂停台标加载
   Timer? _scrollEndTimer;
+  Timer? _previewStatusTimer;
+  final ChannelTestService _channelTestService = ChannelTestService();
+  final Map<String, bool> _channelAvailability = {};
+  final Set<String> _channelAvailabilityLoading = {};
+  Channel? _previewChannel;
+
+  String _tr(String es, String en) {
+    final lang = Localizations.localeOf(context).languageCode;
+    return lang == 'es' ? es : en;
+  }
 
   @override
   void initState() {
@@ -120,6 +131,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
     _groupSelectTimer?.cancel();
     _scrollEndTimer?.cancel();
+    _previewStatusTimer?.cancel();
     _scrollController.dispose();
     _groupScrollController.dispose();
     for (final node in _groupFocusNodes) {
@@ -129,6 +141,179 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       node.dispose();
     }
     super.dispose();
+  }
+
+  String _channelKey(Channel channel) => channel.id?.toString() ?? channel.url;
+
+  void _setPreviewChannel(Channel channel) {
+    if (!mounted) return;
+    if (_previewChannel?.id == channel.id && _previewChannel?.url == channel.url) return;
+
+    immediateSetState(() {
+      _previewChannel = channel;
+    });
+    _scheduleAvailabilityCheck(channel);
+  }
+
+  void _scheduleAvailabilityCheck(Channel channel) {
+    final key = _channelKey(channel);
+    if (_channelAvailability.containsKey(key) || _channelAvailabilityLoading.contains(key)) {
+      return;
+    }
+
+    _previewStatusTimer?.cancel();
+    _previewStatusTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
+
+      _channelAvailabilityLoading.add(key);
+      try {
+        final result = await _channelTestService.testChannel(channel);
+        if (!mounted) return;
+        immediateSetState(() {
+          _channelAvailability[key] = result.isAvailable;
+        });
+      } catch (_) {
+        if (!mounted) return;
+        immediateSetState(() {
+          _channelAvailability[key] = false;
+        });
+      } finally {
+        _channelAvailabilityLoading.remove(key);
+      }
+    });
+  }
+
+  Future<void> _playFromPreview(Channel channel) async {
+    Navigator.pushNamed(
+      context,
+      AppRouter.player,
+      arguments: {
+        'channelUrl': channel.url,
+        'channelName': channel.name,
+        'channelLogo': channel.logoUrl,
+      },
+    );
+  }
+
+  Widget _buildMiniPreviewPanel() {
+    final channel = _previewChannel;
+
+    return Container(
+      width: 300,
+      margin: const EdgeInsets.only(right: 12, top: 12, bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.getCardColor(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.getGlassBorderColor(context)),
+      ),
+      child: channel == null
+          ? Center(
+              child: Text(
+                _tr('Selecciona un canal para previsualizar', 'Select a channel to preview'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.getTextSecondary(context)),
+              ),
+            )
+          : Consumer<FavoritesProvider>(
+              builder: (context, favorites, _) {
+                final key = _channelKey(channel);
+                final isLoading = _channelAvailabilityLoading.contains(key);
+                final isAvailable = _channelAvailability[key];
+                final isFavorite = favorites.isFavorite(channel.id ?? 0);
+
+                Color statusColor;
+                String statusLabel;
+                if (isLoading) {
+                  statusColor = AppTheme.getTextMuted(context);
+                  statusLabel = _tr('Comprobando...', 'Checking...');
+                } else if (isAvailable == true) {
+                  statusColor = Colors.green;
+                  statusLabel = _tr('Activo', 'Active');
+                } else if (isAvailable == false) {
+                  statusColor = AppTheme.errorColor;
+                  statusLabel = _tr('No disponible', 'Unavailable');
+                } else {
+                  statusColor = AppTheme.getTextMuted(context);
+                  statusLabel = _tr('Sin comprobar', 'Not checked');
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _tr('Mini preview', 'Mini preview'),
+                      style: TextStyle(
+                        color: AppTheme.getTextPrimary(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: ChannelCard(
+                        name: channel.name,
+                        logoUrl: channel.logoUrl,
+                        channel: channel,
+                        groupName: channel.groupName,
+                        isFavorite: isFavorite,
+                        isPlaying: isAvailable == true,
+                        onTap: () => _playFromPreview(channel),
+                        onFavoriteToggle: () => favorites.toggleFavorite(channel),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          statusLabel,
+                          style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            _channelAvailability.remove(key);
+                            _scheduleAvailabilityCheck(channel);
+                            immediateSetState(() {});
+                          },
+                          child: Text(_tr('Revisar', 'Recheck')),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => favorites.toggleFavorite(channel),
+                            icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border_rounded, size: 16),
+                            label: Text(_tr('Favorito', 'Favorite')),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _playFromPreview(channel),
+                            icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                            label: Text(_tr('Play', 'Play')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+    );
   }
 
   // ✅ 控制台标加载状态
@@ -260,6 +445,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         if (isTV) _buildGroupsSidebar(),
         // Channels Grid
         Expanded(child: _buildChannelsContent()),
+        if (isTV) _buildMiniPreviewPanel(),
       ],
     );
 
@@ -998,7 +1184,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                     icon: const Icon(Icons.speed_rounded),
                     iconSize: 24,
                     color: AppTheme.getTextSecondary(context),
-                    tooltip: '测试频道',
+                    tooltip: 'Test channels',
                     onPressed: channels.isEmpty
                         ? null
                         : () => _showChannelTestDialog(context, channels),
@@ -1010,7 +1196,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                       icon: const Icon(Icons.delete_sweep_rounded),
                       iconSize: 24,
                       color: AppTheme.errorColor,
-                      tooltip: '删除所有失效频道',
+                      tooltip: 'Delete unavailable channels',
                       onPressed: () =>
                           _confirmDeleteAllUnavailable(context, provider),
                     ),
@@ -1098,6 +1284,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                           // }
 
                           final channel = channels[index];
+                          final currentPlayingKey =
+                              context.select<PlayerProvider, String?>((provider) {
+                            final current = provider.currentChannel;
+                            if (current == null) return null;
+                            return current.id?.toString() ?? current.url;
+                          });
+                          final isPlaying =
+                              currentPlayingKey == (channel.id?.toString() ?? channel.url);
 
                           // ✅ 使用 select 替代 watch，只监听特定频道的数据变化
                           // 这样可以避免其他频道的更新导致所有卡片重建
@@ -1150,6 +1344,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                             currentProgram: currentProgram?.title,
                             nextProgram: nextProgram?.title,
                             isFavorite: isFavorite,
+                            isPlaying: isPlaying,
                             isUnavailable: isUnavailable,
                             autofocus: index == 0,
                             focusNode: PlatformDetector.isTV &&
@@ -1160,6 +1355,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                 ? () {
                                     // 记住当前聚焦的频道索引
                                     _lastChannelIndex = index;
+                                    _setPreviewChannel(channel);
                                   }
                                 : null,
                             onLeft: (PlatformDetector.isTV && isFirstColumn)
@@ -1223,11 +1419,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       .indexWhere((c) => c.url == channel.url);
 
                                   // TV端原生分屏播放器也需要记录观看历史
-                                  if (channel.id != null &&
-                                      channel.playlistId != null) {
+                                    if (channel.id != null) {
                                     await ServiceLocator.watchHistory
                                         .addWatchHistory(
-                                            channel.id!, channel.playlistId!);
+                                        channel.id!, channel.playlistId);
                                     ServiceLocator.log.d(
                                         'ChannelsScreen: Recorded watch history for channel ${channel.name} (TV multi-screen)');
                                   }
@@ -1346,7 +1541,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        '加载更多频道... (${channels.length}/${provider.filteredChannels.length})',
+                        'Loading more channels... (${channels.length}/${provider.filteredChannels.length})',
                         style: TextStyle(
                           color: AppTheme.getTextSecondary(context),
                           fontSize: 14,
@@ -1364,7 +1559,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                   padding: const EdgeInsets.all(20),
                   alignment: Alignment.center,
                   child: Text(
-                    '已加载全部 ${channels.length} 个频道',
+                    'All ${channels.length} channels loaded',
                     style: TextStyle(
                       color: AppTheme.getTextSecondary(context),
                       fontSize: 14,
@@ -1388,24 +1583,24 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         backgroundColor: AppTheme.getSurfaceColor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          '删除所有失效频道',
+          'Delete unavailable channels',
           style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
-          '确定要删除全部 $count 个失效频道吗？此操作不可撤销。',
+          'Delete all $count unavailable channels? This action cannot be undone.',
           style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('删除', style: TextStyle(color: Colors.white)),
+            child: Text(_tr('Eliminar', 'Delete'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1423,7 +1618,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('已删除 $deletedCount 个失效频道'),
+            content: Text(_tr('Se eliminaron $deletedCount canales no disponibles', 'Deleted $deletedCount unavailable channels')),
             backgroundColor: Colors.green,
           ),
         );
@@ -1449,7 +1644,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
               ),
             ),
             const SizedBox(width: 12),
-            Text('正在测试: ${channelObj.name}'),
+            Text(_tr('Probando: ${channelObj.name}', 'Testing: ${channelObj.name}')),
           ],
         ),
         duration: const Duration(seconds: 10),
@@ -1476,7 +1671,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('${channelObj.name} 可用，已恢复到 "$originalGroup" 分类'),
+                  child: Text(_tr('${channelObj.name} disponible, restaurado a "$originalGroup"', '${channelObj.name} is available, restored to "$originalGroup"')),
                 ),
               ],
             ),
@@ -1498,8 +1693,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 Expanded(
                   child: Text(
                     result.isAvailable
-                        ? '${channelObj.name} 可用 (${result.responseTime}ms)'
-                        : '${channelObj.name} 不可用: ${result.error}',
+                        ? _tr('${channelObj.name} disponible (${result.responseTime}ms)', '${channelObj.name} available (${result.responseTime}ms)')
+                        : _tr('${channelObj.name} no disponible: ${result.error}', '${channelObj.name} unavailable: ${result.error}'),
                   ),
                 ),
               ],
@@ -1533,13 +1728,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             children: [
               const Icon(Icons.info_outline, color: Colors.white, size: 20),
               const SizedBox(width: 12),
-              Text('测试已转入后台，剩余 ${result.remainingCount} 个频道'),
+              Text(_tr('Prueba en segundo plano, quedan ${result.remainingCount} canales', 'Test moved to background, ${result.remainingCount} channels remaining')),
             ],
           ),
           backgroundColor: AppTheme.getPrimaryColor(context),
           duration: const Duration(seconds: 5),
           action: SnackBarAction(
-            label: '查看进度',
+            label: _tr('Ver progreso', 'View progress'),
             textColor: Colors.white,
             onPressed: () => _showBackgroundTestProgress(context),
           ),
@@ -1557,10 +1752,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              '已将 $unavailableCount 个失效频道移至"${ChannelProvider.unavailableGroupName}"分类'),
+              _tr('Se movieron $unavailableCount canales no disponibles a "${ChannelProvider.unavailableGroupName}"', 'Moved $unavailableCount unavailable channels to "${ChannelProvider.unavailableGroupName}"')),
           backgroundColor: Colors.orange,
           action: SnackBarAction(
-            label: '查看',
+            label: _tr('Ver', 'View'),
             textColor: Colors.white,
             onPressed: () {
               // 跳转到失效分类
@@ -1601,24 +1796,24 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         backgroundColor: AppTheme.getSurfaceColor(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          '确认删除',
+          _tr('Confirmar eliminación', 'Confirm delete'),
           style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
-          '确定要删除 ${results.length} 个不可用的频道吗？此操作不可撤销。',
+          _tr('¿Eliminar ${results.length} canales no disponibles? Esta acción no se puede deshacer.', 'Delete ${results.length} unavailable channels? This action cannot be undone.'),
           style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(_tr('Cancelar', 'Cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('删除', style: TextStyle(color: Colors.white)),
+            child: Text(_tr('Eliminar', 'Delete'), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1642,7 +1837,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
           context.read<ChannelProvider>().loadAllChannels();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('已删除 ${results.length} 个不可用频道'),
+              content: Text(_tr('Se eliminaron ${results.length} canales no disponibles', 'Deleted ${results.length} unavailable channels')),
               backgroundColor: Colors.green,
             ),
           );
@@ -1651,7 +1846,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('删除失败: $e'),
+              content: Text(_tr('Error al eliminar: $e', 'Delete failed: $e')),
               backgroundColor: AppTheme.errorColor,
             ),
           );

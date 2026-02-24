@@ -55,33 +55,29 @@ class CardSizeCalculator {
       // ServiceLocator.log.d('频道页卡片计算 - 手机端$mode: 宽度=${availableWidth.toStringAsFixed(1)}px, 每行=$cardsPerRow张', tag: 'CardSize');
       return cardsPerRow;
     } else if (PlatformDetector.isTV) {
-      // TV端频道页：适中卡片数量，确保EPG可读
-      // if (availableWidth > 1400) return 9;
-      // if (availableWidth > 1200) return 8;
-      // if (availableWidth > 1000) return 7;
-      // if (availableWidth > 800) return 6;
+      // TV端频道页：较小卡片，容纳更多频道
       if (availableWidth > 1800) {
-        cardsPerRow = 11;
+        cardsPerRow = 14;
       } else if (availableWidth > 1600) {
-        cardsPerRow = 12;
+        cardsPerRow = 14;
       } else if (availableWidth > 1400) {
-        cardsPerRow = 9;
+        cardsPerRow = 12;
       } else if (availableWidth > 1200) {
-        cardsPerRow = 9;
+        cardsPerRow = 11;
       } else if (availableWidth > 1000) {
-        cardsPerRow = 8;
+        cardsPerRow = 10;
       } else if (availableWidth > 800) {
-        cardsPerRow = 8;
+        cardsPerRow = 9;
       } else if (availableWidth > 780) {
-        cardsPerRow = 7;
+        cardsPerRow = 8;
       } else if (availableWidth > 750) {
-        cardsPerRow = 7;
+        cardsPerRow = 8;
       } else if (availableWidth > 700) {
-        cardsPerRow = 6;
+        cardsPerRow = 7;
       } else if (availableWidth > 600) {
-        cardsPerRow = 6;
+        cardsPerRow = 7;
       } else {
-        cardsPerRow = 5;
+        cardsPerRow = 6;
       }
       // ServiceLocator.log.d('频道页卡片计算 - TV端: 宽度=${availableWidth.toStringAsFixed(1)}px, 每行=$cardsPerRow张', tag: 'CardSize');
       return cardsPerRow;
@@ -150,29 +146,29 @@ class CardSizeCalculator {
       // ServiceLocator.log.d('首页卡片计算 - 手机端$mode: 宽度=${availableWidth.toStringAsFixed(1)}px, 每行=$cardsPerRow张', tag: 'CardSize');
       return cardsPerRow;
     } else if (PlatformDetector.isTV) {
-      // TV端首页：全宽约1800px，适中卡片数量
+      // TV端首页：全宽约1800px，小卡片以容纳更多频道
       if (availableWidth > 1800) {
-        cardsPerRow = 13;
+        cardsPerRow = 18;
       } else if (availableWidth > 1600) {
-        cardsPerRow = 12;
+        cardsPerRow = 16;
       } else if (availableWidth > 1400) {
-        cardsPerRow = 11;
+        cardsPerRow = 14;
       } else if (availableWidth > 1200) {
-        cardsPerRow = 10;
+        cardsPerRow = 13;
       } else if (availableWidth > 1000) {
-        cardsPerRow = 9;
+        cardsPerRow = 12;
       } else if (availableWidth > 800) {
-        cardsPerRow = 7;
+        cardsPerRow = 10;
       } else if (availableWidth > 780) {
-        cardsPerRow = 6;
+        cardsPerRow = 9;
       } else if (availableWidth > 750) {
-        cardsPerRow = 6;
+        cardsPerRow = 9;
       } else if (availableWidth > 700) {
-        cardsPerRow = 6;
+        cardsPerRow = 8;
       } else if (availableWidth > 600) {
-        cardsPerRow = 5;
+        cardsPerRow = 7;
       } else {
-        cardsPerRow = 5;
+        cardsPerRow = 6;
       }
       // ServiceLocator.log.d('首页卡片计算 - TV端: 宽度=${availableWidth.toStringAsFixed(1)}px, 每行=$cardsPerRow张', tag: 'CardSize');
       return cardsPerRow;

@@ -6,8 +6,12 @@ import '../../../core/services/service_locator.dart';
 
 class ChannelProvider extends ChangeNotifier {
   // ✅ 全局缓存：一次性加载所有频道
-  List<Channel> _allChannels = [];
+  List<Channel> _allChannels = [];      // live + unknown
   List<ChannelGroup> _allGroups = [];
+  List<Channel> _vodChannels = [];      // VOD / movies
+  List<ChannelGroup> _vodGroups = [];
+  List<Channel> _seriesChannels = [];   // Series
+  List<ChannelGroup> _seriesGroups = [];
   
   // ✅ UI分页显示：避免一次性渲染太多台标
   List<Channel> _displayedChannels = []; // UI显示的频道（分页累积）
@@ -34,16 +38,24 @@ class ChannelProvider extends ChangeNotifier {
   static const _notifyThrottleDuration = Duration(milliseconds: 100); // 100ms节流
 
   // Getters
-  List<Channel> get allChannels => _allChannels; // 全局缓存（所有频道）
+  List<Channel> get allChannels => _allChannels; // 直播频道
   List<Channel> get channels => _displayedChannels; // UI显示的频道（分页）
   List<ChannelGroup> get groups => _allGroups;
+  List<Channel> get vodChannels => _vodChannels;     // 点播/电影
+  List<ChannelGroup> get vodGroups => _vodGroups;
+  List<Channel> get seriesChannels => _seriesChannels; // 剧集
+  List<ChannelGroup> get seriesGroups => _seriesGroups;
   String? get selectedGroup => _selectedGroup;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMore => _hasMoreToDisplay;
   String? get error => _error;
   int get totalChannelCount => _allChannels.length;
+  int get totalContentChannelCount =>
+      _allChannels.length + _vodChannels.length + _seriesChannels.length;
   int get loadedChannelCount => _displayedChannels.length;
+  int get vodChannelCount => _vodChannels.length;
+  int get seriesChannelCount => _seriesChannels.length;
 
   // ✅ 节流通知：防止频繁调用 notifyListeners()
   void _throttledNotify() {
@@ -146,6 +158,10 @@ class ChannelProvider extends ChangeNotifier {
     // 3. 清空所有缓存数据
     _allChannels.clear();
     _allGroups.clear();
+    _vodChannels.clear();
+    _vodGroups.clear();
+    _seriesChannels.clear();
+    _seriesGroups.clear();
     _displayedChannels.clear();
     _displayedCount = 0;
     _hasMoreToDisplay = true;
@@ -180,10 +196,13 @@ class ChannelProvider extends ChangeNotifier {
         orderBy: 'id ASC',
       );
 
-      _allChannels = results.map((r) => Channel.fromMap(r)).toList();
+      final allLoaded = results.map((r) => Channel.fromMap(r)).toList();
+      _allChannels = allLoaded.where((c) => c.channelType != 'vod' && c.channelType != 'series').toList();
+      _vodChannels = allLoaded.where((c) => c.channelType == 'vod').toList();
+      _seriesChannels = allLoaded.where((c) => c.channelType == 'series').toList();
       
       ServiceLocator.log.i(
-          '数据库查询完成: ${_allChannels.length} 个频道',
+          '数据库查询完成: ${_allChannels.length} 直播 / ${_vodChannels.length} 电影 / ${_seriesChannels.length} 剧集',
           tag: 'ChannelProvider');
 
       // ✅ 统一处理缓存加载完成（统计分类等）
@@ -202,8 +221,9 @@ class ChannelProvider extends ChangeNotifier {
     } catch (e) {
       ServiceLocator.log.e('加载频道失败', tag: 'ChannelProvider', error: e);
       _error = 'Failed to load channels: $e';
-      _allChannels = [];
-      _allGroups = [];
+      _allChannels = []; _allGroups = [];
+      _vodChannels = []; _vodGroups = [];
+      _seriesChannels = []; _seriesGroups = [];
     }
 
     _isLoading = false;
@@ -274,10 +294,13 @@ class ChannelProvider extends ChangeNotifier {
         ORDER BY c.id ASC
       ''');
 
-      _allChannels = results.map((r) => Channel.fromMap(r)).toList();
+      final allLoaded = results.map((r) => Channel.fromMap(r)).toList();
+      _allChannels = allLoaded.where((c) => c.channelType != 'vod' && c.channelType != 'series').toList();
+      _vodChannels = allLoaded.where((c) => c.channelType == 'vod').toList();
+      _seriesChannels = allLoaded.where((c) => c.channelType == 'series').toList();
       
       ServiceLocator.log.i(
-          '数据库查询完成: ${_allChannels.length} 个频道',
+          '数据库查询完成: ${_allChannels.length} 直播 / ${_vodChannels.length} 电影 / ${_seriesChannels.length} 剧集',
           tag: 'ChannelProvider');
 
       // ✅ 统一处理缓存加载完成（统计分类等）
@@ -295,8 +318,9 @@ class ChannelProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Failed to load channels: $e';
-      _allChannels = [];
-      _allGroups = [];
+      _allChannels = []; _allGroups = [];
+      _vodChannels = []; _vodGroups = [];
+      _seriesChannels = []; _seriesGroups = [];
     }
 
     _isLoading = false;
@@ -367,8 +391,35 @@ class ChannelProvider extends ChangeNotifier {
     }
     
     ServiceLocator.log.i(
-        '缓存处理完成: ${_allChannels.length} 个频道, ${_allGroups.length} 个分类',
+        '缓存处理完成: ${_allChannels.length} 直播 / ${_vodChannels.length} 电影 / ${_seriesChannels.length} 剧集, ${_allGroups.length} 个直播分类',
         tag: 'ChannelProvider');
+    // 计算 VOD 和 Series 的分类
+    _updateVodGroups();
+    _updateSeriesGroups();
+  }
+
+  void _updateVodGroups() {
+    final Map<String, int> counts = {};
+    final List<String> order = [];
+    for (final ch in _vodChannels) {
+      final g = ch.groupName ?? 'Movies';
+      if (!counts.containsKey(g)) order.add(g);
+      counts[g] = (counts[g] ?? 0) + 1;
+    }
+    _vodGroups = order.map((n) => ChannelGroup(name: n, channelCount: counts[n]!)).toList();
+    ServiceLocator.log.d('VOD分类: ${_vodGroups.length} 个', tag: 'ChannelProvider');
+  }
+
+  void _updateSeriesGroups() {
+    final Map<String, int> counts = {};
+    final List<String> order = [];
+    for (final ch in _seriesChannels) {
+      final g = ch.groupName ?? 'Series';
+      if (!counts.containsKey(g)) order.add(g);
+      counts[g] = (counts[g] ?? 0) + 1;
+    }
+    _seriesGroups = order.map((n) => ChannelGroup(name: n, channelCount: counts[n]!)).toList();
+    ServiceLocator.log.d('Series分类: ${_seriesGroups.length} 个', tag: 'ChannelProvider');
   }
 
   // Select a group filter
@@ -473,12 +524,15 @@ class ChannelProvider extends ChangeNotifier {
   }
 
   // 失效频道分类名称前缀
-  static const String unavailableGroupPrefix = '⚠️ 失效频道';
-  static const String unavailableGroupName = '⚠️ 失效频道';
+  static const String unavailableGroupPrefix = '⚠️ Unavailable';
+  static const String unavailableGroupName = '⚠️ Unavailable';
+  static const String legacyUnavailableGroupPrefix = '⚠️ 失效频道';
 
   // 从失效分组名中提取原始分组名
   static String? extractOriginalGroup(String? groupName) {
-    if (groupName == null || !groupName.startsWith(unavailableGroupPrefix)) {
+    if (groupName == null ||
+        (!groupName.startsWith(unavailableGroupPrefix) &&
+            !groupName.startsWith(legacyUnavailableGroupPrefix))) {
       return null;
     }
     // 格式: "⚠️ 失效频道|原始分组名"
@@ -491,7 +545,9 @@ class ChannelProvider extends ChangeNotifier {
 
   // 检查是否是失效频道
   static bool isUnavailableChannel(String? groupName) {
-    return groupName != null && groupName.startsWith(unavailableGroupPrefix);
+    return groupName != null &&
+        (groupName.startsWith(unavailableGroupPrefix) ||
+            groupName.startsWith(legacyUnavailableGroupPrefix));
   }
 
   // 将频道标记为失效（移动到失效分类，保留原始分组信息）

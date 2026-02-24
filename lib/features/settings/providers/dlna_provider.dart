@@ -2,25 +2,25 @@ import 'package:flutter/foundation.dart';
 import '../../../core/services/dlna_service.dart';
 import '../../../core/services/service_locator.dart';
 
-/// DLNA 服务状态管理
+/// Gestión del estado del servicio DLNA
 class DlnaProvider extends ChangeNotifier {
   final DlnaService _dlnaService = DlnaService();
   static const String _keyDlnaEnabled = 'dlna_enabled';
 
   bool _isEnabled = false;
   bool _isRunning = false;
-  bool _isActiveSession = false; // 是否有活跃的 DLNA 投屏会话
+  bool _isActiveSession = false; // DLNA 
   String? _pendingUrl;
   String? _pendingTitle;
 
   bool get isEnabled => _isEnabled;
   bool get isRunning => _isRunning;
-  bool get isActiveSession => _isActiveSession; // 是否正在 DLNA 投屏
+  bool get isActiveSession => _isActiveSession; // DLNA
   String get deviceName => _dlnaService.deviceName;
   String? get pendingUrl => _pendingUrl;
   String? get pendingTitle => _pendingTitle;
 
-  // 播放回调（由外部设置）
+  // Callbacks de reproducción (establecidos externamente)
   Function(String url, String? title)? onPlayRequested;
   Function()? onPauseRequested;
   Function()? onStopRequested;
@@ -29,28 +29,28 @@ class DlnaProvider extends ChangeNotifier {
 
   DlnaProvider() {
     _setupCallbacks();
-    // 后台异步启动 DLNA 服务
+    // Inicia el servicio DLNA en segundo plano de forma asíncrona
     Future.microtask(() => _autoStart());
   }
   
-  /// 自动启动 DLNA 服务（如果之前启用过）
+  /// Autoarranque del servicio DLNA (si estaba habilitado previamente)
   Future<void> _autoStart() async {
     try {
       final prefs = ServiceLocator.prefs;
-      // 打印所有 SharedPreferences 的 keys 用于调试
+      // Imprime todas las claves de SharedPreferences para depuración
       final allKeys = prefs.getKeys();
       ServiceLocator.log.d('SharedPreferences keys = $allKeys', tag: 'DLNA');
-      
+
       final wasEnabled = prefs.getBool(_keyDlnaEnabled) ?? false;
-      ServiceLocator.log.d('检查自动启动状态 - key=$_keyDlnaEnabled, wasEnabled=$wasEnabled', tag: 'DLNA');
-      
+      ServiceLocator.log.d('Revisar estado autoarranque - key=$_keyDlnaEnabled, wasEnabled=$wasEnabled', tag: 'DLNA');
+
       if (wasEnabled) {
-        ServiceLocator.log.d('后台自动启动服务...', tag: 'DLNA');
+        ServiceLocator.log.d('Iniciando servicio en segundo plano...', tag: 'DLNA');
         final success = await setEnabled(true);
-        ServiceLocator.log.d('自动启动${success ? '成功' : '失败'}', tag: 'DLNA');
+        ServiceLocator.log.d('Autoarranque ${success ? 'exitoso' : 'fallido'}', tag: 'DLNA');
       }
     } catch (e, stack) {
-      ServiceLocator.log.e('DLNA: 自动启动失败 - $e');
+      ServiceLocator.log.e('DLNA: Error al autoarrancar - $e');
       ServiceLocator.log.e('DLNA: Stack trace - $stack');
     }
   }
@@ -85,7 +85,7 @@ class DlnaProvider extends ChangeNotifier {
     };
   }
 
-  /// 启用/禁用 DLNA 服务
+  /// Habilitar/Deshabilitar el servicio DLNA
   Future<bool> setEnabled(bool enabled) async {
     if (enabled == _isEnabled) return true;
 
@@ -94,16 +94,16 @@ class DlnaProvider extends ChangeNotifier {
       if (success) {
         _isEnabled = true;
         _isRunning = true;
-        // 保存启用状态
+        // Guardar estado habilitado
         try {
           final prefs = ServiceLocator.prefs;
           await prefs.setBool(_keyDlnaEnabled, true);
-          ServiceLocator.log.d('已保存启用状态 - key=$_keyDlnaEnabled, value=true', tag: 'DLNA');
-          // 验证保存是否成功
+          ServiceLocator.log.d('Estado habilitado guardado - key=$_keyDlnaEnabled, value=true', tag: 'DLNA');
+          // Verificar si el guardado fue exitoso
           final saved = prefs.getBool(_keyDlnaEnabled);
-          ServiceLocator.log.d('验证保存结果 - saved=$saved', tag: 'DLNA');
+          ServiceLocator.log.d('Verificación de guardado - saved=$saved', tag: 'DLNA');
         } catch (e) {
-          ServiceLocator.log.d('保存启用状态失败 - $e', tag: 'DLNA');
+          ServiceLocator.log.d('Error al guardar estado habilitado - $e', tag: 'DLNA');
         }
         notifyListeners();
         return true;
@@ -116,20 +116,20 @@ class DlnaProvider extends ChangeNotifier {
       _isActiveSession = false;
       _pendingUrl = null;
       _pendingTitle = null;
-      // 保存禁用状态
+      // Guardar estado deshabilitado
       try {
         final prefs = ServiceLocator.prefs;
         await prefs.setBool(_keyDlnaEnabled, false);
-        ServiceLocator.log.d('已保存禁用状态 - key=$_keyDlnaEnabled, value=false', tag: 'DLNA');
+        ServiceLocator.log.d('Estado deshabilitado guardado - key=$_keyDlnaEnabled, value=false', tag: 'DLNA');
       } catch (e) {
-        ServiceLocator.log.d('保存禁用状态失败 - $e', tag: 'DLNA');
+        ServiceLocator.log.d('Error al guardar estado deshabilitado - $e', tag: 'DLNA');
       }
       notifyListeners();
       return true;
     }
   }
 
-  /// 更新播放状态（供 PlayerProvider 调用）
+  /// Actualizar estado de reproducción (usado por PlayerProvider)
   void updatePlayState({
     String? state,
     Duration? position,
@@ -142,7 +142,7 @@ class DlnaProvider extends ChangeNotifier {
     );
   }
   
-  /// 通知 DLNA 服务播放已停止（主动退出时调用）
+  /// Notificar al servicio DLNA que la reproducción se ha detenido (llamar al salir)
   void notifyPlaybackStopped() {
     _dlnaService.updatePlayState(state: 'STOPPED');
     _pendingUrl = null;
@@ -151,7 +151,7 @@ class DlnaProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  /// 同步播放器状态到 DLNA（定期调用）
+  /// Sincronizar estado del reproductor con DLNA (llamadas periódicas)
   void syncPlayerState({
     required bool isPlaying,
     required bool isPaused,
@@ -174,7 +174,7 @@ class DlnaProvider extends ChangeNotifier {
     );
   }
 
-  /// 清除待播放内容
+  /// Limpiar contenido pendiente de reproducción
   void clearPending() {
     _pendingUrl = null;
     _pendingTitle = null;

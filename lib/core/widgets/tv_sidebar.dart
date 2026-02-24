@@ -42,8 +42,8 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   void initState() {
     super.initState();
-    // 创建6个菜单项的焦点节点
-    for (int i = 0; i < 6; i++) {
+    // 创建8个菜单项的焦点节点
+    for (int i = 0; i < 8; i++) {
       _menuFocusNodes.add(FocusNode());
     }
     // 暴露给外部
@@ -74,6 +74,8 @@ class _TVSidebarState extends State<TVSidebar> {
     final items = [
       _NavItem(icon: Icons.home_rounded, label: AppStrings.of(context)?.home ?? 'Home', route: null),
       _NavItem(icon: Icons.live_tv_rounded, label: AppStrings.of(context)?.channels ?? 'Channels', route: AppRouter.channels),
+      _NavItem(icon: Icons.movie_rounded, label: AppStrings.of(context)?.movies ?? 'Movies', route: AppRouter.movies),
+      _NavItem(icon: Icons.video_library_rounded, label: AppStrings.of(context)?.series ?? 'Series', route: AppRouter.series),
       _NavItem(icon: Icons.playlist_play_rounded, label: AppStrings.of(context)?.playlistList ?? 'Playlist List', route: AppRouter.playlistList),
       _NavItem(icon: Icons.favorite_rounded, label: AppStrings.of(context)?.favorites ?? 'Favorites', route: AppRouter.favorites),
       _NavItem(icon: Icons.search_rounded, label: AppStrings.of(context)?.search ?? 'Search', route: AppRouter.search),
@@ -190,7 +192,7 @@ class _TVSidebarState extends State<TVSidebar> {
                 Expanded(
                   child: ShaderMask(
                     shaderCallback: (bounds) => AppTheme.getGradient(context).createShader(bounds),
-                    child: const Text('Lotus', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: const Text('VoXtv', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
               ],
@@ -261,8 +263,8 @@ class _TVSidebarState extends State<TVSidebar> {
             // 在第一个菜单项时，阻止向上导航
             return KeyEventResult.handled;
           }
-          if (key == LogicalKeyboardKey.arrowDown && index == 5) {
-            // 在最后一个菜单项（第6个，索引5）时，阻止向下导航
+          if (key == LogicalKeyboardKey.arrowDown && index == 7) {
+            // 在最后一个菜单项（第8个，索引7）时，阻止向下导航
             return KeyEventResult.handled;
           }
           

@@ -263,7 +263,7 @@ class PlaylistProvider extends ChangeNotifier {
       notifyListeners();
 
       // Step 2: Parse channels (15% - 50%)
-      final List<Channel> channels;
+      late List<Channel> channels;
       String? epgUrl;
       
       // Use provided merge rule or default to 'name_group'
@@ -272,24 +272,94 @@ class PlaylistProvider extends ChangeNotifier {
       
       if (url != null) {
         // From URL
-        final format = _detectPlaylistFormat(url);
-        ServiceLocator.log.i('检测到播放列表格式: $format', tag: 'PlaylistProvider');
-        
+        ServiceLocator.log.i('检测到远程URL，开始解析: $url', tag: 'PlaylistProvider');
         _importProgress = 0.15;
         notifyListeners();
-        
-        // 下载内容用于备份
-        try {
-          originalContent = await _downloadContentFromUrl(url);
-        } catch (e) {
-          ServiceLocator.log.w('下载内容用于备份失败: $e', tag: 'PlaylistProvider');
-        }
-        
-        if (format == 'txt') {
-          channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+
+        // If this looks like an Xtream endpoint, prefer the player_api.php flow
+        if (_looksLikeXtreamUrl(url)) {
+          try {
+            final creds = _parseXtreamCredentials(url);
+            final base = creds['base'];
+            final user = creds['username'];
+            final pass = creds['password'];
+
+            if (base != null && user != null && pass != null) {
+              ServiceLocator.log.i('检测到Xtream链接，使用API导入（player_api.php）', tag: 'PlaylistProvider');
+              try {
+                channels = await _importFromXtream(
+                  baseServer: base,
+                  username: user,
+                  password: pass,
+                  playlistId: playlistId!,
+                  mergeRule: effectiveMergeRule,
+                );
+                // Do not create a large content backup for API imports
+                originalContent = '';
+              } catch (e) {
+                ServiceLocator.log.w('Xtream API 导入失败，回退到常规解析: $e', tag: 'PlaylistProvider');
+                // Fallback to the default behavior below
+                final format = _detectPlaylistFormat(url);
+                try {
+                  originalContent = await _downloadContentFromUrl(url);
+                } catch (e) {
+                  ServiceLocator.log.w('下载内容用于备份失败: $e', tag: 'PlaylistProvider');
+                }
+                if (format == 'txt') {
+                  channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                } else {
+                  channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                  epgUrl = M3UParser.lastParseResult?.epgUrl;
+                }
+              }
+            } else {
+              ServiceLocator.log.w('无法从URL解析Xtream凭据，使用常规解析', tag: 'PlaylistProvider');
+              final format = _detectPlaylistFormat(url);
+              try {
+                originalContent = await _downloadContentFromUrl(url);
+              } catch (e) {
+                ServiceLocator.log.w('下载内容用于备份失败: $e', tag: 'PlaylistProvider');
+              }
+              if (format == 'txt') {
+                channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+              } else {
+                channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                epgUrl = M3UParser.lastParseResult?.epgUrl;
+              }
+            }
+          } catch (e) {
+            ServiceLocator.log.w('处理Xtream URL时出错，使用常规解析: $e', tag: 'PlaylistProvider');
+            final format = _detectPlaylistFormat(url);
+            try {
+              originalContent = await _downloadContentFromUrl(url);
+            } catch (e) {
+              ServiceLocator.log.w('下载内容用于备份失败: $e', tag: 'PlaylistProvider');
+            }
+            if (format == 'txt') {
+              channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+            } else {
+              channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+              epgUrl = M3UParser.lastParseResult?.epgUrl;
+            }
+          }
         } else {
-          channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
-          epgUrl = M3UParser.lastParseResult?.epgUrl;
+          // Regular URL handling (M3U / TXT)
+          final format = _detectPlaylistFormat(url);
+          ServiceLocator.log.i('检测到播放列表格式: $format', tag: 'PlaylistProvider');
+
+          // 下载内容用于备份
+          try {
+            originalContent = await _downloadContentFromUrl(url);
+          } catch (e) {
+            ServiceLocator.log.w('下载内容用于备份失败: $e', tag: 'PlaylistProvider');
+          }
+
+          if (format == 'txt') {
+            channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+          } else {
+            channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+            epgUrl = M3UParser.lastParseResult?.epgUrl;
+          }
         }
       } else if (content != null) {
         // From content string
@@ -425,6 +495,25 @@ class PlaylistProvider extends ChangeNotifier {
           whereArgs: [playlistId],
         );
       });
+
+      // Debug: log channel counts by type for this playlist (helps verify VOD/Series persistence)
+      try {
+        final counts = await ServiceLocator.database.rawQuery(
+          'SELECT channel_type, COUNT(*) as cnt FROM channels WHERE playlist_id = ? GROUP BY channel_type',
+          [playlistId],
+        );
+        int total = 0;
+        final parts = <String>[];
+        for (final row in counts) {
+          final type = row['channel_type']?.toString() ?? 'unknown';
+          final cnt = (row['cnt'] is int) ? (row['cnt'] as int) : ((row['cnt'] is num) ? (row['cnt'] as num).toInt() : 0);
+          total += cnt;
+          parts.add('$type:$cnt');
+        }
+        ServiceLocator.log.i('Import debug: playlist $playlistId channel counts: ${parts.join(', ')} (total $total)', tag: 'PlaylistProvider');
+      } catch (e) {
+        ServiceLocator.log.w('Import debug: failed to query channel counts: $e', tag: 'PlaylistProvider');
+      }
 
       // Update progress after transaction (90%)
       _importProgress = 0.9;
@@ -610,22 +699,59 @@ class PlaylistProvider extends ChangeNotifier {
 
       if (freshPlaylist.isRemote) {
         ServiceLocator.log.d('开始从URL解析播放列表: ${freshPlaylist.url}', tag: 'PlaylistProvider');
-        
-        // Detect format and parse accordingly
-        final format = _detectPlaylistFormat(freshPlaylist.url!);
-        ServiceLocator.log.d('检测到播放列表格式: $format', tag: 'PlaylistProvider');
-        
-        if (format == 'txt') {
-          channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+
+        // Xtream URL: use API import path so LIVE/VOD/SERIES are all persisted correctly
+        if (_looksLikeXtreamUrl(freshPlaylist.url!)) {
+          final creds = _parseXtreamCredentials(freshPlaylist.url!);
+          final base = creds['base'];
+          final user = creds['username'];
+          final pass = creds['password'];
+
+          if (base != null && user != null && pass != null) {
+            ServiceLocator.log.i('刷新检测到 Xtream 链接，使用 API 全量刷新（LIVE/VOD/SERIES）', tag: 'PlaylistProvider');
+            channels = await _importFromXtream(
+              baseServer: base,
+              username: user,
+              password: pass,
+              playlistId: playlist.id!,
+              mergeRule: effectiveMergeRule,
+            );
+          } else {
+            ServiceLocator.log.w('刷新时无法解析 Xtream 凭据，回退到常规解析', tag: 'PlaylistProvider');
+
+            final format = _detectPlaylistFormat(freshPlaylist.url!);
+            ServiceLocator.log.d('检测到播放列表格式: $format', tag: 'PlaylistProvider');
+
+            if (format == 'txt') {
+              channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+            } else {
+              channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+            }
+
+            if (format == 'm3u') {
+              _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
+              if (_lastExtractedEpgUrl != null) {
+                ServiceLocator.log.d('从M3U提取到EPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+              }
+            }
+          }
         } else {
-          channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
-        }
-        
-        // Check for EPG URL in M3U header (only for M3U format)
-        if (format == 'm3u') {
-          _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
-          if (_lastExtractedEpgUrl != null) {
-            ServiceLocator.log.d('从M3U提取到EPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+          // Detect format and parse accordingly
+          final format = _detectPlaylistFormat(freshPlaylist.url!);
+          ServiceLocator.log.d('检测到播放列表格式: $format', tag: 'PlaylistProvider');
+
+          if (format == 'txt') {
+            channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+          } else {
+            channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+          }
+
+          // Check for EPG URL in M3U header (only for M3U format)
+          if (format == 'm3u') {
+            _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
+            if (_lastExtractedEpgUrl != null) {
+              ServiceLocator.log.d('从M3U提取到EPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+            }
           }
         }
       } else if (freshPlaylist.isLocal) {
@@ -1295,7 +1421,7 @@ class PlaylistProvider extends ChangeNotifier {
   
   /// 从URL下载内容
   Future<String> _downloadContentFromUrl(String url) async {
-    final dio = Dio();
+    final dio = ServiceLocator.createDio();
     final response = await dio.get(
       url,
       options: Options(
@@ -1310,6 +1436,266 @@ class PlaylistProvider extends ChangeNotifier {
     } else {
       throw Exception('HTTP ${response.statusCode}');
     }
+  }
+
+  /// Heuristic: detect Xtream-style URLs (player_api.php / get.php with username/password)
+  bool _looksLikeXtreamUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final path = uri.path.toLowerCase();
+      final query = uri.query.toLowerCase();
+
+      if (path.contains('player_api.php') || path.contains('get.php')) return true;
+      if (query.contains('username=') && query.contains('password=')) return true;
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Parse base server, username and password from a Xtream URL (get.php or player_api.php)
+  Map<String, String?> _parseXtreamCredentials(String url) {
+    final uri = Uri.parse(url);
+    String base = '${uri.scheme}://${uri.host}';
+    if (uri.hasPort) base = '$base:${uri.port}';
+
+    final params = uri.queryParameters;
+    final username = params['username'] ?? params['user'];
+    final password = params['password'] ?? params['pass'];
+
+    return {
+      'base': base,
+      'username': username,
+      'password': password,
+    };
+  }
+
+  /// Import channels using the Xtream `player_api.php` endpoints.
+  /// This avoids downloading a monolithic M3U and uses the API to fetch categories and streams.
+  Future<List<Channel>> _importFromXtream({
+    required String baseServer,
+    required String username,
+    required String password,
+    required int playlistId,
+    required String mergeRule,
+  }) async {
+    final dio = ServiceLocator.createDio();
+    dio.options.connectTimeout = const Duration(seconds: 10);
+    dio.options.receiveTimeout = const Duration(seconds: 20);
+    dio.options.validateStatus = (status) => status != null && status < 500;
+
+    // Validate main endpoint
+    final authUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}';
+    final authResp = await dio.get(authUrl);
+    if (authResp.statusCode != 200 || authResp.data == null || authResp.data is! Map) {
+      throw Exception('No se pudo validar la cuenta Xtream');
+    }
+
+    final result = <Channel>[];
+
+    // Fetch LIVE categories (if available)
+    final catUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_categories';
+    final catResp = await dio.get(catUrl);
+
+    List categories = [];
+    if (catResp.statusCode == 200 && catResp.data is List) {
+      categories = catResp.data as List;
+    }
+
+    // Build category map for quick group naming when using single-call stream import
+    final Map<String, String> categoryNames = {};
+    for (final c in categories) {
+      if (c is! Map) continue;
+      final categoryId = c['category_id']?.toString();
+      final categoryName = c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
+      if (categoryId != null && categoryId.isNotEmpty) {
+        categoryNames[categoryId] = categoryName;
+      }
+    }
+
+    // Fast path: fetch all LIVE streams in one request (much faster on TV boxes)
+    final allStreamsUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams';
+    final allStreamsResp = await dio.get(allStreamsUrl);
+    if (allStreamsResp.statusCode == 200 && allStreamsResp.data is List) {
+      final streams = allStreamsResp.data as List;
+      for (final s in streams) {
+        if (s is! Map) continue;
+        final streamCategoryId = s['category_id']?.toString();
+        final groupName = (streamCategoryId != null && categoryNames.containsKey(streamCategoryId))
+            ? categoryNames[streamCategoryId]
+            : null;
+        final ch = _channelFromXtreamMap(s, groupName, baseServer, username, password, playlistId, channelType: 'live');
+        result.add(ch);
+      }
+      ServiceLocator.log.i('Xtream LIVE导入完成: ${result.length} 频道', tag: 'PlaylistProvider');
+    } else if (categories.isNotEmpty) {
+      // Fallback: per-category live streams
+      for (final c in categories) {
+        if (c is! Map) continue;
+        final categoryId = c['category_id']?.toString();
+        final categoryName = c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
+        if (categoryId == null) continue;
+        final streamsUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams&category_id=${Uri.encodeComponent(categoryId)}';
+        final streamsResp = await dio.get(streamsUrl);
+        if (streamsResp.statusCode != 200 || streamsResp.data is! List) continue;
+        for (final s in (streamsResp.data as List)) {
+          if (s is Map) result.add(_channelFromXtreamMap(s, categoryName, baseServer, username, password, playlistId, channelType: 'live'));
+        }
+      }
+    }
+
+    // ── VOD (Movies) ─────────────────────────────────────────────────────────
+    try {
+      final vodCatUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_categories';
+      final vodCatResp = await dio.get(vodCatUrl);
+      if (vodCatResp.statusCode == 200 && vodCatResp.data is List) {
+        final vodCategoryNames = <String, String>{};
+        for (final c in (vodCatResp.data as List)) {
+          if (c is! Map) continue;
+          final id = c['category_id']?.toString();
+          final name = c['category_name']?.toString() ?? 'Movies';
+          if (id != null) vodCategoryNames[id] = name;
+        }
+
+        final vodUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_streams';
+        final vodResp = await dio.get(vodUrl);
+        if (vodResp.statusCode == 200 && vodResp.data is List) {
+          int vodCount = 0;
+          for (final s in (vodResp.data as List)) {
+            if (s is! Map) continue;
+            final catId = s['category_id']?.toString();
+            final groupName = (catId != null && vodCategoryNames.containsKey(catId)) ? vodCategoryNames[catId] : null;
+            result.add(_channelFromVodMap(s, groupName, baseServer, username, password, playlistId));
+            vodCount++;
+          }
+          ServiceLocator.log.i('Xtream VOD导入完成: $vodCount 部影片', tag: 'PlaylistProvider');
+        }
+      }
+    } catch (e) {
+      ServiceLocator.log.w('Xtream VOD导入失败（继续）: $e', tag: 'PlaylistProvider');
+    }
+
+    // ── Series ────────────────────────────────────────────────────────────────
+    try {
+      final serCatUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series_categories';
+      final serCatResp = await dio.get(serCatUrl);
+      if (serCatResp.statusCode == 200 && serCatResp.data is List) {
+        final seriesCategoryNames = <String, String>{};
+        for (final c in (serCatResp.data as List)) {
+          if (c is! Map) continue;
+          final id = c['category_id']?.toString();
+          final name = c['category_name']?.toString() ?? 'Series';
+          if (id != null) seriesCategoryNames[id] = name;
+        }
+
+        final serUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series';
+        final serResp = await dio.get(serUrl);
+        if (serResp.statusCode == 200 && serResp.data is List) {
+          int serCount = 0;
+          for (final s in (serResp.data as List)) {
+            if (s is! Map) continue;
+            final catId = s['category_id']?.toString();
+            final groupName = (catId != null && seriesCategoryNames.containsKey(catId)) ? seriesCategoryNames[catId] : null;
+            result.add(_channelFromSeriesMap(s, groupName, baseServer, username, password, playlistId));
+            serCount++;
+          }
+          ServiceLocator.log.i('Xtream Series导入完成: $serCount 部剧集', tag: 'PlaylistProvider');
+        }
+      }
+    } catch (e) {
+      ServiceLocator.log.w('Xtream Series导入失败（继续）: $e', tag: 'PlaylistProvider');
+    }
+
+    ServiceLocator.log.i('Xtream全量导入完成: ${result.length} 条目', tag: 'PlaylistProvider');
+    return result;
+  }
+
+  Channel _channelFromVodMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId) {
+    final name = (s['name'] ?? s['title'] ?? s['stream_name'] ?? 'Unknown').toString();
+    String? logo = s['stream_icon']?.toString() ?? s['cover']?.toString() ?? s['logo']?.toString();
+    final ext = (s['container_extension']?.toString() ?? 'mp4').replaceAll('.', '');
+    final streamId = (s['stream_id'] ?? s['id'])?.toString();
+    String url = streamId != null
+        ? '$baseServer/movie/$username/$password/$streamId.$ext'
+        : '$baseServer/movie/$username/$password/0.$ext';
+    return Channel(
+      playlistId: playlistId,
+      name: name,
+      url: url,
+      sources: [url],
+      logoUrl: logo,
+      groupName: categoryName,
+      channelType: 'vod',
+    );
+  }
+
+  Channel _channelFromSeriesMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId) {
+    final name = (s['name'] ?? s['title'] ?? 'Unknown Series').toString();
+    String? logo = s['cover']?.toString() ?? s['stream_icon']?.toString();
+    final seriesId = (s['series_id'] ?? s['id'])?.toString();
+    // Series don't have a direct stream URL; store a placeholder that links to the series
+    String url = seriesId != null
+        ? '$baseServer/series/$username/$password/$seriesId'
+        : '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series_info&series_id=0';
+    return Channel(
+      playlistId: playlistId,
+      name: name,
+      url: url,
+      sources: [url],
+      logoUrl: logo,
+      groupName: categoryName,
+      channelType: 'series',
+    );
+  }
+
+  Channel _channelFromXtreamMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId, {String channelType = 'live'}) {
+    final name = (s['name'] ?? s['channel_name'] ?? s['stream_name'] ?? 'Unknown Channel').toString();
+
+    String? logo;
+    if (s['stream_icon'] != null) logo = s['stream_icon'].toString();
+    if (logo == null && s['logo'] != null) logo = s['logo'].toString();
+
+    String? epgId;
+    if (s['epg_channel_id'] != null) epgId = s['epg_channel_id'].toString();
+
+    // Prefer explicit stream URL if provided
+    String url = '';
+    if (s['stream_url'] != null) {
+      url = s['stream_url'].toString();
+    } else if (s['url'] != null) {
+      url = s['url'].toString();
+    } else if (s['stream_id'] != null) {
+      final sid = s['stream_id'].toString();
+      // Common Xtream direct stream patterns - include multiple candidates
+      url = '$baseServer/live/$username/$password/$sid.ts';
+    } else if (s['id'] != null) {
+      final sid = s['id'].toString();
+      url = '$baseServer/live/$username/$password/$sid.ts';
+    } else {
+      // Fallback to base get.php (server-wide M3U) - not ideal but last resort
+      url = '$baseServer/get.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&output=ts&type=m3u_plus';
+    }
+
+    // Provide alternative sources where reasonable
+    final sources = <String>[];
+    if (url.isNotEmpty) sources.add(url);
+    // If we used stream_id, also add m3u8 variant
+    if ((s['stream_id'] ?? s['id']) != null) {
+      final sid = (s['stream_id'] ?? s['id']).toString();
+      final alt = '$baseServer/live/$username/$password/$sid.m3u8';
+      if (!sources.contains(alt)) sources.add(alt);
+    }
+
+    return Channel(
+      playlistId: playlistId,
+      name: name,
+      url: url,
+      sources: sources,
+      logoUrl: logo,
+      groupName: categoryName,
+      epgId: epgId,
+      channelType: channelType,
+    );
   }
   
   /// 保存备份文件

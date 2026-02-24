@@ -605,12 +605,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
         // 播放列表正在刷新时显示加载状态
         if (playlistProvider.isLoading) {
-          return const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryColor));
+          return _buildContentLoadingState(playlistProvider, channelProvider);
         }
 
         // 如果播放列表已加载但首页数据为空，显示空状态并提供操作按钮
-        if (playlistProvider.hasPlaylists && channelProvider.allChannels.isEmpty) {
+        if (playlistProvider.hasPlaylists && channelProvider.totalContentChannelCount == 0) {
           // ✅ 只在第一次检测到空频道时触发加载，避免重复触发
           if (!_hasTriggeredEmptyChannelLoad && !channelProvider.isLoading) {
             _hasTriggeredEmptyChannelLoad = true;
@@ -638,11 +637,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
         // ✅ 首页使用独立的加载状态（仅在有频道数据时显示）
         if (channelProvider.isLoading) {
+          if (channelProvider.totalContentChannelCount == 0) {
+            return _buildContentLoadingState(playlistProvider, channelProvider);
+          }
           return const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor));
         }
 
         final favChannels = _getFavoriteChannels(channelProvider);
+        final watchLaterChannels = _getWatchLaterChannels(channelProvider);
+        final upNextMedia = _getUpNextMediaChannels(channelProvider);
+        final movieChannels = channelProvider.vodChannels.take(12).toList();
+        final seriesChannels = channelProvider.seriesChannels.take(12).toList();
         
         // ✅ 获取首页数据（显示前8个分类）
         final homeChannelsByGroup = channelProvider.getHomeChannelsByGroup(maxGroups: 8, channelsPerGroup: 12);
@@ -689,6 +695,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                               showMore: true,
                               onMoreTap: () => Navigator.pushNamed(context, AppRouter.favorites),
                               isFirstRow: !settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty), // 如果观看记录不显示或为空，收藏夹是第一行
+                          SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
+                        ],
+                        // Watch Later row
+                        if (watchLaterChannels.isNotEmpty) ...[
+                          _buildChannelRow(
+                            'Watch Later',
+                            watchLaterChannels,
+                            showMore: false,
+                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
+                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty),
+                          ),
+                          SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
+                        ],
+                        // Up Next (movies/series recommendations)
+                        if (upNextMedia.isNotEmpty) ...[
+                          _buildChannelRow(
+                            AppStrings.of(context)?.upNext ?? 'Up Next',
+                            upNextMedia,
+                            showMore: false,
+                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
+                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
+                                watchLaterChannels.isEmpty,
+                          ),
+                          SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
+                        ],
+                        // Movies row
+                        if (movieChannels.isNotEmpty) ...[
+                          _buildChannelRow(
+                            AppStrings.of(context)?.movies ?? 'Movies',
+                            movieChannels,
+                            showMore: true,
+                            onMoreTap: () => Navigator.pushNamed(context, AppRouter.movies),
+                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
+                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
+                                watchLaterChannels.isEmpty &&
+                                upNextMedia.isEmpty,
+                          ),
+                          SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
+                        ],
+                        // Series row
+                        if (seriesChannels.isNotEmpty) ...[
+                          _buildChannelRow(
+                            AppStrings.of(context)?.series ?? 'Series',
+                            seriesChannels,
+                            showMore: true,
+                            onMoreTap: () => Navigator.pushNamed(context, AppRouter.series),
+                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
+                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
+                              watchLaterChannels.isEmpty &&
+                                upNextMedia.isEmpty &&
+                                movieChannels.isEmpty,
+                          ),
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
                         // ✅ 使用首页数据显示分类和频道
@@ -812,7 +870,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text('Lotus IPTV',
+                      Text('VoXtv',
                           style: TextStyle(
                               fontSize: isLandscape ? 16 : (isMobile ? 18 : 28),
                               fontWeight: FontWeight.bold,
@@ -878,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                 if (!isMobile || MediaQuery.of(context).size.width <= 700) ...[
                   SizedBox(height: isMobile ? 2 : 4),
                   Text(
-                    '${provider.totalChannelCount} ${AppStrings.of(context)?.channels ?? "频道"} · ${provider.groups.length} ${AppStrings.of(context)?.categories ?? "分类"} · ${context.watch<FavoritesProvider>().count} ${AppStrings.of(context)?.favorites ?? "收藏"}$playlistInfo',
+                    '${provider.totalContentChannelCount} ${AppStrings.of(context)?.channels ?? "频道"} · ${provider.groups.length} ${AppStrings.of(context)?.categories ?? "分类"} · ${context.watch<FavoritesProvider>().count} ${AppStrings.of(context)?.favorites ?? "收藏"}$playlistInfo',
                     style: TextStyle(
                         color: AppTheme.getTextMuted(context), fontSize: 13),
                     maxLines: 1,
@@ -1504,12 +1562,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
   List<Channel> _getFavoriteChannels(ChannelProvider provider) {
     final favProvider = context.read<FavoritesProvider>();
-    // ✅ 使用 allChannels 而不是 channels，确保能获取到所有收藏频道
-    // channels 只包含分页显示的频道，可能不包含收藏的频道
-    return provider.allChannels
+    final all = <Channel>[
+      ...provider.allChannels,
+      ...provider.vodChannels,
+      ...provider.seriesChannels,
+    ];
+    return all
         .where((c) => favProvider.isFavorite(c.id ?? 0))
         .take(20)
         .toList();
+  }
+
+  List<Channel> _getUpNextMediaChannels(ChannelProvider provider) {
+    final source = <Channel>[
+      ...provider.vodChannels,
+      ...provider.seriesChannels,
+    ];
+
+    if (source.isEmpty) return const [];
+
+    final historyIds = _watchHistoryChannels
+        .map((c) => c.id)
+        .whereType<int>()
+        .toSet();
+
+    final unseen = source.where((c) => c.id == null || !historyIds.contains(c.id)).toList();
+    final prioritized = unseen.isNotEmpty ? unseen : source;
+    return prioritized.take(12).toList();
+  }
+
+  List<Channel> _getWatchLaterChannels(ChannelProvider provider) {
+    final ids = ServiceLocator.watchLater.getIds().toSet();
+    if (ids.isEmpty) return const [];
+
+    final all = <Channel>[
+      ...provider.allChannels,
+      ...provider.vodChannels,
+      ...provider.seriesChannels,
+    ];
+
+    return all.where((c) => c.id != null && ids.contains(c.id)).take(20).toList();
   }
 
   Widget _buildEmptyState() {
@@ -1572,6 +1664,173 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                       fontWeight: FontWeight.w500),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContentLoadingState(
+      PlaylistProvider playlistProvider, ChannelProvider channelProvider) {
+    final liveCount = channelProvider.allChannels.length;
+    final moviesCount = channelProvider.vodChannels.length;
+    final seriesCount = channelProvider.seriesChannels.length;
+    final progress = playlistProvider.importProgress.clamp(0.0, 1.0);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 980),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Sincronizando contenido',
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Descargando LIVE, MOVIES y SERIES…',
+                style: TextStyle(
+                  color: AppTheme.getTextSecondary(context),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress > 0 ? progress : null,
+                  minHeight: 8,
+                  backgroundColor: AppTheme.getCardColor(context),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.getPrimaryColor(context),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${(progress * 100).toStringAsFixed(0)}%',
+                style: TextStyle(
+                  color: AppTheme.getTextMuted(context),
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildSyncCard(
+                    title: 'LIVE TV',
+                    count: liveCount,
+                    icon: Icons.live_tv_rounded,
+                    accent: const Color(0xFF2EA7FF),
+                    isLoading: playlistProvider.isLoading && liveCount == 0,
+                  ),
+                  _buildSyncCard(
+                    title: 'MOVIES',
+                    count: moviesCount,
+                    icon: Icons.movie_rounded,
+                    accent: const Color(0xFFE9546B),
+                    isLoading: playlistProvider.isLoading && moviesCount == 0,
+                  ),
+                  _buildSyncCard(
+                    title: 'SERIES',
+                    count: seriesCount,
+                    icon: Icons.video_library_rounded,
+                    accent: const Color(0xFF5B87F7),
+                    isLoading: playlistProvider.isLoading && seriesCount == 0,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSyncCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required Color accent,
+    required bool isLoading,
+  }) {
+    return Container(
+      width: 290,
+      height: 160,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withOpacity(0.28),
+            accent.withOpacity(0.12),
+            AppTheme.getCardColor(context).withOpacity(0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.getGlassBorderColor(context),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              if (isLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              else
+                const Icon(Icons.check_circle_rounded,
+                    color: Colors.white, size: 18),
+            ],
+          ),
+          const Spacer(),
+          Text(
+            isLoading ? 'Downloading…' : 'Loaded',
+            style: const TextStyle(
+              color: Color(0xCCFFFFFF),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$count items',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

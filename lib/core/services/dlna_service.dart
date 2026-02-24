@@ -20,7 +20,7 @@ class DlnaService {
 
   // 设备信息
   String _deviceUuid = '';
-  String _deviceName = 'Lotus IPTV';
+  String _deviceName = 'VoXTV';
   String? _localIp;
 
   // 服务状态
@@ -171,11 +171,11 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
       if (Platform.isAndroid) {
         final info = await deviceInfo.androidInfo;
         _deviceUuid = 'uuid:${info.id}-lotus-iptv';
-        _deviceName = 'Lotus IPTV (${info.model})';
+        _deviceName = 'VoXTV (${info.model})';
       } else if (Platform.isWindows) {
         final info = await deviceInfo.windowsInfo;
         _deviceUuid = 'uuid:${info.deviceId}-lotus-iptv';
-        _deviceName = 'Lotus IPTV (${info.computerName})';
+        _deviceName = 'VoXTV (${info.computerName})';
       } else {
         _deviceUuid = 'uuid:lotus-iptv-${DateTime.now().millisecondsSinceEpoch}';
       }
@@ -342,7 +342,7 @@ CACHE-CONTROL: max-age=1800\r
 DATE: ${HttpDate.format(DateTime.now())}\r
 EXT:\r
 LOCATION: http://$_localIp:$_httpPort/description.xml\r
-SERVER: Lotus IPTV/1.0 UPnP/1.0 DLNADOC/1.50\r
+SERVER: VoXTV/1.0 UPnP/1.0 DLNADOC/1.50\r
 ST: urn:schemas-upnp-org:device:MediaRenderer:1\r
 USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
 \r
@@ -359,7 +359,7 @@ CACHE-CONTROL: max-age=1800\r
 LOCATION: http://$_localIp:$_httpPort/description.xml\r
 NT: urn:schemas-upnp-org:device:MediaRenderer:1\r
 NTS: ssdp:alive\r
-SERVER: Lotus IPTV/1.0 UPnP/1.0 DLNADOC/1.50\r
+SERVER: VoXTV/1.0 UPnP/1.0 DLNADOC/1.50\r
 USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
 \r
 ''';
@@ -419,7 +419,7 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
       request.response.statusCode = 200;
       request.response.headers.set('SID', sid);
       request.response.headers.set('TIMEOUT', 'Second-1800');
-      request.response.headers.set('Server', 'Lotus IPTV/1.0 UPnP/1.0');
+      request.response.headers.set('Server', 'VoXTV/1.0 UPnP/1.0');
       request.response.headers.set('Content-Length', '0');
       await request.response.close();
       
@@ -484,11 +484,11 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
   </specVersion>
   <device>
     <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
-    <friendlyName>$_deviceName</friendlyName>
-    <manufacturer>Lotus IPTV</manufacturer>
-    <manufacturerURL>https://github.com/shnulaa/FlutterIPTV</manufacturerURL>
-    <modelDescription>Lotus IPTV Media Renderer</modelDescription>
-    <modelName>Lotus IPTV</modelName>
+  <friendlyName>$_deviceName</friendlyName>
+  <manufacturer>VoXTV</manufacturer>
+  <manufacturerURL>https://github.com/shnulaa/FlutterIPTV</manufacturerURL>
+  <modelDescription>VoXTV Media Renderer</modelDescription>
+  <modelName>VoXTV</modelName>
     <modelNumber>1.0</modelNumber>
     <modelURL>https://github.com/shnulaa/FlutterIPTV</modelURL>
     <UDN>$_deviceUuid</UDN>

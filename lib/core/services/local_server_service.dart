@@ -393,7 +393,7 @@ class LocalServerService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotus IPTV - Import Playlist</title>
+    <title>VoXTV - Import Playlist</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -408,7 +408,7 @@ class LocalServerService {
     </style>
 </head>
 <body>
-    <h1>🎬 Lotus IPTV</h1>
+    <h1>🎬 VoXTV</h1>
     <p>Import Playlist</p>
     <p>Please reload the page</p>
 </body>
@@ -424,7 +424,7 @@ class LocalServerService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotus IPTV - Search Channels</title>
+    <title>VoXTV - Search Channels</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -439,7 +439,7 @@ class LocalServerService {
     </style>
 </head>
 <body>
-    <h1>🔍 Lotus IPTV</h1>
+    <h1>🔍 VoXTV</h1>
     <p>Search Channels</p>
     <p>Please reload the page</p>
 </body>
@@ -458,7 +458,7 @@ class LocalServerService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotus IPTV - 日志查看</title>
+    <title>VoXTV - 日志查看</title>
     <style>
         * {
             margin: 0;
@@ -608,7 +608,7 @@ class LocalServerService {
 <body>
     <div class="container">
         <div class="header">
-            <h1>📋 Lotus IPTV 日志查看</h1>
+            <h1>📋 VoXTV 日志查看</h1>
             <p>查看和分享应用日志</p>
         </div>
         

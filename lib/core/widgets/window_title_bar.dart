@@ -14,7 +14,7 @@ class WindowTitleBar extends StatefulWidget {
 
   const WindowTitleBar({
     super.key,
-    this.title = 'Lotus IPTV',
+    this.title = 'VoXTV',
     this.leading,
     this.actions,
   });

@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
@@ -9,6 +10,8 @@ import 'log_service.dart';
 import 'channel_logo_service.dart';
 import 'redirect_cache_service.dart';
 import 'watch_history_service.dart';
+import 'omdb_service.dart';
+import 'watch_later_service.dart';
 import '../managers/update_manager.dart';
 
 /// Service Locator for dependency injection
@@ -22,6 +25,8 @@ class ServiceLocator {
   static late ChannelLogoService _channelLogoService;
   static late RedirectCacheService _redirectCache;
   static late WatchHistoryService _watchHistory;
+  static late OmdbService _omdbService;
+  static late WatchLaterService _watchLaterService;
 
   static SharedPreferences get prefs => _prefs;
   static DatabaseHelper get database => _database;
@@ -32,6 +37,8 @@ class ServiceLocator {
   static ChannelLogoService get channelLogo => _channelLogoService;
   static RedirectCacheService get redirectCache => _redirectCache;
   static WatchHistoryService get watchHistory => _watchHistory;
+  static OmdbService get omdb => _omdbService;
+  static WatchLaterService get watchLater => _watchLaterService;
   
   /// Check if log service is initialized
   static bool get isLogInitialized {
@@ -83,6 +90,12 @@ class ServiceLocator {
     
     // Initialize redirect cache service
     _redirectCache = RedirectCacheService();
+
+    // OMDb metadata service (user-provided API key)
+    _omdbService = OmdbService(apiKey: '1a04c33a');
+
+    // Watch later service
+    _watchLaterService = WatchLaterService(_prefs);
   }
 
   static Future<void> dispose() async {
@@ -95,5 +108,25 @@ class ServiceLocator {
     }
     
     await _database.close();
+  }
+
+  /// Create a Dio instance configured with app-wide defaults
+  static Dio createDio({Map<String, dynamic>? extraHeaders}) {
+    final dio = Dio();
+    dio.options.connectTimeout = const Duration(seconds: 15);
+    dio.options.receiveTimeout = const Duration(seconds: 30);
+    dio.options.followRedirects = true;
+
+    final defaultHeaders = <String, dynamic>{
+      'User-Agent': 'IPTVSmartersPlayer',
+      'Accept': 'application/json,text/plain,*/*',
+    };
+
+    if (extraHeaders != null) {
+      defaultHeaders.addAll(extraHeaders);
+    }
+
+    dio.options.headers = defaultHeaders;
+    return dio;
   }
 }

@@ -43,6 +43,12 @@ class RedirectCacheService {
       ServiceLocator.log.d('✓ 检测到直接流媒体URL，跳过302检查: $cleanUrl');
       return cleanUrl;
     }
+
+    // Xtream 直连URL通常不需要HEAD探测，部分服务端会直接封禁
+    if (_isXtreamUrl(cleanUrl)) {
+      ServiceLocator.log.d('✓ 检测到Xtream URL，跳过302检查: $cleanUrl');
+      return cleanUrl;
+    }
     
     // 检查缓存（使用清理后的URL作为key）
     final cached = _cache[cleanUrl];
@@ -135,7 +141,8 @@ class RedirectCacheService {
       client.connectionTimeout = const Duration(seconds: 2);
       
       final request = await client.getUrl(Uri.parse(url));
-      request.headers.set(HttpHeaders.userAgentHeader, 'Wget/1.21.3');
+      // Use Smarters-compatible User-Agent to avoid server blocking
+      request.headers.set(HttpHeaders.userAgentHeader, 'IPTVSmartersPlayer');
       request.followRedirects = false;
       
       final response = await request.close().timeout(const Duration(seconds: 2));
@@ -152,13 +159,32 @@ class RedirectCacheService {
         final location = response.headers.value(HttpHeaders.locationHeader);
         await response.drain();
         client.close();
-        
+
         if (location != null) {
           final elapsed = DateTime.now().difference(startTime).inMilliseconds;
           ServiceLocator.log.d('✓ 第${depth + 1}层重定向 (${connectTime}ms, 累计:${elapsed}ms)');
           ServiceLocator.log.d('  ${depth + 1}层URL: $url');
           ServiceLocator.log.d('  -> 重定向到: $location');
-          
+
+          // If the Location points to a player_api.php endpoint, update a saved Xtream base for this host
+          try {
+            if (location.contains('/player_api.php')) {
+              final origHost = Uri.parse(url).host;
+              final parts = location.split('/player_api.php');
+              if (parts.isNotEmpty) {
+                final newBase = parts.first;
+                try {
+                  await ServiceLocator.prefs.setString('xtream_base_$origHost', newBase);
+                  ServiceLocator.log.i('已保存Xtream base: $origHost -> $newBase', tag: 'RedirectCacheService');
+                } catch (e) {
+                  ServiceLocator.log.w('保存Xtream base失败: $e', tag: 'RedirectCacheService');
+                }
+              }
+            }
+          } catch (e) {
+            ServiceLocator.log.w('处理重定向Location时出错: $e', tag: 'RedirectCacheService');
+          }
+
           // 递归解析下一层重定向
           return await _resolveRedirectRecursive(location, depth + 1, startTime);
         }
@@ -207,6 +233,32 @@ class RedirectCacheService {
       
       // 检查路径是否以这些扩展名结尾
       return streamExtensions.any((ext) => path.endsWith(ext));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// 检查是否是 Xtream Codes 相关 URL
+  /// 对这些URL做HEAD/302探测可能触发服务端拦截
+  bool _isXtreamUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final path = uri.path.toLowerCase();
+      final hasXtreamQuery = uri.query.toLowerCase().contains('username=') && uri.query.toLowerCase().contains('password=');
+
+      if (path.contains('/player_api.php') || path.contains('/get.php')) {
+        return true;
+      }
+
+      if (path.contains('/live/') || path.contains('/movie/') || path.contains('/series/')) {
+        return true;
+      }
+
+      if (hasXtreamQuery && (path.endsWith('.ts') || path.endsWith('.m3u8') || path.endsWith('.mp4') || path.contains('/live'))) {
+        return true;
+      }
+
+      return false;
     } catch (e) {
       return false;
     }

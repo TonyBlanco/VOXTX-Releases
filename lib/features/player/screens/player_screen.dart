@@ -5,6 +5,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 
 import '../../../core/i18n/app_strings.dart';
@@ -1958,7 +1959,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            newIsFav ? '已添加到收藏' : '已从收藏中移除',
+                            newIsFav ? 'Added to favorites' : 'Removed from favorites',
                           ),
                           duration: const Duration(seconds: 1),
                         ),
@@ -2322,6 +2323,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                 },
               ),
 
+              _buildUpNextRow(provider),
+
               // Control buttons row (moved above progress bar)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -2635,6 +2638,159 @@ class _PlayerScreenState extends State<PlayerScreen>
                         const TextStyle(color: Color(0x66FFFFFF), fontSize: 11),
                   ),
                 ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<Channel> _getUpNextChannels(ChannelProvider channelProvider, PlayerProvider playerProvider) {
+    final current = playerProvider.currentChannel;
+    if (current == null) return const [];
+
+    List<Channel> source;
+    if (current.channelType == 'vod') {
+      source = channelProvider.vodChannels;
+    } else if (current.channelType == 'series') {
+      source = channelProvider.seriesChannels;
+    } else {
+      source = channelProvider.allChannels;
+    }
+
+    final sameGroup = source.where((c) =>
+        c.id != current.id &&
+        c.url != current.url &&
+        c.groupName != null &&
+        c.groupName == current.groupName).toList();
+
+    final fallback = source.where((c) =>
+        c.id != current.id &&
+        c.url != current.url).toList();
+
+    final candidates = sameGroup.isNotEmpty ? sameGroup : fallback;
+    return candidates.take(12).toList();
+  }
+
+  Widget _buildUpNextRow(PlayerProvider provider) {
+    return Consumer<ChannelProvider>(
+      builder: (context, channelProvider, _) {
+        final upNext = _getUpNextChannels(channelProvider, provider);
+        if (upNext.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.of(context)?.upNext ?? 'Up next',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 104,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: upNext.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final channel = upNext[index];
+                    return SizedBox(
+                      width: 180,
+                      child: TVFocusable(
+                        onSelect: () {
+                          provider.playChannel(channel);
+                          _saveLastChannelId(channel);
+                        },
+                        focusScale: 1.02,
+                        showFocusBorder: false,
+                        builder: (context, isFocused, child) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.getCardColor(context).withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isFocused
+                                    ? AppTheme.getPrimaryColor(context)
+                                    : const Color(0x1AFFFFFF),
+                                width: isFocused ? 2 : 1,
+                              ),
+                            ),
+                            child: child,
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                              ),
+                              child: SizedBox(
+                                width: 74,
+                                height: 104,
+                                child: (channel.logoUrl != null && channel.logoUrl!.isNotEmpty)
+                                    ? CachedNetworkImage(
+                                        imageUrl: channel.logoUrl!,
+                                        fit: BoxFit.cover,
+                                        placeholder: (_, __) => Container(
+                                          color: AppTheme.getSurfaceColor(context),
+                                          child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                        ),
+                                        errorWidget: (_, __, ___) => Container(
+                                          color: AppTheme.getSurfaceColor(context),
+                                          child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                        ),
+                                      )
+                                    : Container(
+                                        color: AppTheme.getSurfaceColor(context),
+                                        child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                      ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      channel.name,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      channel.groupName ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xB3FFFFFF),
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         );

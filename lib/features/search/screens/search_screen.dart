@@ -92,7 +92,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 4, // 搜索页
+            selectedIndex: 6, // 搜索页
             child: content,
           ),
         ),

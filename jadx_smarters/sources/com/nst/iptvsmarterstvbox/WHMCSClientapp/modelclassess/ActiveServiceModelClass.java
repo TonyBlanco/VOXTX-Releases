@@ -1,0 +1,77 @@
+package com.nst.iptvsmarterstvbox.WHMCSClientapp.modelclassess;
+
+/* JADX INFO: loaded from: classes.dex */
+public class ActiveServiceModelClass {
+
+    /* JADX INFO: renamed from: a, reason: collision with root package name */
+    public String f28539a;
+
+    /* JADX INFO: renamed from: b, reason: collision with root package name */
+    public String f28540b;
+
+    /* JADX INFO: renamed from: c, reason: collision with root package name */
+    public String f28541c;
+
+    /* JADX INFO: renamed from: d, reason: collision with root package name */
+    public String f28542d;
+
+    /* JADX INFO: renamed from: e, reason: collision with root package name */
+    public String f28543e;
+
+    /* JADX INFO: renamed from: f, reason: collision with root package name */
+    public String f28544f;
+
+    /* JADX INFO: renamed from: g, reason: collision with root package name */
+    public String f28545g;
+
+    /* JADX INFO: renamed from: h, reason: collision with root package name */
+    public String f28546h;
+
+    /* JADX INFO: renamed from: i, reason: collision with root package name */
+    public String f28547i;
+
+    public class Configoptions {
+    }
+
+    public class Customfields {
+
+        public class Customfield {
+        }
+    }
+
+    public String a() {
+        return this.f28545g;
+    }
+
+    public String b() {
+        return this.f28542d;
+    }
+
+    public String c() {
+        return this.f28539a;
+    }
+
+    public String d() {
+        return this.f28541c;
+    }
+
+    public String e() {
+        return this.f28546h;
+    }
+
+    public String f() {
+        return this.f28544f;
+    }
+
+    public String g() {
+        return this.f28543e;
+    }
+
+    public String h() {
+        return this.f28540b;
+    }
+
+    public String i() {
+        return this.f28547i;
+    }
+}

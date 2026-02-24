@@ -133,6 +133,7 @@ class AppStrings {
   String get popularCategories => _localizedValues['popularCategories']!;
   String get sports => _localizedValues['sports']!;
   String get movies => _localizedValues['movies']!;
+  String get series => _localizedValues['series']!;
   String get news => _localizedValues['news']!;
   String get music => _localizedValues['music']!;
   String get kids => _localizedValues['kids']!;
@@ -542,7 +543,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
   const _AppStringsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'zh'].contains(locale.languageCode);
+    bool isSupported(Locale locale) => ['en', 'es'].contains(locale.languageCode);
 
   @override
   Future<AppStrings> load(Locale locale) {
@@ -554,12 +555,44 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
   bool shouldReload(_AppStringsDelegate old) => false;
 
   Map<String, String> _getValues(Locale locale) {
-    if (locale.languageCode == 'zh') {
-      return _zhValues;
+        if (locale.languageCode == 'es') {
+            return {
+                ..._enValues,
+                ..._esOverrides,
+            };
     } else {
       return _enValues;
     }
   }
+
+    static const Map<String, String> _esOverrides = {
+        'language': 'Idioma',
+        'followSystem': 'Seguir sistema',
+        'languageFollowSystem': 'Idioma configurado para seguir el sistema',
+        'english': 'English',
+        'chinese': 'Chinese',
+        'movies': 'Películas',
+        'series': 'Series',
+        'categories': 'Categorías',
+        'allChannels': 'Todos',
+        'noResultsFound': 'No se encontraron resultados',
+        'loading': 'Cargando...',
+        'upNext': 'Siguiente',
+        'nowPlaying': 'En reproducción',
+        'continueWatching': 'Continuar',
+        'watchHistory': 'Historial',
+        'myFavorites': 'Mis favoritos',
+        'search': 'Buscar',
+        'settings': 'Configuración',
+        'refresh': 'Actualizar',
+        'playlists': 'Listas',
+        'playlistImported': 'Lista importada correctamente',
+        'playlistRefreshFailed': 'Error al refrescar la lista',
+        'more': 'Más',
+        'close': 'Cerrar',
+        'success': 'Éxito',
+        'error': 'Error',
+    };
 
   static const Map<String, String> _zhValues = {
     'playlistManager': '播放列表管理',
@@ -664,7 +697,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'playbackSettings': '播放设置',
     'playbackSpeed': '播放速度',
     'shortcutsHint': '左/右: 快进退 • 上/下: 换台 • 回车: 播放/暂停 • M: 静音',
-    'lotusIptv': 'Lotus IPTV',
+    'lotusIptv': 'VoXtv',
     'professionalIptvPlayer': '专业 IPTV 播放器',
     'searchChannels': '搜索频道',
     'searchHint': '搜索频道...',
@@ -672,6 +705,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'popularCategories': '热门分类',
     'sports': '体育',
     'movies': '电影',
+    'series': '剧集',
     'news': '新闻',
     'music': '音乐',
     'kids': '少儿',
@@ -1113,7 +1147,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'playbackSpeed': 'Playback Speed',
     'shortcutsHint':
         'Left/Right: Seek • Up/Down: Change Channel • Enter: Play/Pause • M: Mute',
-    'lotusIptv': 'Lotus IPTV',
+    'lotusIptv': 'VoXtv',
     'professionalIptvPlayer': 'Professional IPTV Player',
     'searchChannels': 'Search Channels',
     'searchHint': 'Search channels...',
@@ -1121,6 +1155,7 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'popularCategories': 'Popular Categories',
     'sports': 'Sports',
     'movies': 'Movies',
+    'series': 'Series',
     'news': 'News',
     'music': 'Music',
     'kids': 'Kids',

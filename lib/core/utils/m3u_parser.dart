@@ -32,10 +32,7 @@ class M3UParser {
       ServiceLocator.log.d('DEBUG: 开始从URL获取播放列表内容: $url');
 
       // Use Dio for better handling of large files and redirects
-      final dio = Dio();
-      // Increased timeout for large playlists
-      dio.options.connectTimeout = const Duration(seconds: 15);
-      dio.options.receiveTimeout = const Duration(seconds: 30);
+      final dio = ServiceLocator.createDio();
 
       final response = await dio.get(
         url,

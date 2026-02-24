@@ -779,7 +779,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
           ),
           child: TVSidebar(
-            selectedIndex: 5, // 设置页
+            selectedIndex: 7, // 设置页
             child: content,
           ),
         ),
@@ -864,14 +864,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final locale = settings.locale;
     final strings = AppStrings.of(context);
     if (locale == null) {
-      // 没有设置，显示"跟随系统"
+      // No explicit setting, show system language
       final systemLocale = Localizations.localeOf(context);
-      final systemLang = systemLocale.languageCode == 'zh' ? (strings?.chinese ?? '中文') : 'English';
+      final systemLang = systemLocale.languageCode == 'es' ? 'Español' : 'English';
       return '${strings?.followSystem ?? "Follow system"} ($systemLang)';
     }
-    // 根据保存的设置显示
-    if (locale.languageCode == 'zh') {
-      return strings?.chinese ?? '中文';
+    if (locale.languageCode == 'es') {
+      return 'Español';
     }
     return strings?.english ?? 'English';
   }
@@ -2194,7 +2193,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               RadioListTile<String?>(
                 title: Text(
-                  AppStrings.of(context)?.followSystem ?? '跟随系统',
+                  AppStrings.of(context)?.followSystem ?? 'Follow system',
                   style: TextStyle(color: AppTheme.getTextPrimary(context)),
                 ),
                 value: null,
@@ -2202,7 +2201,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (value) {
                   settings.setLocale(null);
                   Navigator.pop(dialogContext);
-                  _showSuccess(context, AppStrings.of(context)?.languageFollowSystem ?? '已设置为跟随系统语言');
+                  _showSuccess(context, AppStrings.of(context)?.languageFollowSystem ?? 'Language set to follow system');
+                },
+                activeColor: AppTheme.getPrimaryColor(dialogContext),
+              ),
+              RadioListTile<String?>(
+                title: Text(
+                  'Español',
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                value: 'es',
+                groupValue: currentLang,
+                onChanged: (value) {
+                  settings.setLocale(const Locale('es'));
+                  Navigator.pop(dialogContext);
+                  _showSuccess(context, 'Idioma cambiado a Español');
                 },
                 activeColor: AppTheme.getPrimaryColor(dialogContext),
               ),
@@ -2217,21 +2230,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   settings.setLocale(const Locale('en'));
                   Navigator.pop(dialogContext);
                   _showSuccess(context, 'Language changed to English');
-                },
-                activeColor: AppTheme.getPrimaryColor(dialogContext),
-              ),
-              RadioListTile<String?>(
-                title: Text(
-                  AppStrings.of(context)?.chinese ?? '中文',
-                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
-                ),
-                value: 'zh',
-                groupValue: currentLang,
-                onChanged: (value) {
-                  settings.setLocale(const Locale('zh'));
-                  Navigator.pop(dialogContext);
-                  final strings = AppStrings.of(context);
-                  _showSuccess(context, strings?.languageSwitchedToChinese ?? 'Language switched to Chinese');
                 },
                 activeColor: AppTheme.getPrimaryColor(dialogContext),
               ),
@@ -2601,25 +2599,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _getFontFamilyLabel(BuildContext context, String fontFamily, SettingsProvider settings) {
-    // 获取当前语言代码，如果设置为跟随系统则使用系统语言
     final languageCode = settings.locale?.languageCode ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    final isChinese = languageCode.startsWith('zh');
+    final normalizedCode = (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
+    final isSpanish = normalizedCode == 'es';
     
     switch (fontFamily) {
       case 'System':
-        return isChinese ? '系统字体' : 'System Font';
-      // 中文字体
+        return isSpanish ? 'Fuente del sistema' : 'System Font';
       case 'Microsoft YaHei':
-        return isChinese ? '微软雅黑' : 'Microsoft YaHei';
+        return 'Microsoft YaHei';
       case 'SimHei':
-        return isChinese ? '黑体' : 'SimHei';
+        return 'SimHei';
       case 'SimSun':
-        return isChinese ? '宋体' : 'SimSun';
+        return 'SimSun';
       case 'KaiTi':
-        return isChinese ? '楷体' : 'KaiTi';
+        return 'KaiTi';
       case 'FangSong':
-        return isChinese ? '仿宋' : 'FangSong';
-      // 英文字体
+        return 'FangSong';
       case 'Arial':
         return 'Arial';
       case 'Calibri':
@@ -2644,7 +2640,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showFontFamilyDialog(BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final languageCode = settings.locale?.languageCode ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    final fonts = AppTheme.getAvailableFonts(languageCode);
+    final normalizedCode = (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
+    final fonts = AppTheme.getAvailableFonts(normalizedCode);
     final strings = AppStrings.of(context);
 
     showDialog(

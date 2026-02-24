@@ -174,7 +174,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       ShaderMask(
                         shaderCallback: (bounds) => AppTheme.getGradient(context).createShader(bounds),
                         child: Text(
-                          AppStrings.of(context)?.lotusIptv ?? 'Lotus IPTV',
+                          AppStrings.of(context)?.lotusIptv ?? 'VoXtv',
                           style: const TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,

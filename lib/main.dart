@@ -91,11 +91,11 @@ void main() async {
     // Initialize PlatformDetector for settings page
     await PlatformDetector.init();
     
-    // ✅ 初始化台标加载的HTTP连接池
+    // ✅ Inicializar el pool de conexiones HTTP para la carga de logos
     initializeLogoConnectionPool();
 
-    // 初始屏幕方向将在 MaterialApp 构建后根据设置应用
-    // 这里先允许所有方向，避免启动时的限制
+    // La orientación inicial se aplicará después de construir MaterialApp según la configuración
+    // Permitir todas las orientaciones temporalmente para evitar restricciones al iniciar
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
@@ -187,7 +187,7 @@ class _FlutterIPTVAppState extends State<FlutterIPTVApp> {
   }
 }
 
-/// 包装 MaterialApp，监听 DLNA 播放请求和管理自动刷新服务
+/// Envuelve MaterialApp, escucha solicitudes DLNA y gestiona el servicio de auto-refresco
 class _DlnaAwareApp extends StatefulWidget {
   final SettingsProvider settings;
 
@@ -199,9 +199,9 @@ class _DlnaAwareApp extends StatefulWidget {
 
 class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  String? _currentDlnaUrl; // 记录当前 DLNA 播放的 URL
+  String? _currentDlnaUrl; // URL actualmente reproducido por DLNA
 
-  // 自动刷新服务
+  // Servicio de auto-refresco
   final AutoRefreshService _autoRefreshService = AutoRefreshService();
   bool _lastAutoRefreshState = false;
   int _lastRefreshInterval = 24;
@@ -209,23 +209,59 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   @override
   void initState() {
     super.initState();
-    ServiceLocator.log.d('_DlnaAwareApp.initState() 被调用', tag: 'AutoRefresh');
+    ServiceLocator.log.d('_DlnaAwareApp.initState() llamado', tag: 'AutoRefresh');
 
-    // Windows 窗口关闭监听
+    // Listener de cierre de ventana en Windows
     if (Platform.isWindows) {
       windowManager.addListener(this);
     }
-    // 立即触发 DlnaProvider 的创建（会自动启动 DLNA 服务）
-    // 使用 addPostFrameCallback 确保 context 可用
+    // Crear inmediatamente DlnaProvider (iniciará DLNA automáticamente)
+    // Usar addPostFrameCallback para asegurar que el context esté disponible
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ServiceLocator.log.d('addPostFrameCallback 触发', tag: 'DLNA');
+      ServiceLocator.log.d('addPostFrameCallback invocado', tag: 'DLNA');
       _setupDlnaCallbacks();
       // 初始化自动刷新服务
-      ServiceLocator.log.d('addPostFrameCallback 执行', tag: 'AutoRefresh');
+      ServiceLocator.log.d('addPostFrameCallback ejecutado', tag: 'AutoRefresh');
       _initAutoRefresh();
+      // 尝试在首次运行时导入预配置的 Xtream (如果未导入过)
+      _maybeImportXtreamPreset();
       // 应用屏幕方向设置
       _applyOrientationSettings();
     });
+  }
+
+  /// Intentar importar una lista de Xtream Codes preconfigurada en la primera ejecución
+  Future<void> _maybeImportXtreamPreset() async {
+    try {
+      final prefs = ServiceLocator.prefs;
+      const prefKey = 'xtream_preset_imported_v1';
+      if (prefs.getBool(prefKey) == true) {
+        ServiceLocator.log.d('Xtream preset ya importado, omitiendo', tag: 'XtreamPreset');
+        return;
+      }
+
+      // Datos proporcionados por el usuario — cambia aquí si necesitas otros valores
+      const xtreamName = 'XTREAM - nextv';
+      const m3uUrl = 'http://nextv.ottb.xyz/get.php?username=890395263975&password=957195541666&output=ts&type=m3u_plus';
+
+      ServiceLocator.log.i('Intentando importar preset Xtream: $xtreamName', tag: 'XtreamPreset');
+
+      // Agregar playlist desde URL
+      final playlistProvider = context.read<PlaylistProvider>();
+      try {
+        final playlist = await playlistProvider.addPlaylistFromUrl(xtreamName, m3uUrl);
+        if (playlist != null) {
+          ServiceLocator.log.i('Preset Xtream importado con éxito: ${playlist.name}', tag: 'XtreamPreset');
+          prefs.setBool(prefKey, true);
+        } else {
+          ServiceLocator.log.w('Importación de preset Xtream devolvió vacío', tag: 'XtreamPreset');
+        }
+      } catch (e) {
+        ServiceLocator.log.w('Error al importar preset Xtream: $e', tag: 'XtreamPreset');
+      }
+    } catch (e) {
+      ServiceLocator.log.w('Error al comprobar/importar preset Xtream: $e', tag: 'XtreamPreset');
+    }
   }
 
   /// 应用屏幕方向设置
@@ -259,7 +295,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     }
 
     await SystemChrome.setPreferredOrientations(orientations);
-    ServiceLocator.log.d('应用屏幕方向设置: $orientation', tag: 'Orientation');
+    ServiceLocator.log.d('Aplicar configuración de orientación: $orientation', tag: 'Orientation');
   }
 
   @override
@@ -272,10 +308,10 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   }
 
   Future<void> _initAutoRefresh() async {
-    ServiceLocator.log.d('_initAutoRefresh() 开始执行', tag: 'AutoRefresh');
+    ServiceLocator.log.d('_initAutoRefresh() inicio', tag: 'AutoRefresh');
 
     if (!mounted) {
-      ServiceLocator.log.d('Widget 未挂载，退出初始化', tag: 'AutoRefresh');
+      ServiceLocator.log.d('Widget no montado, saliendo de inicialización', tag: 'AutoRefresh');
       return;
     }
 
@@ -482,7 +518,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       AppRouter.player,
       arguments: {
         'channelUrl': url,
-        'channelName': title ?? 'DLNA 投屏',
+        'channelName': title ?? 'DLNA Cast',
         'channelLogo': null,
       },
     );
@@ -560,7 +596,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         return MaterialApp(
           navigatorKey: _navigatorKey,
           navigatorObservers: [AppRouter.routeObserver], // 添加路由监听
-          title: AppStrings.of(context)?.lotusIptv ?? 'Lotus IPTV',
+          title: AppStrings.of(context)?.lotusIptv ?? 'VoXtv',
           debugShowCheckedModeBanner: false,
           theme: AppThemeDynamic.getLightTheme(
               settings.lightColorScheme, fontFamily),
@@ -574,7 +610,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
           locale: settings.locale,
           supportedLocales: const [
             Locale('en', ''),
-            Locale('zh', ''),
+            Locale('es', ''),
           ],
           localizationsDelegates: const [
             AppStrings.delegate,
