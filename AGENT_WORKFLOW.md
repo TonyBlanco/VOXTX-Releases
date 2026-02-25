@@ -5,6 +5,14 @@
 
 ---
 
+> ## 🚨 REGLA CRÍTICA — RELEASES DE APKs
+> **VOXTX-Android es PRIVADO. Los usuarios NO pueden descargar APKs de ahí.**  
+> **TODOS los `gh release create` con APKs DEBEN usar `--repo TonyBlanco/VOXTX-Releases`.**  
+> Esto incluye: `gh release create`, las URLs en `version.json`, y `_githubReleasesUrl` en `update_service.dart`.  
+> ⛔ NUNCA usar `--repo TonyBlanco/VOXTX-Android` para releases de APKs. Los usuarios no podrán descargar nada.
+
+---
+
 ## Git Remotes (this repo only)
 
 ```
@@ -172,9 +180,13 @@ Ignore **info/warning** lines (unused imports, lint hints) unless they are new a
 | Mistake | Correct Action |
 |---------|---------------|
 | Pushing to `origin` | `origin` is the upstream fork — never push |
+| **`gh release create --repo TonyBlanco/VOXTX-Android`** | **⛔ VOXTX-Android es PRIVADO — APKs van SIEMPRE a `--repo TonyBlanco/VOXTX-Releases`** |
+| **APK URLs in `version.json` pointing to VOXTX-Android** | **⛔ PRIVADO — usar `VOXTX-Releases/releases/download/...`** |
 | **Adding VOXTX-Releases as a git remote in this repo** | **FORBIDDEN — it caused 319MB source code to leak to the public releases repo; use a separate `/tmp` clone instead** |
 | **Doing `git push [any-remote] [anything]` to VOXTX-Releases** | **Only update VOXTX-Releases via a separate clone in /tmp; then delete that clone** |
 | Pushing APKs only to `voxtx` | APKs go to VOXTX-Releases via `gh release create --repo TonyBlanco/VOXTX-Releases` |
+| **Creating GitHub Release on VOXTX-Android** | **FORBIDDEN — ⚠️ v1.5.30–v1.5.33 were mistakenly published to VOXTX-Android. Always use `--repo TonyBlanco/VOXTX-Releases`** |
+| **version.json asset URLs pointing to VOXTX-Android** | **Must always point to `VOXTX-Releases/releases/download/...` — the app and the "Update now" button both rely on this** |
 | Using `git push` without specifying remote | Always specify: `git push voxtx master` |
 | Creating GitHub Release on wrong repo | Always `--repo TonyBlanco/VOXTX-Releases` |
 | Using `--notes` with multi-line text | Write to a file, use `--notes-file` |
