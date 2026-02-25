@@ -13,7 +13,9 @@ import '../../../core/services/epg_service.dart';
 import '../../../core/models/channel.dart';
 
 import '../../channels/providers/channel_provider.dart';
+import '../../playlist/providers/playlist_provider.dart';
 import '../../player/screens/player_screen.dart';
+import '../../settings/providers/settings_provider.dart';
 import '../providers/epg_provider.dart';
 
 class EpgScreen extends StatefulWidget {
@@ -37,7 +39,6 @@ class _EpgScreenState extends State<EpgScreen> {
 
   final ScrollController _channelScrollController = ScrollController();
   final ScrollController _programScrollController = ScrollController();
-  final ScrollController _groupScrollController = ScrollController();
 
   String _tr(String es, String en) {
     final lang = Localizations.localeOf(context).languageCode;
@@ -49,7 +50,34 @@ class _EpgScreenState extends State<EpgScreen> {
     super.initState();
     _player = Player();
     _videoController = VideoController(_player);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeChannels());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _ensureEpgLoaded();
+      _initializeChannels();
+    });
+  }
+
+  Future<void> _ensureEpgLoaded() async {
+    if (!mounted) return;
+    final epgProvider = context.read<EpgProvider>();
+    if (epgProvider.hasData || epgProvider.isLoading) return;
+
+    final settings = context.read<SettingsProvider>();
+    final playlistProvider = context.read<PlaylistProvider>();
+    final playlistEpgUrl = playlistProvider.activePlaylist?.epgUrl;
+    final fallbackEpgUrl = settings.epgUrl;
+
+    if (playlistEpgUrl != null && playlistEpgUrl.isNotEmpty) {
+      await epgProvider.loadEpg(
+        playlistEpgUrl,
+        fallbackUrl: fallbackEpgUrl,
+        silent: true,
+      );
+      return;
+    }
+
+    if (fallbackEpgUrl != null && fallbackEpgUrl.isNotEmpty) {
+      await epgProvider.loadEpg(fallbackEpgUrl, silent: true);
+    }
   }
 
   void _initializeChannels() {
@@ -69,7 +97,9 @@ class _EpgScreenState extends State<EpgScreen> {
     if (widget.channelId != null) {
       try {
         target = channels.firstWhere(
-          (c) => c.epgId == widget.channelId || c.id?.toString() == widget.channelId,
+          (c) =>
+              c.epgId == widget.channelId ||
+              c.id?.toString() == widget.channelId,
         );
       } catch (_) {}
     }
@@ -84,10 +114,12 @@ class _EpgScreenState extends State<EpgScreen> {
 
   void _selectGroup(String? group) {
     final all = context.read<ChannelProvider>().allChannels;
-    final filtered = group == null ? all : all.where((c) => c.groupName == group).toList();
+    final filtered =
+        group == null ? all : all.where((c) => c.groupName == group).toList();
     setState(() {
       _selectedGroup = group;
-      if (filtered.isNotEmpty && !filtered.any((c) => c.url == _selectedChannel?.url)) {
+      if (filtered.isNotEmpty &&
+          !filtered.any((c) => c.url == _selectedChannel?.url)) {
         _selectedChannel = filtered.first;
       }
     });
@@ -133,7 +165,6 @@ class _EpgScreenState extends State<EpgScreen> {
     _player.dispose();
     _channelScrollController.dispose();
     _programScrollController.dispose();
-    _groupScrollController.dispose();
     super.dispose();
   }
 
@@ -162,7 +193,7 @@ class _EpgScreenState extends State<EpgScreen> {
                 width: 140,
                 child: Column(
                   children: [
-                    _buildGroupChips(compact: true),
+                    _buildGroupDropdown(compact: true),
                     Expanded(child: _buildChannelList(compact: true)),
                   ],
                 ),
@@ -184,7 +215,7 @@ class _EpgScreenState extends State<EpgScreen> {
           child: Column(
             children: [
               _buildAppBar(slim: true),
-              _buildGroupChips(compact: false),
+              _buildGroupDropdown(compact: false),
               Expanded(child: _buildChannelList()),
             ],
           ),
@@ -194,8 +225,27 @@ class _EpgScreenState extends State<EpgScreen> {
           child: Column(
             children: [
               _buildNowPlayingHeader(),
-              _buildDesktopPlayer(),
-              Expanded(child: _buildProgramList()),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxPlayerHeight = constraints.maxHeight * 0.62;
+                    final playerHeightFromWidth =
+                        constraints.maxWidth / (16 / 9);
+                    final playerHeight =
+                        playerHeightFromWidth.clamp(200.0, maxPlayerHeight);
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: playerHeight,
+                          width: double.infinity,
+                          child: _buildDesktopPlayer(),
+                        ),
+                        Expanded(child: _buildProgramList()),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -241,54 +291,55 @@ class _EpgScreenState extends State<EpgScreen> {
     );
   }
 
-  // ─── Group Chips ───────────────────────────────────────────────────────────
-
-  Widget _buildGroupChips({required bool compact}) {
+  Widget _buildGroupDropdown({required bool compact}) {
     if (_groups.isEmpty) return const SizedBox.shrink();
+    const allKey = '__all_groups__';
+    final selectedValue = _selectedGroup ?? allKey;
+
     return Container(
-      height: compact ? 36 : 42,
+      height: compact ? 40 : 44,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
               color: AppTheme.getCardColor(context).withOpacity(0.5), width: 1),
         ),
       ),
-      child: ListView.separated(
-        controller: _groupScrollController,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        itemCount: _groups.length + 1,
-        separatorBuilder: (_, __) => const SizedBox(width: 5),
-        itemBuilder: (context, index) {
-          final isAll = index == 0;
-          final group = isAll ? null : _groups[index - 1];
-          final isSelected = _selectedGroup == group;
-          return GestureDetector(
-            onTap: () => _selectGroup(group),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: EdgeInsets.symmetric(
-                  horizontal: compact ? 8 : 10, vertical: 2),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppTheme.getPrimaryColor(context)
-                    : AppTheme.getCardColor(context).withOpacity(0.6),
-                borderRadius: BorderRadius.circular(20),
-              ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          value: selectedValue,
+          dropdownColor: AppTheme.getSurfaceColor(context),
+          iconEnabledColor: AppTheme.getTextSecondary(context),
+          style: TextStyle(
+            color: AppTheme.getTextPrimary(context),
+            fontSize: compact ? 11 : 12,
+          ),
+          items: [
+            DropdownMenuItem<String>(
+              value: allKey,
               child: Text(
-                isAll ? _tr('Todos', 'All') : (group ?? ''),
+                _tr('Todos', 'All'),
                 maxLines: 1,
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : AppTheme.getTextSecondary(context),
-                  fontSize: compact ? 10 : 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            ..._groups.map(
+              (group) => DropdownMenuItem<String>(
+                value: group,
+                child: Text(
+                  group,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
-          );
-        },
+          ],
+          onChanged: (value) {
+            if (value == null) return;
+            _selectGroup(value == allKey ? null : value);
+          },
+        ),
       ),
     );
   }
@@ -361,42 +412,39 @@ class _EpgScreenState extends State<EpgScreen> {
   // ─── Players ───────────────────────────────────────────────────────────────
 
   Widget _buildDesktopPlayer() {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(color: Colors.black),
-          if (_playerActive)
-            Video(controller: _videoController, controls: NoVideoControls),
-          if (!_playerActive)
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.play_circle_outline_rounded,
-                      size: 48,
-                      color: AppTheme.getTextMuted(context).withOpacity(0.4)),
-                  const SizedBox(height: 8),
-                  Text(
-                    _selectedChannel == null
-                        ? _tr('Selecciona un canal', 'Select a channel')
-                        : _tr('Pulsa Play para ver', 'Press Play to watch'),
-                    style: TextStyle(
-                        color: AppTheme.getTextMuted(context), fontSize: 12),
-                  ),
-                ],
-              ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(color: Colors.black),
+        if (_playerActive)
+          Video(controller: _videoController, controls: NoVideoControls),
+        if (!_playerActive)
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.play_circle_outline_rounded,
+                    size: 48,
+                    color: AppTheme.getTextMuted(context).withOpacity(0.4)),
+                const SizedBox(height: 8),
+                Text(
+                  _selectedChannel == null
+                      ? _tr('Selecciona un canal', 'Select a channel')
+                      : _tr('Pulsa Play para ver', 'Press Play to watch'),
+                  style: TextStyle(
+                      color: AppTheme.getTextMuted(context), fontSize: 12),
+                ),
+              ],
             ),
-          if (_playerActive)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: _OverlayBtn(
-                  icon: Icons.fullscreen_rounded, onTap: _openFullscreen),
-            ),
-        ],
-      ),
+          ),
+        if (_playerActive)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: _OverlayBtn(
+                icon: Icons.fullscreen_rounded, onTap: _openFullscreen),
+          ),
+      ],
     );
   }
 
@@ -439,7 +487,14 @@ class _EpgScreenState extends State<EpgScreen> {
                 ),
               ),
             ),
-          if (_playerActive) ...[  
+          if (ch != null && !_playerActive)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: _OverlayBtn(
+                  icon: Icons.fullscreen_rounded, onTap: _openFullscreen),
+            ),
+          if (_playerActive) ...[
             Positioned(
               top: 6,
               right: 36,
@@ -449,7 +504,8 @@ class _EpgScreenState extends State<EpgScreen> {
             Positioned(
               top: 6,
               right: 6,
-              child: _OverlayBtn(icon: Icons.close_rounded, onTap: _stopPlaying),
+              child:
+                  _OverlayBtn(icon: Icons.close_rounded, onTap: _stopPlaying),
             ),
           ],
         ],
@@ -698,7 +754,6 @@ class _ChannelListTile extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ─── Program List Tile ────────────────────────────────────────────────────────
@@ -803,7 +858,8 @@ class _ProgramListTile extends StatelessWidget {
                         style: TextStyle(
                           color: AppTheme.getTextPrimary(context),
                           fontSize: 13,
-                          fontWeight: isNow ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight:
+                              isNow ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -860,8 +916,7 @@ class _CurrentTimeBadgeState extends State<_CurrentTimeBadge> {
   void initState() {
     super.initState();
     _now = DateTime.now();
-    _timer = Timer.periodic(
-        const Duration(minutes: 1),
+    _timer = Timer.periodic(const Duration(minutes: 1),
         (_) => setState(() => _now = DateTime.now()));
   }
 
