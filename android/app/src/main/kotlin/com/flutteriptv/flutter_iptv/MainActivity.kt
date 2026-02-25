@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -28,6 +29,8 @@ class MainActivity: FlutterFragmentActivity() {
     private val LOG_CHANNEL = "com.flutteriptv/native_log"
     
     private var playerFragment: NativePlayerFragment? = null
+    private var pendingInstallPath: String? = null
+    private val REQUEST_INSTALL_PERMISSION = 1001
     private var multiScreenFragment: MultiScreenPlayerFragment? = null
     private var playerContainer: FrameLayout? = null
     private var playerMethodChannel: MethodChannel? = null
@@ -988,7 +991,9 @@ class MainActivity: FlutterFragmentActivity() {
     }
     
     /**
-     * Install APK file using FileProvider
+     * Install APK file using FileProvider.
+     * On Android 8+ checks canRequestPackageInstalls() first and redirects
+     * to Settings if the permission has not been granted.
      */
     private fun installApk(filePath: String) {
         Log.d(TAG, "Installing APK: $filePath")
@@ -996,10 +1001,29 @@ class MainActivity: FlutterFragmentActivity() {
         if (!file.exists()) {
             throw Exception("APK file not found: $filePath")
         }
-        
+
+        // Android 8+ requires the user to explicitly enable "Install unknown apps"
+        // for this specific app. Check before launching the install intent.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!packageManager.canRequestPackageInstalls()) {
+                Log.w(TAG, "REQUEST_INSTALL_PACKAGES not granted — opening Settings")
+                pendingInstallPath = filePath
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:$packageName")
+                )
+                startActivityForResult(intent, REQUEST_INSTALL_PERMISSION)
+                return
+            }
+        }
+
+        doInstallApk(file)
+    }
+
+    private fun doInstallApk(file: File) {
         val intent = Intent(Intent.ACTION_VIEW)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             // Android 7.0+ use FileProvider
             val uri = FileProvider.getUriForFile(
@@ -1013,7 +1037,25 @@ class MainActivity: FlutterFragmentActivity() {
             // Older versions use file:// URI
             intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
         }
-        
+
         startActivity(intent)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_INSTALL_PERMISSION) {
+            val path = pendingInstallPath
+            pendingInstallPath = null
+            if (path != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    packageManager.canRequestPackageInstalls()
+                ) {
+                    Log.d(TAG, "Permission granted — retrying install: $path")
+                    doInstallApk(File(path))
+                } else {
+                    Log.w(TAG, "User did not grant install permission")
+                }
+            }
+        }
     }
 }

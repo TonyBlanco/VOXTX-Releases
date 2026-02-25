@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.31] - 2026-02-25
+### Fixed
+- **OTA install en Android Box**: añadida verificación `canRequestPackageInstalls()` antes del intent de instalación. Si el permiso no está concedido (firmware update, ROM custom), abre automáticamente **Ajustes > Instalar apps desconocidas** para que el usuario lo active, y reintenta la instalación al volver. Antes el APK se descargaba pero el intent se ignoraba silenciosamente.
+
 ## [1.5.30] - 2026-02-25
 ### Added
 - Aviso legal / Legal disclaimer en el splash (primera apertura): el usuario debe aceptar antes de continuar. Se guarda en SharedPreferences — no vuelve a aparecer. Requerido para distribución en app stores (Play Store, App Store, etc.).
