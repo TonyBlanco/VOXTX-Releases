@@ -75,13 +75,26 @@ git remote -v
 | Hardware decoding (hwdec) | media_kit config en `_initMediaKit()` | ✅ |
 | Redirect cache (302 resolver) | `redirect_cache_service.dart` | ✅ |
 | Native ExoPlayer (Android TV) | `native_player_channel.dart` | ✅ |
-| D-Pad navigation | `tv_focusable.dart`, `tv_sidebar.dart` | ✅ |
-| TV Sidebar (9 items) | `core/widgets/tv_sidebar.dart` | ✅ |
+| D-Pad navigation completa | `tv_focusable.dart`, `tv_sidebar.dart` | ✅ v1.5.23/v1.5.25 |
+| TV Sidebar — onKeyEvent (fix) | `tv_sidebar.dart` onKey → onKeyEvent | ✅ v1.5.25 |
+| TV Xtream dialog — FocusNode chain | `add_xtream_dialog.dart` 4 TextFields | ✅ v1.5.25 |
+| TvAppFocusWrapper + ReadingOrderPolicy | `main.dart` raíz MaterialApp | ✅ v1.5.23 |
+| TvFocusManager save/restore | `tv_focus_manager.dart` | ✅ v1.5.23 |
+| TVFocusable KeyRepeatEvent | `tv_focusable.dart` | ✅ v1.5.23 |
+| TvTextField D-Pad compatible | `tv_text_field.dart` | ✅ v1.5.23 |
 | Platform detection | `platform_detector.dart` | ✅ |
 | EPG Screen + category chips | `epg/screens/epg_screen.dart` | ✅ v1.5.22 |
 | EPG fullscreen button | `epg_screen.dart` _openFullscreen() | ✅ v1.5.22 |
 | Channel logo placeholder fix | `_ChannelLogo` widget en epg_screen | ✅ v1.5.22 |
 | Error sanitizer (CJK) | `player_screen.dart` _sanitizeError() | ✅ v1.5.23 |
+| APK reducido (~40 MB) | Eliminadas 13 fuentes no usadas | ✅ v1.5.24 |
+| Memory leak fix (larga duración) | `_DlnaAwareAppState` removeListener | ✅ v1.5.24 |
+| Crash capture silencioso | `platformDispatcher.onError` en main | ✅ v1.5.24 |
+| QR Search — persistente (no desconecta) | `qr_search_dialog.dart` sin pop() | ✅ v1.5.26 |
+| QR Search — banner confirmación | `qr_search_dialog.dart` Timer 3 s | ✅ v1.5.26 |
+| Mando remoto móvil (HTTP) | `remote_control.html` + `/remote` route | ✅ v1.5.26 |
+| API remoto POST /api/remote | `local_server_service.dart` | ✅ v1.5.26 |
+| Páginas móviles EN/ES (sin chino) | `search_channels.html`, `import_playlist.html` | ✅ v1.5.26 |
 | Playlist CRUD (M3U/URL/archivo) | `playlist/` + file_picker | ✅ |
 | VOD Movies + Series | `movies/`, `series/` features | ✅ |
 | Multi-screen (2-4 canales) | `multi_screen/` feature | ✅ |
@@ -89,14 +102,14 @@ git remote -v
 | Search | `search/` feature | ✅ |
 | DLNA cast | `dlna_service.dart` | ✅ Android + Windows |
 | In-app update (APK download) | `update_service.dart` | ✅ |
-| Update URL | `VOXTX-Releases/main/version.json` | ✅ |
+| Update URL | `VOXTX-Android/releases/version.json` | ✅ |
 | Parental control PIN | `settings_provider.dart` | ✅ |
 | Watch history | `watch_history_service.dart` | ✅ |
 | Auto-refresh playlists | `auto_refresh_service.dart` | ✅ |
 | Screen brightness control | `screen_brightness` package | ✅ |
 | Wakelock | `wakelock_plus` package | ✅ |
 | Volume normalization / boost | `player_provider.dart` | ✅ |
-| Color themes + fuentes custom | `app_theme.dart`, `color_scheme_*` | ✅ |
+| Color themes (sistema) | `app_theme.dart`, `color_scheme_*` | ✅ |
 | QR log export | `qr_log_export_dialog.dart` | ✅ |
 | Channel test service | `channel_test_service.dart` | ✅ |
 | Channel logo service (cache) | `channel_logo_service.dart` | ✅ |
@@ -108,6 +121,7 @@ git remote -v
 | Feature | Prioridad | Notas |
 |---------|-----------|-------|
 | Subtítulos / audio tracks UI | Media | media_kit lo soporta, falta el selector en pantalla |
+| Mando remoto — comandos de nav (home/epg/favs/ch±) | Media | Callback `onRemoteCommand` ya existe, falta wiring a `app_router.dart` |
 | Chromecast | Baja | Solo DLNA actualmente |
 | Voice search (Android TV) | Baja | `SearchManager` en Activity nativa |
 
@@ -495,8 +509,8 @@ ares-launch --device MyTV com.tonyblanco.voxtv
 ## Estado del app por plataforma — Resumen rápido
 
 ```
-Android Mobile  ████████████████████  100%  ✅ Producción
-Android TV      ████████████████████   98%  ✅ Producción (falta voice search)
+Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.26)
+Android TV      ████████████████████   99%  ✅ Producción (falta: subtítulos, voice search, nav remoto)
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           █████░░░░░░░░░░░░░░░   25%  🔴 Solo detección de plataforma
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
