@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -6,6 +9,7 @@ import '../../../core/services/local_server_service.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/i18n/app_strings.dart';
+import '../../player/providers/player_provider.dart';
 
 /// Dialog for scanning QR code to search channels on TV
 class QrSearchDialog extends StatefulWidget {
@@ -25,6 +29,8 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
   bool _isLoading = true;
   bool _isServerRunning = false;
   String? _error;
+  String? _lastSearchQuery;   // shown as a "sent" banner after each search
+  Timer? _bannerTimer;
 
   @override
   void initState() {
@@ -34,6 +40,9 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
 
   @override
   void dispose() {
+    _bannerTimer?.cancel();
+    _serverService.onSearchReceived = null;
+    _serverService.onRemoteCommand = null;
     _serverService.stop();
     super.dispose();
   }
@@ -46,8 +55,9 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
       _error = null;
     });
 
-    // Set up callback
+    // Set up callbacks
     _serverService.onSearchReceived = _handleSearchReceived;
+    _serverService.onRemoteCommand = _handleRemoteCommand;
 
     final success = await _serverService.start();
     ServiceLocator.log.d(': ${success ? "" : ""}');
@@ -67,11 +77,38 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
 
   void _handleSearchReceived(String query) {
     ServiceLocator.log.d(': $query');
-    
-    if (mounted) {
-      // 
-      Navigator.of(context).pop();
-      widget.onSearchReceived(query);
+
+    if (!mounted) return;
+
+    // Forward the query to the search screen (TV updates results)
+    widget.onSearchReceived(query);
+
+    // Show a brief confirmation banner — keep dialog open for further searches
+    _bannerTimer?.cancel();
+    setState(() => _lastSearchQuery = query);
+    _bannerTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _lastSearchQuery = null);
+    });
+  }
+
+  void _handleRemoteCommand(String command) {
+    ServiceLocator.log.d('remote: $command');
+    if (!mounted) return;
+    final player = Provider.of<PlayerProvider>(context, listen: false);
+    switch (command) {
+      case 'play_pause':
+        player.togglePlayPause();
+        break;
+      case 'volume_up':
+        player.setVolume((player.volume + 0.1).clamp(0.0, 1.0));
+        break;
+      case 'volume_down':
+        player.setVolume((player.volume - 0.1).clamp(0.0, 1.0));
+        break;
+      case 'mute':
+        player.setVolume(player.volume > 0 ? 0.0 : 1.0);
+        break;
+      // Navigation commands (home, epg, favorites, ch+/- etc.) handled via app router in future
     }
   }
 
@@ -127,6 +164,37 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
 
               // Content
               if (_isLoading) _buildLoadingState() else if (_error != null) _buildErrorState() else if (_isServerRunning) _buildQrCodeState(isMobile),
+
+              // "Sent" confirmation banner
+              if (_lastSearchQuery != null) ...[
+                const SizedBox(height: 12),
+                AnimatedOpacity(
+                  opacity: _lastSearchQuery != null ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withAlpha(38),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.withAlpha(76)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_circle_outline, color: Colors.green, size: 16),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '${AppStrings.of(context)?.sentToTV ?? "Sent"}: $_lastSearchQuery',
+                            style: const TextStyle(color: Colors.green, fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 20),
 

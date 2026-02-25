@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.5.25] - 2026-02-25
+## [1.5.26] - 2026-02-25
+### Novedades
+- **Control remoto desde el móvil**: nueva página `/remote` (accesible desde el mismo QR del diálogo de búsqueda) con D-pad, volumen, cambio de canal y accesos directos a pantallas (Inicio, Favoritos, EPG). El servidor local expone `GET /remote` y `POST /api/remote` para recibir comandos desde el navegador del móvil.
+- **Páginas móviles en dos idiomas (EN/ES)**: `search_channels.html` e `import_playlist.html` reescritas — eliminados todos los textos en chino, añadido soporte ES con auto-detección del idioma del navegador y barra de navegación superior (Buscar | Importar | Mando).
+### Fixed
+- **Diálogo QR búsqueda — desconexión tras cada búsqueda**: el diálogo ya no se cierra al recibir una búsqueda del móvil. Ahora muestra un banner de confirmación 3 segundos y el servidor sigue activo para nuevas búsquedas sin escanear el QR de nuevo.
 ### Fixed
 - **Sidebar TV — D-Pad select/Enter nunca disparaba**: `_buildNavItem` usaba `onKey` (API `RawKeyEvent`) pero comprobaba `event is KeyDownEvent` (API `KeyEvent`) → siempre `false`. Migrado a `onKeyEvent` con tipos correctos; también acepta `KeyRepeatEvent` para teclas mantenidas. La navegación lateral y la selección de sección ya funcionan correctamente.
 - **Diálogo Xtream Codes TV — solo "Contraseña" era alcanzable con D-Pad**: los `TextField` no tenían `FocusNode`. Añadidos `_nameFocus`, `_serverFocus`, `_usernameFocus`, `_passwordFocus` con cadena `textInputAction: TextInputAction.next` + `onSubmitted` → foco avanza de campo en campo con el D-Pad/OK. El primer campo (`Nombre de lista`) recibe `autofocus: true` al abrir el diálogo. El último campo cierra el teclado y envía el formulario.

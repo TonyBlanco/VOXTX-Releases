@@ -20,6 +20,7 @@ class LocalServerService {
   Function(String url, String name)? onUrlReceived;
   Function(String content, String name)? onContentReceived;
   Function(String query)? onSearchReceived;
+  Function(String command)? onRemoteCommand;
 
   // Log content for viewing
   String? _logContent;
@@ -28,6 +29,7 @@ class LocalServerService {
   String get serverUrl => 'http://$_localIp:$_port';
   String get importUrl => 'http://$_localIp:$_port/import';
   String get searchUrl => 'http://$_localIp:$_port/search';
+  String get remoteUrl => 'http://$_localIp:$_port/remote';
   String? get localIp => _localIp;
   int get port => _port;
 
@@ -36,6 +38,7 @@ class LocalServerService {
   
   String? _cachedImportHtml;
   String? _cachedSearchHtml;
+  String? _cachedRemoteHtml;
 
   /// Set log content for viewing via /logs route
   void setLogContent(String content) {
@@ -71,6 +74,15 @@ class LocalServerService {
           ServiceLocator.log.d('HTML', tag: 'LocalServer');
         } catch (e) {
           ServiceLocator.log.d('HTML: $e', tag: 'LocalServer');
+        }
+      }
+
+      if (_cachedRemoteHtml == null) {
+        try {
+          _cachedRemoteHtml = await rootBundle.loadString('assets/html/remote_control.html');
+          ServiceLocator.log.d('remote HTML loaded', tag: 'LocalServer');
+        } catch (e) {
+          ServiceLocator.log.d('remote HTML load error: $e', tag: 'LocalServer');
         }
       }
       
@@ -157,6 +169,14 @@ class LocalServerService {
         // Handle search submission
         ServiceLocator.log.d('');
         await _handleSearchSubmission(request);
+      } else if (request.uri.path == '/remote' && request.method == 'GET') {
+        // Serve the remote control page
+        ServiceLocator.log.d('serving remote page');
+        await _serveRemotePage(request);
+      } else if (request.uri.path == '/api/remote' && request.method == 'POST') {
+        // Handle remote command from phone
+        ServiceLocator.log.d('remote command received');
+        await _handleRemoteCommand(request);
       } else if (request.uri.path == '/logs' && request.method == 'GET') {
         // Serve the logs page
         ServiceLocator.log.d('');
@@ -190,6 +210,35 @@ class LocalServerService {
     final html = _cachedSearchHtml ?? _getSearchPageHtml();
     ServiceLocator.log.d(': ${html.length}');
     request.response.write(html);
+    await request.response.close();
+  }
+
+  /// Serve the remote control web page
+  Future<void> _serveRemotePage(HttpRequest request) async {
+    request.response.headers.contentType = ContentType.html;
+    request.response.write(_cachedRemoteHtml ?? '<html><body style="background:#111;color:#fff;font-family:sans-serif;padding:30px"><h2>Remote not available</h2><p>HTML asset missing.</p></body></html>');
+    await request.response.close();
+  }
+
+  /// Handle remote command from mobile phone
+  Future<void> _handleRemoteCommand(HttpRequest request) async {
+    try {
+      final content = await utf8.decoder.bind(request).join();
+      final data = json.decode(content) as Map<String, dynamic>;
+      final command = data['command'] as String?;
+
+      if (command != null && command.isNotEmpty) {
+        onRemoteCommand?.call(command);
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(json.encode({'success': true, 'command': command}));
+      } else {
+        request.response.statusCode = 400;
+        request.response.write(json.encode({'success': false, 'message': 'command is required'}));
+      }
+    } catch (e) {
+      request.response.statusCode = 400;
+      request.response.write(json.encode({'success': false, 'message': 'Invalid request: $e'}));
+    }
     await request.response.close();
   }
 
