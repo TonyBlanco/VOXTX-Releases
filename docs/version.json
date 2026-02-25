@@ -1,24 +1,23 @@
 {
-  "version": "1.5.24",
-  "build": 184,
+  "version": "1.5.26",
+  "build": 186,
   "releaseDate": "2026-02-25",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.24/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.26/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- APK reducido de 85 MB a 40 MB eliminando fuentes no usadas\n- Fix memory leak en sesiones largas de TV\n- Captura de crashes silenciosos en TV",
-    "en": "- APK reduced from 85 MB to 40 MB by removing unused fonts\n- Fix memory leak during long TV sessions\n- Silent crash capture on TV",
-    "zh": "- APK reduced from 85 MB to 40 MB by removing unused fonts\n- Fix memory leak during long TV sessions"
+    "es": "- Control remoto desde el móvil (D-pad, volumen, canales)\n- Páginas móviles en EN/ES sin caracteres chinos\n- Fix: QR búsqueda no desconecta tras cada búsqueda",
+    "en": "- Phone remote control (D-pad, volume, channels)\n- Mobile pages in EN/ES with no Chinese characters\n- Fix: QR search stays connected after each search"
   },
   "minVersion": "1.0.0"
 }
