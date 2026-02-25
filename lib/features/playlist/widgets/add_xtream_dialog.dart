@@ -26,6 +26,12 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // TV D-Pad: explicit FocusNodes so the user can navigate between fields
+  final FocusNode _nameFocus     = FocusNode();
+  final FocusNode _serverFocus   = FocusNode();
+  final FocusNode _usernameFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+
   static const List<_XtreamPreset> _presets = [
     _XtreamPreset(
       id: 'custom',
@@ -144,6 +150,10 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
     _serverController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
+    _nameFocus.dispose();
+    _serverFocus.dispose();
+    _usernameFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -451,13 +461,43 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
                 },
         ),
         const SizedBox(height: 10),
-        TextField(controller: _nameController, decoration: const InputDecoration(hintText: 'Nombre de lista')),
+        TextField(
+          controller: _nameController,
+          focusNode: _nameFocus,
+          autofocus: true,
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => _serverFocus.requestFocus(),
+          decoration: const InputDecoration(hintText: 'Nombre de lista'),
+        ),
         const SizedBox(height: 8),
-        TextField(controller: _serverController, decoration: const InputDecoration(hintText: 'URL del servidor')),
+        TextField(
+          controller: _serverController,
+          focusNode: _serverFocus,
+          textInputAction: TextInputAction.next,
+          keyboardType: TextInputType.url,
+          onSubmitted: (_) => _usernameFocus.requestFocus(),
+          decoration: const InputDecoration(hintText: 'URL del servidor'),
+        ),
         const SizedBox(height: 8),
-        TextField(controller: _usernameController, decoration: const InputDecoration(hintText: 'Usuario')),
+        TextField(
+          controller: _usernameController,
+          focusNode: _usernameFocus,
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => _passwordFocus.requestFocus(),
+          decoration: const InputDecoration(hintText: 'Usuario'),
+        ),
         const SizedBox(height: 8),
-        TextField(controller: _passwordController, decoration: const InputDecoration(hintText: 'Contraseña'), obscureText: true),
+        TextField(
+          controller: _passwordController,
+          focusNode: _passwordFocus,
+          textInputAction: TextInputAction.done,
+          obscureText: true,
+          onSubmitted: (_) {
+            _passwordFocus.unfocus();
+            if (!_isLoading) _submit();
+          },
+          decoration: const InputDecoration(hintText: 'Contraseña'),
+        ),
         const SizedBox(height: 10),
         SwitchListTile(
           dense: true,

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.25] - 2026-02-25
+### Fixed
+- **Sidebar TV — D-Pad select/Enter nunca disparaba**: `_buildNavItem` usaba `onKey` (API `RawKeyEvent`) pero comprobaba `event is KeyDownEvent` (API `KeyEvent`) → siempre `false`. Migrado a `onKeyEvent` con tipos correctos; también acepta `KeyRepeatEvent` para teclas mantenidas. La navegación lateral y la selección de sección ya funcionan correctamente.
+- **Diálogo Xtream Codes TV — solo "Contraseña" era alcanzable con D-Pad**: los `TextField` no tenían `FocusNode`. Añadidos `_nameFocus`, `_serverFocus`, `_usernameFocus`, `_passwordFocus` con cadena `textInputAction: TextInputAction.next` + `onSubmitted` → foco avanza de campo en campo con el D-Pad/OK. El primer campo (`Nombre de lista`) recibe `autofocus: true` al abrir el diálogo. El último campo cierra el teclado y envía el formulario.
+
 ## [1.5.24] - 2026-02-25
 ### Changed
 - **Fuentes eliminadas del bundle** (~72 MB menos): se eliminan SimHei (9 MB), SimSun (17 MB), KaiTi (11 MB), FangSong (10 MB), MicrosoftYaHei (19 MB) y todas las fuentes occidentales (Arial, Calibri, Georgia, etc.). La app usa la fuente del sistema (Roboto en Android/TV).

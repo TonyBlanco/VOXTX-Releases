@@ -249,37 +249,38 @@ class _TVSidebarState extends State<TVSidebar> {
             _pendingNavIndex = null;
           }
         },
-        onKey: (node, event) {
+        onKeyEvent: (node, event) {
           final key = event.logicalKey;
-          
-          // 
-          if (event is KeyDownEvent && (key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space)) {
-            // 
+
+          // Only react to initial press or held key (KeyRepeat), not release
+          if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+            return KeyEventResult.ignored;
+          }
+
+          // OK / Select / Enter → navigate immediately (no debounce)
+          if (key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space) {
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
             _onNavItemTap(index, item.route);
             return KeyEventResult.handled;
           }
-          
-          // 
-          if (event is KeyDownEvent && key == LogicalKeyboardKey.arrowRight && widget.onRight != null) {
-            // 
+
+          // Arrow-Right → hand off to content area
+          if (key == LogicalKeyboardKey.arrowRight && widget.onRight != null) {
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
             widget.onRight!();
             return KeyEventResult.handled;
           }
-          
-          //  - KeyDownKeyUp
+
+          // Hard boundaries — prevent focus leaving the sidebar list
           if (key == LogicalKeyboardKey.arrowUp && index == 0) {
-            // 
             return KeyEventResult.handled;
           }
           if (key == LogicalKeyboardKey.arrowDown && index == 8) {
-            // 98
             return KeyEventResult.handled;
           }
-          
+
           return KeyEventResult.ignored;
         },
         child: MouseRegion(
