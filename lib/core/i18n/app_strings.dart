@@ -28,6 +28,7 @@ class AppStrings {
   String get deletePlaylist => _localizedValues['deletePlaylist']!;
   String get deleteConfirmation => _localizedValues['deleteConfirmation']!;
   String get cancel => _localizedValues['cancel']!;
+  String get play => _localizedValues['play']!;
   String get delete => _localizedValues['delete']!;
   String get actions => _localizedValues['actions']!;
   String get settings => _localizedValues['settings']!;
@@ -542,6 +543,20 @@ class AppStrings {
   String get noSubtitleTracks => _localizedValues['noSubtitleTracks']!;
   String get disableSubtitles => _localizedValues['disableSubtitles']!;
   String get subtitlesDisabled => _localizedValues['subtitlesDisabled']!;
+  // Offline downloads
+  String get offlineDownloads => _localizedValues['offlineDownloads']!;
+  String get downloadChannel => _localizedValues['downloadChannel']!;
+  String get downloadStarted => _localizedValues['downloadStarted']!;
+  String get downloading => _localizedValues['downloading']!;
+  String get noOfflineRecordings => _localizedValues['noOfflineRecordings']!;
+  String get offlineHint => _localizedValues['offlineHint']!;
+  String get clearCompleted => _localizedValues['clearCompleted']!;
+  String get recordLive => _localizedValues['recordLive']!;
+  String get recordDuration => _localizedValues['recordDuration']!;
+  String get record30min => _localizedValues['record30min']!;
+  String get record1hour => _localizedValues['record1hour']!;
+  String get record2hours => _localizedValues['record2hours']!;
+  String get recordUnlimited => _localizedValues['recordUnlimited']!;
 
   // Map access for dynamic keys if needed
   String operator [](String key) => _localizedValues[key] ?? key;
@@ -673,6 +688,21 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
         'noSubtitleTracks': 'No hay subtítulos disponibles',
         'disableSubtitles': 'Desactivar subtítulos',
         'subtitlesDisabled': 'Subtítulos desactivados',
+        // Offline downloads
+        'offlineDownloads': 'Descargas offline',
+        'downloadChannel': 'Descargar canal',
+        'downloadStarted': 'Descarga iniciada',
+        'downloading': 'Descargando...',
+        'noOfflineRecordings': 'No hay grabaciones guardadas',
+        'offlineHint': 'Mantén pulsado un canal y toca "Descargar"',
+        'clearCompleted': 'Limpiar completadas',
+        'recordLive': 'Grabar canal en vivo',
+        'recordDuration': 'Duración de grabación',
+        'record30min': '30 minutos',
+        'record1hour': '1 hora',
+        'record2hours': '2 horas',
+        'recordUnlimited': 'Hasta detener',
+        'play': 'Reproducir',
     };
 
   static const Map<String, String> _zhValues = {
@@ -1606,5 +1636,20 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'noSubtitleTracks': 'No subtitles available',
     'disableSubtitles': 'Disable subtitles',
     'subtitlesDisabled': 'Subtitles disabled',
+    // Offline downloads
+    'offlineDownloads': 'Offline Downloads',
+    'downloadChannel': 'Download channel',
+    'downloadStarted': 'Download started',
+    'downloading': 'Downloading...',
+    'noOfflineRecordings': 'No offline recordings yet',
+    'offlineHint': 'Long-press any channel and tap "Download"',
+    'clearCompleted': 'Clear completed',
+    'recordLive': 'Record live stream',
+    'recordDuration': 'Recording duration',
+    'record30min': '30 minutes',
+    'record1hour': '1 hour',
+    'record2hours': '2 hours',
+    'recordUnlimited': 'Until stopped',
+    'play': 'Play',
   };
 }

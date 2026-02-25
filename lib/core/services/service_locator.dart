@@ -13,6 +13,7 @@ import 'watch_history_service.dart';
 import 'omdb_service.dart';
 import 'watch_later_service.dart';
 import '../managers/update_manager.dart';
+import 'offline_download_service.dart';
 
 /// Service Locator for dependency injection
 class ServiceLocator {
@@ -27,6 +28,7 @@ class ServiceLocator {
   static late WatchHistoryService _watchHistory;
   static late OmdbService _omdbService;
   static late WatchLaterService _watchLaterService;
+  static late OfflineDownloadService _offlineDownloads;
 
   static SharedPreferences get prefs => _prefs;
   static DatabaseHelper get database => _database;
@@ -39,6 +41,7 @@ class ServiceLocator {
   static WatchHistoryService get watchHistory => _watchHistory;
   static OmdbService get omdb => _omdbService;
   static WatchLaterService get watchLater => _watchLaterService;
+  static OfflineDownloadService get offlineDownloads => _offlineDownloads;
   
   /// Check if log service is initialized
   static bool get isLogInitialized {
@@ -123,6 +126,9 @@ class ServiceLocator {
 
     // Watch later service
     _watchLaterService = WatchLaterService(_prefs);
+
+    // Offline download service
+    _offlineDownloads = OfflineDownloadService(_database);
   }
 
   static Future<void> dispose() async {

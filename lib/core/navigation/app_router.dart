@@ -12,6 +12,7 @@ import '../../features/settings/screens/settings_screen.dart';
 import '../../features/epg/screens/epg_screen.dart';
 import '../../features/movies/screens/movies_screen.dart';
 import '../../features/series/screens/series_screen.dart';
+import '../../features/offline/screens/offline_screen.dart';
 
 class AppRouter {
   // Route observer for tracking navigation
@@ -30,6 +31,7 @@ class AppRouter {
   static const String epg = '/epg';
   static const String movies = '/movies';
   static const String series = '/series';
+  static const String offline = '/offline';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -90,6 +92,9 @@ class AppRouter {
 
       case series:
         return _buildRoute(const SeriesScreen(), settings);
+
+      case offline:
+        return _buildRoute(const OfflineScreen(), settings);
 
       default:
         return _buildRoute(

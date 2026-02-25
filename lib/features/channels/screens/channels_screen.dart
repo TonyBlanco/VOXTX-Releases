@@ -2229,6 +2229,21 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 },
               ),
 
+              ListTile(
+                leading: Icon(
+                  Icons.download_rounded,
+                  color: AppTheme.getTextSecondary(context),
+                ),
+                title: Text(
+                  AppStrings.of(context)?.downloadChannel ?? 'Download channel',
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startDownload(context, channel);
+                },
+              ),
+
               // 
               if (ChannelProvider.isUnavailableChannel(channel.groupName))
                 ListTile(
@@ -2260,6 +2275,82 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
           ),
         );
       },
+    );
+  }
+
+  void _startDownload(BuildContext context, dynamic channel) async {
+    final ch = channel as Channel;
+    Duration? duration;
+
+    if (ch.isLive) {
+      duration = await _showDurationPicker(context);
+      if (duration == null) return;
+    }
+
+    try {
+      await ServiceLocator.offlineDownloads.startDownload(ch, duration: duration);
+      if (mounted) {
+        final strings = AppStrings.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(strings?.downloadStarted ?? 'Download started'),
+            action: SnackBarAction(
+              label: strings?.offlineDownloads ?? 'Offline',
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRouter.offline),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<Duration?> _showDurationPicker(BuildContext context) async {
+    final strings = AppStrings.of(context);
+    return showDialog<Duration>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppTheme.getSurfaceColor(context),
+          title: Text(
+            strings?.recordDuration ?? 'Recording duration',
+            style: TextStyle(color: AppTheme.getTextPrimary(context)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _durationOption(ctx, strings?.record30min ?? '30 minutes',
+                  const Duration(minutes: 30)),
+              _durationOption(ctx, strings?.record1hour ?? '1 hour',
+                  const Duration(hours: 1)),
+              _durationOption(ctx, strings?.record2hours ?? '2 hours',
+                  const Duration(hours: 2)),
+              _durationOption(ctx, strings?.recordUnlimited ?? 'Until stopped',
+                  const Duration(hours: 12)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(AppStrings.of(context)?.cancel ?? 'Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _durationOption(BuildContext context, String label, Duration dur) {
+    return ListTile(
+      title: Text(label,
+          style: TextStyle(color: AppTheme.getTextPrimary(context))),
+      onTap: () => Navigator.pop(context, dur),
     );
   }
 }

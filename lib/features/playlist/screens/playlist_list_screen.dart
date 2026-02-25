@@ -359,7 +359,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.of(context)?.addPlaylistToStart ?? 'Add a playlist to get started',
+            AppStrings.of(context)?.goToHomeToAdd ?? 'Add a playlist to get started',
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -370,7 +370,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           ElevatedButton.icon(
             onPressed: () => _showAddPlaylistDialog(),
             icon: const Icon(Icons.add_rounded, size: 20),
-            label: Text(AppStrings.of(context)?.addPlaylist ?? 'Add Playlist'),
+            label: const Text('Add Playlist'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.getPrimaryColor(context),
               foregroundColor: Colors.white,
@@ -419,7 +419,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
               ElevatedButton.icon(
                 onPressed: () => _showAddPlaylistDialog(),
                 icon: const Icon(Icons.add_rounded, size: 16),
-                label: Text(AppStrings.of(context)?.addPlaylist ?? 'Add Playlist'),
+                label: Text('Add Playlist'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getPrimaryColor(context),
                   foregroundColor: Colors.white,

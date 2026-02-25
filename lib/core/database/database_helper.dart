@@ -9,7 +9,7 @@ import '../services/service_locator.dart';
 class DatabaseHelper {
   static Database? _database;
   static const String _databaseName = 'flutter_iptv.db';
-  static const int _databaseVersion = 10; // v10: position_seconds in watch_history
+  static const int _databaseVersion = 11; // v11: offline_recordings table
 
   Future<void> initialize() async {
     ServiceLocator.log.d('DatabaseHelper: ');
@@ -168,6 +168,24 @@ class DatabaseHelper {
     ''');
     await db.execute(
         'CREATE INDEX idx_channel_logos_name ON channel_logos(channel_name)');
+
+    // Offline recordings table
+    await db.execute('''
+      CREATE TABLE offline_recordings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        channel_id INTEGER NOT NULL,
+        channel_name TEXT NOT NULL,
+        channel_url TEXT NOT NULL,
+        channel_logo TEXT,
+        file_path TEXT NOT NULL,
+        size_bytes INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'pending',
+        created_at INTEGER NOT NULL,
+        error_message TEXT
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX idx_offline_channel ON offline_recordings(channel_id)');
 
     // Import channel logos from SQL script
     await _importChannelLogos(db);
@@ -333,6 +351,30 @@ class DatabaseHelper {
         await db.execute(
             'ALTER TABLE watch_history ADD COLUMN position_seconds INTEGER DEFAULT 0');
         ServiceLocator.log.i('Migration v10: added position_seconds to watch_history');
+      } catch (e) {
+        ServiceLocator.log.d('Migration error (ignored): $e');
+      }
+    }
+    if (oldVersion < 11) {
+      // Add offline_recordings table
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS offline_recordings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            channel_id INTEGER NOT NULL,
+            channel_name TEXT NOT NULL,
+            channel_url TEXT NOT NULL,
+            channel_logo TEXT,
+            file_path TEXT NOT NULL,
+            size_bytes INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'pending',
+            created_at INTEGER NOT NULL,
+            error_message TEXT
+          )
+        ''');
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_offline_channel ON offline_recordings(channel_id)');
+        ServiceLocator.log.i('Migration v11: added offline_recordings table');
       } catch (e) {
         ServiceLocator.log.d('Migration error (ignored): $e');
       }
