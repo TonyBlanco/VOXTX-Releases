@@ -7,6 +7,7 @@ import '../navigation/app_router.dart';
 import '../i18n/app_strings.dart';
 import 'tv_focusable.dart';
 import 'channel_logo_widget.dart';
+import '../platform/platform_detector.dart';
 import '../../features/settings/providers/settings_provider.dart';
 import '../services/service_locator.dart';
 
@@ -49,6 +50,16 @@ class _TVSidebarState extends State<TVSidebar> {
     // 
     TVSidebar.menuFocusNodes = _menuFocusNodes;
     TVSidebar.selectedMenuIndex = widget.selectedIndex;
+
+    // Auto-focus the selected menu item when the sidebar first mounts.
+    // Without this, on TV the highlight only appears after the first D-Pad
+    // keypress, which makes the app feel broken on first launch.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!PlatformDetector.isTV && !PlatformDetector.isDesktop) return;
+      final idx = widget.selectedIndex.clamp(0, _menuFocusNodes.length - 1);
+      _menuFocusNodes[idx].requestFocus();
+    });
   }
 
   @override

@@ -88,7 +88,13 @@ class _TVFocusableState extends State<TVFocusable> with SingleTickerProviderStat
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    // Accept initial key press AND held-key repeats.
+    // Xiaomi Mi Box (and many other Android TV remotes) sends KeyRepeatEvent
+    // for every ~50 ms the D-Pad is held down.  Without this check those
+    // events were silently discarded, making held arrows feel sluggish.
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
 
     final key = event.logicalKey;
 

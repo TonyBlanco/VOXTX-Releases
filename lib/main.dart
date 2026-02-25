@@ -26,6 +26,7 @@ import 'features/settings/providers/dlna_provider.dart';
 import 'features/epg/providers/epg_provider.dart';
 import 'features/multi_screen/providers/multi_screen_provider.dart';
 import 'core/widgets/window_title_bar.dart';
+import 'core/widgets/tv_focus_manager.dart';
 
 void main() async {
   try {
@@ -582,30 +583,48 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          // Use shortcuts for TV remote support
+          // Use shortcuts for TV remote support.
+          // Arrow keys are already in defaultShortcuts but are re-declared here
+          // to guarantee they produce DirectionalFocusIntent on TV remotes that
+          // send raw DPAD_* events instead of the standard arrow codes.
           shortcuts: <ShortcutActivator, Intent>{
             ...WidgetsApp.defaultShortcuts,
             const SingleActivator(LogicalKeyboardKey.select):
                 const ActivateIntent(),
             const SingleActivator(LogicalKeyboardKey.enter):
                 const ActivateIntent(),
+            const SingleActivator(LogicalKeyboardKey.arrowUp):
+                const DirectionalFocusIntent(TraversalDirection.up),
+            const SingleActivator(LogicalKeyboardKey.arrowDown):
+                const DirectionalFocusIntent(TraversalDirection.down),
+            const SingleActivator(LogicalKeyboardKey.arrowLeft):
+                const DirectionalFocusIntent(TraversalDirection.left),
+            const SingleActivator(LogicalKeyboardKey.arrowRight):
+                const DirectionalFocusIntent(TraversalDirection.right),
           },
           onGenerateRoute: AppRouter.generateRoute,
           initialRoute: AppRouter.splash,
           builder: (context, child) {
-            return MediaQuery(
+            // 1. Lock text scale so TV/desktop UI doesn't resize with
+            //    accessibility settings.
+            Widget built = MediaQuery(
               data: MediaQuery.of(context).copyWith(
                 textScaler: const TextScaler.linear(1.0),
               ),
-              child: Platform.isWindows
-                  ? Stack(
-                      children: [
-                        child!,
-                        const WindowTitleBar(),
-                      ],
-                    )
-                  : child!,
+              child: child!,
             );
+            // 2. On TV: wrap the whole tree in a FocusTraversalGroup so that
+            //    arrow-key traversal has a well-defined root scope.  Without
+            //    this, ReadingOrderTraversalPolicy cannot find a group and
+            //    nextFocus() / previousFocus() are silently no-ops.
+            if (PlatformDetector.isTV) {
+              built = TvAppFocusWrapper(child: built);
+            }
+            // 3. On Windows: overlay the custom title bar.
+            if (Platform.isWindows) {
+              return Stack(children: [built, const WindowTitleBar()]);
+            }
+            return built;
           },
         );
       },
