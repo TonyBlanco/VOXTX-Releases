@@ -53,6 +53,22 @@ void main() async {
       }
     };
 
+    // Captura errores nativos / isolates secundarios que FlutterError no ve.
+    // Especialmente útil en TV donde los crashes no tienen UI de crash visible.
+    WidgetsBinding.instance.platformDispatcher.onError = (error, stack) {
+      try {
+        if (ServiceLocator.isLogInitialized) {
+          ServiceLocator.log.e('PlatformDispatcher Error: $error');
+          ServiceLocator.log.e('Stack trace: $stack');
+        } else {
+          debugPrint('PlatformDispatcher Error: $error');
+        }
+      } catch (_) {
+        debugPrint('PlatformDispatcher Error: $error');
+      }
+      return true; // handled — no crash dialog
+    };
+
     // Initialize MediaKit
     MediaKit.ensureInitialized();
 
@@ -206,6 +222,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   final AutoRefreshService _autoRefreshService = AutoRefreshService();
   bool _lastAutoRefreshState = false;
   int _lastRefreshInterval = 24;
+  // Referencia al listener de SettingsProvider para poder hacer removeListener en dispose()
+  VoidCallback? _settingsRefreshListener;
 
   @override
   void initState() {
@@ -268,6 +286,10 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     if (Platform.isWindows) {
       windowManager.removeListener(this);
     }
+    // Eliminar listener de SettingsProvider para evitar memory leak en sesiones largas de TV
+    if (_settingsRefreshListener != null) {
+      widget.settings.removeListener(_settingsRefreshListener!);
+    }
     _autoRefreshService.stop();
     super.dispose();
   }
@@ -301,8 +323,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         ServiceLocator.log.d('', tag: 'AutoRefresh');
       }
 
-      // 
-      settings.addListener(() {
+      // Guardamos referencia para poder hacer removeListener en dispose() y evitar memory leak
+      _settingsRefreshListener = () {
         if (!mounted) return;
 
         //  autoRefresh 
@@ -323,7 +345,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
             _autoRefreshService.stop();
           }
         }
-      });
+      };
+      settings.addListener(_settingsRefreshListener!);
 
       ServiceLocator.log.d('_initAutoRefresh() ', tag: 'AutoRefresh');
     } catch (e, stackTrace) {

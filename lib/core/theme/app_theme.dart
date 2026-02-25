@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'color_scheme_data.dart';
 import 'color_scheme_manager.dart';
-import '../services/service_locator.dart';
 
 class AppTheme {
   // Lotus Theme - Brand Colors
@@ -156,57 +155,15 @@ class AppTheme {
 
   // Card Gradient - Glassmorphism
 
-  /// 
+  /// Fuente única: System (Roboto en Android/TV, SF Pro en iOS/macOS)
   static const Map<String, String?> fontMap = {
-    'System': null, // 
-    // 
-    'Microsoft YaHei': 'MicrosoftYaHei',
-    'SimHei': 'SimHei',
-    'SimSun': 'SimSun',
-    'KaiTi': 'KaiTi',
-    'FangSong': 'FangSong',
-    // 
-    'Arial': 'Arial',
-    'Calibri': 'Calibri',
-    'Georgia': 'Georgia',
-    'Verdana': 'Verdana',
-    'Tahoma': 'Tahoma',
-    'Times New Roman': 'TimesNewRoman',
-    'Segoe UI': 'SegoeUI',
-    'Impact': 'Impact',
+    'System': null,
   };
   
   /// 
   /// 
   static List<String> getAvailableFonts([String? languageCode]) {
-    final isChinese = languageCode == null || languageCode.startsWith('zh');
-    
-    if (isChinese) {
-      return [
-        'System',
-        'Microsoft YaHei',
-        'SimHei',
-        'SimSun',
-        'KaiTi',
-        'FangSong',
-        // 
-        'Arial',
-        'Segoe UI',
-      ];
-    } else {
-      return [
-        'System',
-        // 
-        'Arial',
-        'Segoe UI',
-        'Calibri',
-        'Georgia',
-        'Verdana',
-        'Tahoma',
-        'Times New Roman',
-        'Impact',
-      ];
-    }
+    return ['System'];
   }
   
   /// fontFamily

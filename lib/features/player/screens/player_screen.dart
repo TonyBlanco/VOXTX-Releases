@@ -470,12 +470,26 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  // Strip CJK characters from error messages so no Chinese text leaks into the UI
+  String _sanitizeError(String raw) {
+    final hasCjk = raw.runes.any((r) =>
+        (r >= 0x4E00 && r <= 0x9FFF) ||
+        (r >= 0x3400 && r <= 0x4DBF) ||
+        (r >= 0x3000 && r <= 0x303F) ||
+        (r >= 0xFF00 && r <= 0xFFEF));
+    if (hasCjk) {
+      final strings = AppStrings.of(context);
+      return strings?.playbackError ?? 'Playback failed';
+    }
+    return raw;
+  }
+
   void _checkAndShowError() {
     if (!mounted || _errorShown) return;
 
     final provider = context.read<PlayerProvider>();
     if (provider.hasError && provider.error != null) {
-      final errorMessage = provider.error!;
+      final errorMessage = _sanitizeError(provider.error!);
       _errorShown = true;
       provider.clearError();
 

@@ -252,7 +252,7 @@ class PlayerProvider extends ChangeNotifier {
         ServiceLocator.log.d('PlayerProvider: ');
         _isAutoDetecting = false;
         _state = PlayerState.error;
-        _error = ' $totalSources ';
+        _error = 'All $totalSources sources failed';
         notifyListeners();
       }
       return;

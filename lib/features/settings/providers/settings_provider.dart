@@ -89,7 +89,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _showMultiScreenChannelName = false; // Mostrar nombre del canal en multi-pantalla (por defecto false)
   String _darkColorScheme = 'ocean'; // Esquema de color para modo oscuro (por defecto 'ocean')
   String _lightColorScheme = 'sky'; // Esquema de color para modo claro (por defecto 'sky')
-  String _fontFamily = 'Arial'; // Fuente por defecto (Arial)
+  String _fontFamily = 'System'; // Fuente del sistema (Roboto en Android/TV)
   bool _simpleMenu = true; // Usar menú simple (no expandido) por defecto
   String _logLevel = 'off'; // Nivel de logs: debug, release, off (por defecto off)
   String _mobileOrientation = 'portrait'; // Orientación en móvil: portrait, landscape, auto (por defecto portrait)

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.24] - 2026-02-25
+### Changed
+- **Fuentes eliminadas del bundle** (~72 MB menos): se eliminan SimHei (9 MB), SimSun (17 MB), KaiTi (11 MB), FangSong (10 MB), MicrosoftYaHei (19 MB) y todas las fuentes occidentales (Arial, Calibri, Georgia, etc.). La app usa la fuente del sistema (Roboto en Android/TV).
+- **Fuente maestra: System** — `settings_provider` y `app_theme` simplificados a fuente única del dispositivo. Sin selector de fuentes.
+### Fixed
+- **Memory leak en sesiones largas de TV**: `_DlnaAwareAppState` ahora hace `removeListener` del `SettingsProvider` en `dispose()` usando referencia guardada `_settingsRefreshListener`.
+- **Crashes silenciosos en TV**: añadido `WidgetsBinding.instance.platformDispatcher.onError` para capturar errores de isolates secundarios y errores nativos que `FlutterError.onError` no intercepta.
+
 ## [1.5.23] - 2026-02-25
 ### Fixed
 - **Navegación D-Pad Android TV — capa completa de focus**:
