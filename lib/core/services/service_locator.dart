@@ -81,33 +81,6 @@ class ServiceLocator {
 
     // Initialize watch history service (after database)
     _watchHistory = WatchHistoryService();
-
-    // Seed test playlist (B1G Smasters) if not already present
-    await _seedTestPlaylistIfNeeded();
-  }
-
-  static Future<void> _seedTestPlaylistIfNeeded() async {
-    try {
-      const seedUrl =
-          'http://vipglass.online/get.php?username=729365825&password=638746378&type=m3u_plus&output=ts';
-      final existing = await _database.rawQuery(
-        "SELECT id FROM playlists WHERE url = ? LIMIT 1",
-        [seedUrl],
-      );
-      if (existing.isEmpty) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        await _database.insert('playlists', {
-          'name': 'B1G Smarters',
-          'url': seedUrl,
-          'is_active': 1,
-          'channel_count': 0,
-          'created_at': now,
-        });
-        log.i('Seeded B1G Smarters test playlist', tag: 'ServiceLocator');
-      }
-    } catch (e) {
-      log.w('Could not seed test playlist: $e', tag: 'ServiceLocator');
-    }
   }
 
   static Future<void> init() async {
