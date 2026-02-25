@@ -51,6 +51,7 @@ class PlayerProvider extends ChangeNotifier {
   bool _allowSoftwareFallback = true;
   String _windowsHwdecMode = 'auto-safe';
   bool _isDisposed = false;
+  bool _firstFrameRendered = false;
   String _videoOutput = 'auto';
   String _vo = 'unknown';
   String _configuredVo = 'auto';
@@ -73,6 +74,9 @@ class PlayerProvider extends ChangeNotifier {
   double get playbackSpeed => _playbackSpeed;
   bool get isFullscreen => _isFullscreen;
   bool get controlsVisible => _controlsVisible;
+  /// True once the first video frame has been decoded and rendered.
+  /// Used to hide the green-frame artifact on PICO/Android boxes.
+  bool get firstFrameRendered => _firstFrameRendered;
 
   bool get isPlaying => _state == PlayerState.playing;
   bool get isLoading => _state == PlayerState.loading || _state == PlayerState.buffering;
@@ -546,6 +550,14 @@ class PlayerProvider extends ChangeNotifier {
         });
       }
     
+    // First-frame detection: hides the green frame on PICO / Android boxes
+    _mediaKitPlayer!.stream.width.listen((width) {
+      if (!_firstFrameRendered && width != null && width > 0) {
+        _firstFrameRendered = true;
+        notifyListeners();
+      }
+    });
+
     _mediaKitPlayer!.stream.playing.listen((playing) {
       ServiceLocator.log.d(': playing=$playing', tag: 'PlayerProvider');
       if (playing) {
@@ -826,6 +838,7 @@ class PlayerProvider extends ChangeNotifier {
     _lastErrorMessage = null; // 
     _errorDisplayed = false; // 
     _retryCount = 0; // 
+    _firstFrameRendered = false; // Reset green-frame overlay for new channel
     _retryTimer?.cancel(); // 
     _isAutoDetecting = false; // 
     _noVideoFallbackAttempted = false;

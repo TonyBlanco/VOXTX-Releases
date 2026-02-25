@@ -1870,9 +1870,22 @@ class _PlayerScreenState extends State<PlayerScreen>
           );
         }
 
-        return Video(
-          controller: provider.videoController!,
-          controls: NoVideoControls,
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Video(
+              controller: provider.videoController!,
+              controls: NoVideoControls,
+            ),
+            // Black overlay that hides the green frame on first render
+            // (PICO VR headset, Android boxes with mediacodec surface warm-up delay).
+            // Fades out to transparent once the first real frame arrives.
+            AnimatedOpacity(
+              opacity: provider.firstFrameRendered ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 350),
+              child: const ColoredBox(color: Colors.black),
+            ),
+          ],
         );
       },
     );

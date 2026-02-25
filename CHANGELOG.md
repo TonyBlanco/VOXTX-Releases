@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.32] - 2026-02-25
+### Fixed
+- **Green frame al iniciar vídeo en PICO y Android Box**: se superpone un overlay negro sobre el Widget `Video` que se desvanece en 350ms en cuanto `player.stream.width` emite el primer frame real. Elimina el parpadeo verde causado por el warm-up de `mediacodec` en hardware con superficie de renderizado lenta.
+
 ## [1.5.31] - 2026-02-25
 ### Fixed
 - **OTA install en Android Box**: añadida verificación `canRequestPackageInstalls()` antes del intent de instalación. Si el permiso no está concedido (firmware update, ROM custom), abre automáticamente **Ajustes > Instalar apps desconocidas** para que el usuario lo active, y reintenta la instalación al volver. Antes el APK se descargaba pero el intent se ignoraba silenciosamente.
