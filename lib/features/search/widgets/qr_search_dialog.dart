@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../core/navigation/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/local_server_service.dart';
 import '../../../core/services/service_locator.dart';
@@ -95,9 +96,18 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
     ServiceLocator.log.d('remote: $command');
     if (!mounted) return;
     final player = Provider.of<PlayerProvider>(context, listen: false);
+    // Cache navigator before any pop() that would unmount this dialog
+    final nav = Navigator.of(context);
     switch (command) {
+      // ── Playback ────────────────────────────────────────────────────────────
       case 'play_pause':
         player.togglePlayPause();
+        break;
+      case 'stop':
+        player.pause();
+        nav.popUntil(
+          (route) => route.settings.name == AppRouter.home || route.isFirst,
+        );
         break;
       case 'volume_up':
         player.setVolume((player.volume + 0.1).clamp(0.0, 1.0));
@@ -108,7 +118,30 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
       case 'mute':
         player.setVolume(player.volume > 0 ? 0.0 : 1.0);
         break;
-      // Navigation commands (home, epg, favorites, ch+/- etc.) handled via app router in future
+      // ── Navigation ──────────────────────────────────────────────────────────
+      case 'back':
+        nav.maybePop();
+        break;
+      case 'home':
+        nav.popUntil(
+          (route) => route.settings.name == AppRouter.home || route.isFirst,
+        );
+        break;
+      case 'epg':
+        // Close dialog (server stops — intentional when navigating away)
+        nav.pop();
+        nav.pushNamed(AppRouter.epg);
+        break;
+      case 'favorites':
+        nav.pop();
+        nav.pushNamed(AppRouter.favorites);
+        break;
+      // ── Channel zapping ─────────────────────────────────────────────────────
+      case 'channel_up':
+      case 'channel_down':
+        // TODO: implement via ChannelProvider once current-channel state
+        // is globally accessible (needs channel index + playlist reference).
+        break;
     }
   }
 

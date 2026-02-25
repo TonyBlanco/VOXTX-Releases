@@ -147,6 +147,8 @@ class UpdateService {
         fileName = urlFileName;
       } else if (Platform.isWindows) {
         fileName = 'flutter_iptv_update.exe';
+      } else if (Platform.isMacOS) {
+        fileName = 'VoXTV-macOS.dmg';
       } else {
         fileName = 'flutter_iptv_update.apk';
       }

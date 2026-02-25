@@ -176,6 +176,10 @@ USN: $_deviceUuid::urn:schemas-upnp-org:device:MediaRenderer:1\r
         final info = await deviceInfo.windowsInfo;
         _deviceUuid = 'uuid:${info.deviceId}-lotus-iptv';
         _deviceName = 'VoXTV (${info.computerName})';
+      } else if (Platform.isMacOS) {
+        final info = await deviceInfo.macOsInfo;
+        _deviceUuid = 'uuid:${info.systemGUID ?? info.computerName}-lotus-iptv';
+        _deviceName = 'VoXTV (${info.computerName})';
       } else {
         _deviceUuid = 'uuid:lotus-iptv-${DateTime.now().millisecondsSinceEpoch}';
       }

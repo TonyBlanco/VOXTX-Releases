@@ -8,5 +8,11 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<!-- HTTP requests for streaming, EPG, updates -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- file_picker — read/write user-selected files -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
 </dict>
 </plist>

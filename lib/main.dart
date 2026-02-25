@@ -86,17 +86,19 @@ void main() async {
       databaseFactory = databaseFactoryFfi;
     }
 
-    // Initialize window manager for Windows
-    if (Platform.isWindows) {
+    // Initialize window manager for Windows and macOS
+    if (Platform.isWindows || Platform.isMacOS) {
       await windowManager.ensureInitialized();
 
-      WindowOptions windowOptions = const WindowOptions(
-        size: Size(1280, 720),
-        minimumSize: Size(360, 600),
+      final windowOptions = WindowOptions(
+        size: const Size(1280, 720),
+        minimumSize: const Size(800, 600),
         center: true,
         backgroundColor: Colors.black,
-        titleBarStyle: TitleBarStyle.hidden,
-        windowButtonVisibility: false,
+        titleBarStyle: Platform.isMacOS
+            ? TitleBarStyle.hidden   // macOS: keep native traffic lights
+            : TitleBarStyle.hidden,  // Windows: custom title bar overlay
+        windowButtonVisibility: Platform.isWindows ? false : true,
       );
 
       await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -230,8 +232,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     super.initState();
     ServiceLocator.log.d('_DlnaAwareApp.initState() llamado', tag: 'AutoRefresh');
 
-    // Listener de cierre de ventana en Windows
-    if (Platform.isWindows) {
+    // Listener de cierre de ventana en Windows y macOS
+    if (Platform.isWindows || Platform.isMacOS) {
       windowManager.addListener(this);
     }
     // Crear inmediatamente DlnaProvider (iniciará DLNA automáticamente)
@@ -283,7 +285,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
   @override
   void dispose() {
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isMacOS) {
       windowManager.removeListener(this);
     }
     // Eliminar listener de SettingsProvider para evitar memory leak en sesiones largas de TV
