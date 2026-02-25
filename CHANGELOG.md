@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.29] - 2026-02-26
+### Novedades
+- **Descarga / Grabación offline**: opción "Descargar canal" en el menú largo de cualquier canal. Para canales VOD descarga directamente el fichero; para canales en vivo muestra un selector de duración (30 min / 1 h / 2 h / Hasta detener). Las grabaciones se guardan en el almacenamiento interno de la app.
+- **Pantalla Offline Downloads** (`/offline`): lista de grabaciones con barra de progreso en tiempo real, reproducción local, cancelación y eliminación.
+- **Base de datos v11**: tabla `offline_recordings` con índices por canal y estado. Migración automática sin pérdida de datos.
+
 ## [1.5.28] - 2026-02-25
 ### Novedades
 - **Mando remoto — navegación**: los botones Home, EPG, Favoritos, Atrás y Stop del mando remoto móvil (`/remote`) ahora navegan la UI de la TV en tiempo real.
