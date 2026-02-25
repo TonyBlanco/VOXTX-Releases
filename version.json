@@ -1,23 +1,23 @@
 {
-  "version": "1.5.32",
-  "build": 192,
+  "version": "1.5.34",
+  "build": 194,
   "releaseDate": "2026-02-25",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.32/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.34/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Fix imagen verde al inicio en PICO y Android Box\n- Fix instalación OTA en Android Box (permisos instalar apps)\n- Aviso legal obligatorio en primera apertura\n- Fix botón fullscreen EPG con player inactivo",
-    "en": "- Fix green frame at startup on PICO and Android Box\n- Fix OTA install on Android Box (install unknown apps permission)\n- Mandatory legal disclaimer on first launch\n- Fix EPG fullscreen button when player is inactive"
+    "es": "- APKs ahora descargables (repo publico)\n- Fix imagen verde al inicio en PICO y Android Box\n- Fix instalacion OTA en Android Box\n- Aviso legal obligatorio en primera apertura",
+    "en": "- APKs now downloadable (public repo)\n- Fix green frame at startup on PICO and Android Box\n- Fix OTA install on Android Box\n- Mandatory legal disclaimer on first launch"
   },
   "minVersion": "1.0.0"
 }
