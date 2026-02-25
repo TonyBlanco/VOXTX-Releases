@@ -242,11 +242,24 @@ En `update_service.dart`:
 ```
 
 #### Paso 9 — Build y test
+
+> [!IMPORTANT]
+> **Fix requerido**: `sqflite_common_ffi` intenta descargar `libsqlite3.arm64.macos.dylib` de GitHub durante el build.
+> Si hay error de red, usar la SQLite del sistema con esta variable de entorno:
+> ```bash
+> SQLITE3_USE_SYSTEM_LIBRARY=1 flutter run -d macos   # debug
+> SQLITE3_USE_SYSTEM_LIBRARY=1 flutter build macos --release  # release
+> ```
+
 ```bash
-flutter build macos --release
-open build/macos/Build/Products/Release/VoxTv.app
-# Después crear DMG:
-hdiutil create -volname "VOXTX" -srcfolder build/macos/Build/Products/Release/VoxTv.app -ov -format UDZO VOXTX-macOS.dmg
+# Debug (prueba local)
+SQLITE3_USE_SYSTEM_LIBRARY=1 flutter run -d macos
+
+# Release (distribución)
+SQLITE3_USE_SYSTEM_LIBRARY=1 flutter build macos --release
+open build/macos/Build/Products/Release/flutter_iptv.app
+# Crear DMG:
+hdiutil create -volname "VOXTX" -srcfolder build/macos/Build/Products/Release/flutter_iptv.app -ov -format UDZO VOXTX-macOS.dmg
 ```
 
 #### Paso 10 — Release macOS
