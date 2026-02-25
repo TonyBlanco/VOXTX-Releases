@@ -1,24 +1,23 @@
 {
-  "version": "1.5.25",
-  "build": 185,
+  "version": "1.5.30",
+  "build": 190,
   "releaseDate": "2026-02-25",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.25/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.30/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Fix navegación D-Pad en sidebar TV (selección y bordes ya funcionan)\n- Fix diálogo Xtream Codes en TV: todos los campos navegables con D-Pad",
-    "en": "- Fix TV sidebar D-Pad navigation (select and boundary guards now work)\n- Fix Xtream Codes dialog on TV: all fields reachable with D-Pad",
-    "zh": "- Fix TV sidebar D-Pad navigation (select and boundary guards now work)\n- Fix Xtream Codes dialog on TV: all fields reachable with D-Pad"
+    "es": "- Aviso legal obligatorio en primera apertura (requerido para app stores)\n- Fix botón fullscreen EPG con player inactivo\n- Grabación / descarga de canales offline",
+    "en": "- Mandatory legal disclaimer on first launch (required for app stores)\n- Fix EPG fullscreen button when player is inactive\n- Offline channel recording / download"
   },
   "minVersion": "1.0.0"
 }
