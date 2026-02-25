@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.33] - 2026-02-25
+### Fixed
+- **Enlace "Update now" en macOS apuntaba a repo incorrecto**: el botón abría `VOXTX-Releases/releases` (quedado en v1.5.25) en vez de `VOXTX-Android/releases`. Corregida la URL en `_githubReleasesUrl`.
+
 ## [1.5.32] - 2026-02-25
 ### Fixed
 - **Green frame al iniciar vídeo en PICO y Android Box**: se superpone un overlay negro sobre el Widget `Video` que se desvanece en 350ms en cuanto `player.stream.width` emite el primer frame real. Elimina el parpadeo verde causado por el warm-up de `mediacodec` en hardware con superficie de renderizado lenta.
