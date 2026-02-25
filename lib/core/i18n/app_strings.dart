@@ -535,6 +535,14 @@ class AppStrings {
   String get favoritesOnHomeEnabled => _localizedValues['favoritesOnHomeEnabled']!;
   String get favoritesOnHomeDisabled => _localizedValues['favoritesOnHomeDisabled']!;
 
+  // Audio/Subtitle track selection
+  String get audioTracks => _localizedValues['audioTracks']!;
+  String get noAudioTracks => _localizedValues['noAudioTracks']!;
+  String get subtitles => _localizedValues['subtitles']!;
+  String get noSubtitleTracks => _localizedValues['noSubtitleTracks']!;
+  String get disableSubtitles => _localizedValues['disableSubtitles']!;
+  String get subtitlesDisabled => _localizedValues['subtitlesDisabled']!;
+
   // Map access for dynamic keys if needed
   String operator [](String key) => _localizedValues[key] ?? key;
 }
@@ -658,6 +666,13 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
         'close': 'Cerrar',
         'success': 'Éxito',
         'error': 'Error',
+        // Audio/Subtitle tracks
+        'audioTracks': 'Pistas de audio',
+        'noAudioTracks': 'No hay pistas de audio disponibles',
+        'subtitles': 'Subtítulos',
+        'noSubtitleTracks': 'No hay subtítulos disponibles',
+        'disableSubtitles': 'Desactivar subtítulos',
+        'subtitlesDisabled': 'Subtítulos desactivados',
     };
 
   static const Map<String, String> _zhValues = {
@@ -1584,5 +1599,12 @@ class _AppStringsDelegate extends LocalizationsDelegate<AppStrings> {
     'errorTimeout': 'Connection timeout, please check network or URL',
     'errorNetwork': 'Network connection failed, please check network',
     'usingCachedSource': 'Remote source unavailable, using cached source',
+    // Audio/Subtitle tracks
+    'audioTracks': 'Audio Tracks',
+    'noAudioTracks': 'No audio tracks available',
+    'subtitles': 'Subtitles',
+    'noSubtitleTracks': 'No subtitles available',
+    'disableSubtitles': 'Disable subtitles',
+    'subtitlesDisabled': 'Subtitles disabled',
   };
 }

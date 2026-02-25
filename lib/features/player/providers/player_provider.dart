@@ -1100,6 +1100,46 @@ class PlayerProvider extends ChangeNotifier {
     ServiceLocator.log.i('Video track set: ${track.title ?? track.id}', tag: 'PlayerProvider');
   }
 
+  // ── Audio Track selection ───────────────────────────────────────
+
+  /// Available audio tracks for the current stream.
+  List<AudioTrack> get availableAudioTracks {
+    if (_useNativePlayer || _mediaKitPlayer == null) return [];
+    return _mediaKitPlayer!.state.tracks.audio;
+  }
+
+  /// Set a specific audio track.
+  void setAudioTrack(AudioTrack track) {
+    if (_useNativePlayer || _mediaKitPlayer == null) return;
+    _mediaKitPlayer!.setAudioTrack(track);
+    ServiceLocator.log.i('Audio track set: ${track.title ?? track.language ?? track.id}', tag: 'PlayerProvider');
+    notifyListeners();
+  }
+
+  // ── Subtitle Track selection ────────────────────────────────────
+
+  /// Available subtitle tracks for the current stream.
+  List<SubtitleTrack> get availableSubtitleTracks {
+    if (_useNativePlayer || _mediaKitPlayer == null) return [];
+    return _mediaKitPlayer!.state.tracks.subtitle;
+  }
+
+  /// Set a specific subtitle track.
+  void setSubtitleTrack(SubtitleTrack track) {
+    if (_useNativePlayer || _mediaKitPlayer == null) return;
+    _mediaKitPlayer!.setSubtitleTrack(track);
+    ServiceLocator.log.i('Subtitle track set: ${track.title ?? track.language ?? track.id}', tag: 'PlayerProvider');
+    notifyListeners();
+  }
+
+  /// Disable subtitles entirely.
+  void disableSubtitles() {
+    if (_useNativePlayer || _mediaKitPlayer == null) return;
+    _mediaKitPlayer!.setSubtitleTrack(SubtitleTrack.no());
+    ServiceLocator.log.i('Subtitles disabled', tag: 'PlayerProvider');
+    notifyListeners();
+  }
+
   void seekBackward(int seconds) {
     final newPos = _position - Duration(seconds: seconds);
     seek(newPos.isNegative ? Duration.zero : newPos);

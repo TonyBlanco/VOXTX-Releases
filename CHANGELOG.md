@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.27] - 2026-02-25
+### Novedades
+- **Selector de pistas de audio**: botón en barra de controles del reproductor muestra las pistas de audio disponibles (`availableAudioTracks`) y permite cambiar con `setAudioTrack()`.
+- **Selector de subtítulos**: botón en barra de controles muestra los subtítulos disponibles (`availableSubtitleTracks`) con opción "Sin subtítulos". Usa `setSubtitleTrack()` de media_kit.
+
 ## [1.5.26] - 2026-02-25
 ### Novedades
 - **Control remoto desde el móvil**: nueva página `/remote` (accesible desde el mismo QR del diálogo de búsqueda) con D-pad, volumen, cambio de canal y accesos directos a pantallas (Inicio, Favoritos, EPG). El servidor local expone `GET /remote` y `POST /api/remote` para recibir comandos desde el navegador del móvil.

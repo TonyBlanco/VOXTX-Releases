@@ -735,6 +735,146 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
+  void _showAudioTrackDialog(PlayerProvider provider) {
+    final tracks = provider.availableAudioTracks;
+    if (tracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.of(context)?.noAudioTracks ?? 'No hay pistas de audio disponibles')),
+      );
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.getSurfaceColor(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                AppStrings.of(context)?.audioTracks ?? 'Pistas de audio',
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            ...tracks.map((track) {
+              final label = track.title?.isNotEmpty == true
+                  ? track.title!
+                  : (track.language?.isNotEmpty == true
+                      ? track.language!
+                      : 'Pista ${tracks.indexOf(track) + 1}');
+              return ListTile(
+                title: Text(
+                  label,
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                leading: Icon(
+                  Icons.audiotrack_rounded,
+                  color: AppTheme.getPrimaryColor(context),
+                ),
+                onTap: () {
+                  provider.setAudioTrack(track);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Audio: $label')),
+                  );
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSubtitleTrackDialog(PlayerProvider provider) {
+    final tracks = provider.availableSubtitleTracks;
+    if (tracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.of(context)?.noSubtitleTracks ?? 'No hay subtítulos disponibles')),
+      );
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.getSurfaceColor(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                AppStrings.of(context)?.subtitles ?? 'Subtítulos',
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            // Option to disable subtitles
+            ListTile(
+              title: Text(
+                AppStrings.of(context)?.disableSubtitles ?? 'Desactivar subtítulos',
+                style: TextStyle(color: AppTheme.getTextPrimary(context)),
+              ),
+              leading: Icon(
+                Icons.subtitles_off_rounded,
+                color: AppTheme.getTextMuted(context),
+              ),
+              onTap: () {
+                provider.disableSubtitles();
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(AppStrings.of(context)?.subtitlesDisabled ?? 'Subtítulos desactivados')),
+                );
+              },
+            ),
+            ...tracks.map((track) {
+              final label = track.title?.isNotEmpty == true
+                  ? track.title!
+                  : (track.language?.isNotEmpty == true
+                      ? track.language!
+                      : 'Subtítulo ${tracks.indexOf(track) + 1}');
+              return ListTile(
+                title: Text(
+                  label,
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                leading: Icon(
+                  Icons.subtitles_rounded,
+                  color: AppTheme.getPrimaryColor(context),
+                ),
+                onTap: () {
+                  provider.setSubtitleTrack(track);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Subtítulos: $label')),
+                  );
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
+
   void _startHideControlsTimer() {
     _hideControlsTimer?.cancel();
     _hideControlsTimer = Timer(const Duration(seconds: 4), () {
@@ -2749,6 +2889,64 @@ class _PlayerScreenState extends State<PlayerScreen>
                       );
                     },
                     child: const Icon(Icons.high_quality_rounded,
+                        color: Colors.white, size: 18),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // Audio track button
+                  TVFocusable(
+                    onSelect: () => _showAudioTrackDialog(provider),
+                    focusScale: 1.0,
+                    showFocusBorder: false,
+                    builder: (context, isFocused, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isFocused
+                              ? AppTheme.getPrimaryColor(context)
+                              : const Color(0x33FFFFFF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isFocused
+                                ? AppTheme.getPrimaryColor(context)
+                                : const Color(0x1AFFFFFF),
+                            width: isFocused ? 2 : 1,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: const Icon(Icons.audiotrack_rounded,
+                        color: Colors.white, size: 18),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // Subtitle track button
+                  TVFocusable(
+                    onSelect: () => _showSubtitleTrackDialog(provider),
+                    focusScale: 1.0,
+                    showFocusBorder: false,
+                    builder: (context, isFocused, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isFocused
+                              ? AppTheme.getPrimaryColor(context)
+                              : const Color(0x33FFFFFF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isFocused
+                                ? AppTheme.getPrimaryColor(context)
+                                : const Color(0x1AFFFFFF),
+                            width: isFocused ? 2 : 1,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: const Icon(Icons.subtitles_rounded,
                         color: Colors.white, size: 18),
                   ),
 
