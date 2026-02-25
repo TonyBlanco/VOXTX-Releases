@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.28] - 2026-02-25
+### Novedades
+- **Mando remoto — navegación**: los botones Home, EPG, Favoritos, Atrás y Stop del mando remoto móvil (`/remote`) ahora navegan la UI de la TV en tiempo real.
+- `home` → vuelve a la pantalla principal, `epg` → abre la guía EPG, `favorites` → abre favoritos, `back` → regresa a la pantalla anterior, `stop` → pausa y vuelve a inicio.
+
 ## [1.5.27] - 2026-02-25
 ### Novedades
 - **Selector de pistas de audio**: botón en barra de controles del reproductor muestra las pistas de audio disponibles (`availableAudioTracks`) y permite cambiar con `setAudioTrack()`.
