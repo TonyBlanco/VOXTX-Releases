@@ -95,6 +95,7 @@ git remote -v
 | Mando remoto móvil (HTTP) | `remote_control.html` + `/remote` route | ✅ v1.5.26 |
 | API remoto POST /api/remote | `local_server_service.dart` | ✅ v1.5.26 |
 | Páginas móviles EN/ES (sin chino) | `search_channels.html`, `import_playlist.html` | ✅ v1.5.26 |
+| Subtítulos / audio tracks UI | `player_provider.dart` + `player_screen.dart` | ✅ v1.5.27 (otro agente) |
 | Playlist CRUD (M3U/URL/archivo) | `playlist/` + file_picker | ✅ |
 | VOD Movies + Series | `movies/`, `series/` features | ✅ |
 | Multi-screen (2-4 canales) | `multi_screen/` feature | ✅ |
@@ -120,10 +121,10 @@ git remote -v
 
 | Feature | Prioridad | Notas |
 |---------|-----------|-------|
-| Subtítulos / audio tracks UI | Media | media_kit lo soporta, falta el selector en pantalla |
-| Mando remoto — comandos de nav (home/epg/favs/ch±) | Media | Callback `onRemoteCommand` ya existe, falta wiring a `app_router.dart` |
-| Chromecast | Baja | Solo DLNA actualmente |
-| Voice search (Android TV) | Baja | `SearchManager` en Activity nativa |
+| Mando remoto — nav (home/epg/favs/ch±) | Media | `onRemoteCommand` existe, falta wiring a `app_router.dart` |
+| Download canal offline | Media | `dio` ya en pubspec. Nuevo `offline_download_service.dart` + UI en `channel_card` / opciones de canal. **No toca `player_provider.dart` ni `player_screen.dart`** |
+| Chromecast | Baja | Solo DLNA. Requiere `flutter_cast_framework` + Activity nativa Kotlin + botón en `player_screen.dart` (esperar a que el otro agente termine su PR) |
+| Voice search (Android TV) | Baja | `SearchManager` en Activity nativa + canal Dart nuevo. Solo toca `android/` y un nuevo `voice_search_channel.dart` |
 
 ### Dependencias Android relevantes (pubspec.yaml)
 
@@ -510,7 +511,7 @@ ares-launch --device MyTV com.tonyblanco.voxtv
 
 ```
 Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.26)
-Android TV      ████████████████████   99%  ✅ Producción (falta: subtítulos, voice search, nav remoto)
+Android TV      ████████████████████   99%  ✅ Producción — subtítulos/audio ✅ (falta: download offline, voice search, nav remoto)
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           █████░░░░░░░░░░░░░░░   25%  🔴 Solo detección de plataforma
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
