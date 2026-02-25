@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.30] - 2026-02-25
+### Added
+- Aviso legal / Legal disclaimer en el splash (primera apertura): el usuario debe aceptar antes de continuar. Se guarda en SharedPreferences — no vuelve a aparecer. Requerido para distribución en app stores (Play Store, App Store, etc.).
+- Disclaimer disponible en ES e EN según idioma del sistema.
+
 ## [1.5.29] - 2026-02-26
 ### Novedades
 - **Descarga / Grabación offline**: opción "Descargar canal" en el menú largo de cualquier canal. Para canales VOD descarga directamente el fichero; para canales en vivo muestra un selector de duración (30 min / 1 h / 2 h / Hasta detener). Las grabaciones se guardan en el almacenamiento interno de la app.

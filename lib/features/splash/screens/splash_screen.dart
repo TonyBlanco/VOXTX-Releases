@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/navigation/app_router.dart';
@@ -21,6 +22,12 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   static const Duration _minimumSplashDuration = Duration(milliseconds: 12800);
+  static const String _kLegalAccepted = 'legal_accepted';
+
+  // Disclaimer state
+  bool _showingDisclaimer = false;
+  bool _legalLoaded = false;
+
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _ambientController;
@@ -73,6 +80,30 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _ambientController.repeat();
 
+    _checkLegalStatus();
+  }
+
+  Future<void> _checkLegalStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accepted = prefs.getBool(_kLegalAccepted) ?? false;
+    if (!mounted) return;
+    if (accepted) {
+      setState(() => _legalLoaded = true);
+      _startAnimations();
+    } else {
+      setState(() {
+        _legalLoaded = true;
+        _showingDisclaimer = true;
+      });
+    }
+  }
+
+  Future<void> _acceptDisclaimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kLegalAccepted, true);
+    if (!mounted) return;
+    setState(() => _showingDisclaimer = false);
+    _splashStartedAt = DateTime.now(); // reset timer after acceptance
     _startAnimations();
   }
 
@@ -141,10 +172,201 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     super.dispose();
   }
 
+  Widget _buildDisclaimerScreen(BuildContext context, Color primaryColor) {
+    final strings = AppStrings.of(context);
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final bg = AppTheme.getBackgroundColor(context);
+    final surface = AppTheme.getSurfaceColor(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final appName = strings?.lotusIptv ?? 'VoXtv';
+
+    final title = isEs
+        ? 'Aviso Legal y de Responsabilidad'
+        : 'Legal Notice and Disclaimer';
+
+    final body = isEs
+        ? '''$appName es un reproductor multimedia destinado exclusivamente a la reproducción de listas de reproducción en formato M3U/M3U8/Xtream Codes u otros estándares similares que el propio usuario proporcione.
+
+La aplicación NO ofrece, vende, distribuye ni aloja ningún tipo de contenido audiovisual, canal de televisión, película, serie, evento deportivo o similar.
+
+Cualquier contenido reproducido mediante esta aplicación proviene exclusivamente de fuentes añadidas por el usuario.
+
+El uso de listas o fuentes que contengan material protegido por derechos de autor sin la expresa autorización de los titulares constituye una infracción a la legislación vigente.
+
+Usted, como usuario, asume plena y exclusiva responsabilidad civil y/o penal por:
+
+  • La procedencia y legalidad de las listas y contenidos que introduzca.
+  • Cualquier daño o perjuicio causado a terceros.
+  • El cumplimiento de la normativa aplicable en su país.
+
+El desarrollador, programador, distribuidor y cualquier entidad relacionada con esta aplicación quedan exentos de toda responsabilidad derivada del uso que realice el usuario.
+
+Al pulsar "Acepto" usted declara bajo su responsabilidad que:
+
+  1. Ha leído y comprendido el presente aviso.
+  2. Utilizará la aplicación únicamente con contenidos lícitos y autorizados.
+  3. Exime al desarrollador de cualquier consecuencia derivada de un uso contrario a la ley.'''
+        : '''$appName is a multimedia player intended exclusively for playing user-provided playlist files in M3U/M3U8/Xtream Codes or similar standard formats.
+
+The application does NOT offer, sell, distribute or host any audiovisual content, TV channels, movies, series, sports events or similar.
+
+Any content played through this application comes exclusively from sources added by the user.
+
+Using playlists or sources containing copyright-protected material without express authorisation from the rights holders constitutes a violation of applicable law.
+
+As a user, you assume full and exclusive civil and/or criminal responsibility for:
+
+  • The origin and legality of the playlists and content you add.
+  • Any damage or harm caused to third parties.
+  • Compliance with the applicable regulations in your country.
+
+The developer, programmer, distributor and any entity related to this application are exempt from any liability arising from the user's use of it.
+
+By tapping "I Agree" you declare under your responsibility that:
+
+  1. You have read and understood this notice.
+  2. You will use the application only with lawful and authorised content.
+  3. You release the developer from any consequences arising from unlawful use.''';
+
+    final btnLabel = isEs ? 'He leído y acepto' : 'I have read and agree';
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [primaryColor.withOpacity(0.15), bg],
+                ),
+                border: Border(bottom: BorderSide(color: primaryColor.withOpacity(0.2), width: 1)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: primaryColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.gavel_rounded, color: primaryColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          appName,
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Scrollable disclaimer text
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: primaryColor.withOpacity(0.12)),
+                  ),
+                  child: Text(
+                    body,
+                    style: TextStyle(
+                      color: textSecondary,
+                      fontSize: 13.5,
+                      height: 1.7,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Accept button
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              decoration: BoxDecoration(
+                color: bg,
+                border: Border(top: BorderSide(color: primaryColor.withOpacity(0.15), width: 1)),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.getGradient(context),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [BoxShadow(color: primaryColor.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: _acceptDisclaimer,
+                      child: Center(
+                        child: Text(
+                          btnLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = AppTheme.getPrimaryColor(context);
-    
+
+    // While checking SharedPreferences, show plain background
+    if (!_legalLoaded) {
+      return Scaffold(backgroundColor: AppTheme.getBackgroundColor(context));
+    }
+
+    // Show legal disclaimer on first launch
+    if (_showingDisclaimer) {
+      return _buildDisclaimerScreen(context, primaryColor);
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.getBackgroundColor(context),
       body: Container(

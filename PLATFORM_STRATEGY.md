@@ -117,12 +117,13 @@ git remote -v
 | Channel logo service (cache) | `channel_logo_service.dart` | ✅ |
 | i18n ES/EN | `app_strings.dart` | ✅ |
 | SQLite (sqflite) | `database_helper.dart` | ✅ |
+| Aviso legal (disclaimer) | `splash_screen.dart` + SharedPreferences | ✅ v1.5.30 |
+| Download canal offline | `offline_download_service.dart` + `offline_screen.dart` | ✅ v1.5.29 |
 
 ### Pendiente en Android
 
 | Feature | Prioridad | Notas |
 |---------|-----------|-------|
-| Download canal offline | Media | `dio` ya en pubspec. Nuevo `offline_download_service.dart` + UI en `channel_card` / opciones de canal. **No toca `player_provider.dart` ni `player_screen.dart`** |
 | Chromecast | Baja | Solo DLNA. Requiere `flutter_cast_framework` + Activity nativa Kotlin + botón en `player_screen.dart` (esperar a que el otro agente termine su PR) |
 | Voice search (Android TV) | Baja | `SearchManager` en Activity nativa + canal Dart nuevo. Solo toca `android/` y un nuevo `voice_search_channel.dart` |
 | Channel zapping mando remoto (ch±) | Baja | `_handleRemoteCommand` ya tiene el TODO. Necesita index canal actual global en `ChannelProvider` |
@@ -524,8 +525,8 @@ ares-launch --device MyTV com.tonyblanco.voxtv
 ## Estado del app por plataforma — Resumen rápido
 
 ```
-Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.28)
-Android TV      ████████████████████   99%  ✅ Producción — nav remoto ✅ (falta: download offline, voice search, ch±)
+Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.30)
+Android TV      ████████████████████   99%  ✅ Producción — nav remoto ✅, download offline ✅ (falta: voice search, ch±)
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           █████░░░░░░░░░░░░░░░   25%  🔴 Solo detección de plataforma
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
