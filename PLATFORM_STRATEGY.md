@@ -576,3 +576,4 @@ Cuando haya releases para múltiples plataformas, `version.json` en `VOXTX-Relea
 | WebOS | Pantalla en negro | Cambiar `--web-renderer html` en lugar de `canvaskit` |
 | WebOS | Streams no reproducen | Añadir HLS.js como `<script>` en `web/index.html` |
 | Todos | `sqflite` crash en web | Usar `sembast` para web, `sqflite` para el resto |
+| Android | Gradle downgrade (7.x) rompe la build | `gradle-wrapper.properties` debe mantener `gradle-8.14-all.zip` — NO aceptar sugerencias de downgrade del IDE |
