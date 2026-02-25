@@ -27,7 +27,8 @@ class M3UParser {
   static M3UParseResult? get lastParseResult => _lastParseResult;
 
   /// Parse M3U content from a URL
-  static Future<List<Channel>> parseFromUrl(String url, int playlistId, {String? mergeRule}) async {
+  static Future<List<Channel>> parseFromUrl(String url, int playlistId,
+      {String? mergeRule}) async {
     try {
       ServiceLocator.log.d('DEBUG: URL: $url');
 
@@ -48,16 +49,19 @@ class M3UParser {
 
       // Only use isolate for large files (>500KB) to avoid overhead
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d(
+          'DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final M3UParseResult result;
       if (useIsolate) {
-        result = await compute(
-            _parseInIsolate, _ParseParams(response.data.toString(), playlistId, mergeRule));
+        result = await compute(_parseInIsolate,
+            _ParseParams(response.data.toString(), playlistId, mergeRule));
       } else {
         // Parse directly in main thread for small files
-        final channels = parse(response.data.toString(), playlistId, mergeRule: mergeRule);
-        result = _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
+        final channels =
+            parse(response.data.toString(), playlistId, mergeRule: mergeRule);
+        result = _lastParseResult ??
+            M3UParseResult(channels: channels, epgUrl: null);
       }
 
       //  EPG URL
@@ -90,8 +94,8 @@ class M3UParser {
   }
 
   /// Parse M3U content from a local file
-  static Future<List<Channel>> parseFromFile(
-      String filePath, int playlistId, {String? mergeRule}) async {
+  static Future<List<Channel>> parseFromFile(String filePath, int playlistId,
+      {String? mergeRule}) async {
     try {
       ServiceLocator.log.d('DEBUG: : $filePath');
       final file = File(filePath);
@@ -107,15 +111,18 @@ class M3UParser {
 
       // Only use isolate for large files (>500KB)
       final useIsolate = contentLength > 500 * 1024;
-      ServiceLocator.log.d('DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
+      ServiceLocator.log.d(
+          'DEBUG: ${useIsolate ? "" : ""} isolate  (: ${(contentLength / 1024).toStringAsFixed(1)}KB)');
 
       final M3UParseResult result;
       if (useIsolate) {
-        result = await compute(_parseInIsolate, _ParseParams(content, playlistId, mergeRule));
+        result = await compute(
+            _parseInIsolate, _ParseParams(content, playlistId, mergeRule));
       } else {
         // Parse directly in main thread for small files
         final channels = parse(content, playlistId, mergeRule: mergeRule);
-        result = _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
+        result = _lastParseResult ??
+            M3UParseResult(channels: channels, epgUrl: null);
       }
 
       //  EPG URL
@@ -131,21 +138,23 @@ class M3UParser {
     }
   }
 
-  /// Isolate 
+  /// Isolate
   ///  EPG URL
   static M3UParseResult _parseInIsolate(_ParseParams params) {
-    final channels = parse(params.content, params.playlistId, mergeRule: params.mergeRule);
-    // parse  _lastParseResult isolate 
-    // 
-    // _lastParseResult  isolate 
+    final channels =
+        parse(params.content, params.playlistId, mergeRule: params.mergeRule);
+    // parse  _lastParseResult isolate
+    //
+    // _lastParseResult  isolate
     return _lastParseResult ?? M3UParseResult(channels: channels, epgUrl: null);
   }
 
   /// Parse M3U content string
   /// Merges channels with same tvg-name/epgId into single channel with multiple sources
-  static List<Channel> parse(String content, int playlistId, {String? mergeRule}) {
+  static List<Channel> parse(String content, int playlistId,
+      {String? mergeRule}) {
     //  isolate  ServiceLocator.log
-    //  print 
+    //  print
     print('M3U Parser: ID: $playlistId, : ${mergeRule ?? "name_group"}');
 
     final List<Channel> rawChannels = [];
@@ -161,8 +170,8 @@ class M3UParser {
 
     // Check for valid M3U header and extract EPG URL from first few lines
     bool foundHeader = false;
-    for (int i = 0; i < lines.length && i < 10; i++) {
-      final line = lines[i].trim();
+    for (int i = 0; i < lines.length && i < 50; i++) {
+      final line = lines[i].replaceFirst('\ufeff', '').trim();
       print(
           'M3U Parser: ${i + 1}: ${line.length > 100 ? "${line.substring(0, 100)}..." : line}');
 
@@ -246,15 +255,14 @@ class M3UParser {
     }
 
     // ServiceLocator.log.d('DEBUG:  - : $validChannelCount, URL: $invalidUrlCount');
-    print(
-        'M3U Parser:  - : $validChannelCount, URL: $invalidUrlCount');
+    print('M3U Parser:  - : $validChannelCount, URL: $invalidUrlCount');
 
     // Merge channels with same epgId (tvg-name) into single channel with multiple sources
-    final List<Channel> mergedChannels = _mergeChannelSources(rawChannels, mergeRule: mergeRule);
+    final List<Channel> mergedChannels =
+        _mergeChannelSources(rawChannels, mergeRule: mergeRule);
 
     // ServiceLocator.log.d('DEBUG: : ${mergedChannels.length} (: ${rawChannels.length})');
-    print(
-        'M3U Parser: : ${mergedChannels.length} (: ${rawChannels.length})');
+    print('M3U Parser: : ${mergedChannels.length} (: ${rawChannels.length})');
 
     // Save parse result with EPG URL
     _lastParseResult = M3UParseResult(channels: mergedChannels, epgUrl: epgUrl);
@@ -266,7 +274,8 @@ class M3UParser {
   /// Merge channels with same name AND group into single channel with multiple sources
   /// Preserves the order of first occurrence, but prefers non-special groups
   /// Optimized using LinkedHashMap for better performance
-  static List<Channel> _mergeChannelSources(List<Channel> channels, {String? mergeRule}) {
+  static List<Channel> _mergeChannelSources(List<Channel> channels,
+      {String? mergeRule}) {
     // Use Map to maintain insertion order while providing O(1) lookup
     final Map<String, Channel> mergedMap = {};
 
@@ -491,7 +500,7 @@ class M3UParser {
   }
 }
 
-///  isolate 
+///  isolate
 class _ParseParams {
   final String content;
   final int playlistId;

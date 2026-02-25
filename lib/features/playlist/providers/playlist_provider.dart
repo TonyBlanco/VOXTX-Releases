@@ -22,7 +22,7 @@ class PlaylistProvider extends ChangeNotifier {
   /// Last extracted EPG URL from M3U file (for UI display only)
   String? _lastExtractedEpgUrl;
   String? get lastExtractedEpgUrl => _lastExtractedEpgUrl;
-  
+
   /// Playlists that need backup creation (for lazy migration)
   final Set<int> _playlistsNeedingBackup = {};
 
@@ -53,7 +53,7 @@ class PlaylistProvider extends ChangeNotifier {
   Future<void> loadPlaylists() async {
     ServiceLocator.log.i('', tag: 'PlaylistProvider');
     final startTime = DateTime.now();
-    
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -66,10 +66,12 @@ class PlaylistProvider extends ChangeNotifier {
 
       _playlists = results.map((r) => Playlist.fromMap(r)).toList();
       ServiceLocator.log.d(' ${_playlists.length} ', tag: 'PlaylistProvider');
-      
+
       //  EPG URL
       for (final playlist in _playlists) {
-        ServiceLocator.log.d(' "${playlist.name}" (ID: ${playlist.id}) - epgUrl: ${playlist.epgUrl ?? "()"}', tag: 'PlaylistProvider');
+        ServiceLocator.log.d(
+            ' "${playlist.name}" (ID: ${playlist.id}) - epgUrl: ${playlist.epgUrl ?? "()"}',
+            tag: 'PlaylistProvider');
       }
 
       // Load channel counts for each playlist
@@ -93,42 +95,49 @@ class PlaylistProvider extends ChangeNotifier {
           (p) => p.isActive,
           orElse: () => _playlists.first,
         );
-        ServiceLocator.log.d(': ${_activePlaylist?.name}', tag: 'PlaylistProvider');
+        ServiceLocator.log
+            .d(': ${_activePlaylist?.name}', tag: 'PlaylistProvider');
       }
-      
-      // 
+
+      //
       _playlistsNeedingBackup.clear();
       for (final playlist in _playlists) {
         if (playlist.id == null) continue;
-        
+
         if (playlist.backupPath == null) {
-          // 
+          //
           _playlistsNeedingBackup.add(playlist.id!);
-          ServiceLocator.log.d(' "${playlist.name}" (ID: ${playlist.id}) ', tag: 'PlaylistProvider');
+          ServiceLocator.log.d(' "${playlist.name}" (ID: ${playlist.id}) ',
+              tag: 'PlaylistProvider');
         } else {
-          // 
+          //
           final backupFile = File(playlist.backupPath!);
           if (!await backupFile.exists()) {
             _playlistsNeedingBackup.add(playlist.id!);
-            ServiceLocator.log.w(' "${playlist.name}" (ID: ${playlist.id}) ', tag: 'PlaylistProvider');
+            ServiceLocator.log.w(' "${playlist.name}" (ID: ${playlist.id}) ',
+                tag: 'PlaylistProvider');
           }
         }
       }
-      
-      // 🔍 
+
+      // 🔍
       try {
         final appDir = await getApplicationDocumentsDirectory();
         final backupDir = Directory('${appDir.path}/playlists/backups');
         if (await backupDir.exists()) {
           final backupFiles = await backupDir.list().toList();
-          ServiceLocator.log.d('📁  ( ${backupFiles.length} ):', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .d('📁  ( ${backupFiles.length} ):', tag: 'PlaylistProvider');
           for (final file in backupFiles) {
             if (file is File) {
               try {
                 final stat = await file.stat();
-                ServiceLocator.log.d('  - ${file.path.split('/').last} (${stat.size} bytes)', tag: 'PlaylistProvider');
+                ServiceLocator.log.d(
+                    '  - ${file.path.split('/').last} (${stat.size} bytes)',
+                    tag: 'PlaylistProvider');
               } catch (e) {
-                ServiceLocator.log.d('  - ${file.path.split('/').last} ()', tag: 'PlaylistProvider');
+                ServiceLocator.log.d('  - ${file.path.split('/').last} ()',
+                    tag: 'PlaylistProvider');
               }
             }
           }
@@ -138,10 +147,11 @@ class PlaylistProvider extends ChangeNotifier {
       } catch (e) {
         ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
       }
-      
+
       // UI
       if (_playlistsNeedingBackup.isNotEmpty) {
-        ServiceLocator.log.i(' ${_playlistsNeedingBackup.length} ', tag: 'PlaylistProvider');
+        ServiceLocator.log
+            .i(' ${_playlistsNeedingBackup.length} ', tag: 'PlaylistProvider');
         unawaited(_createMissingBackups());
       }
 
@@ -186,38 +196,39 @@ class PlaylistProvider extends ChangeNotifier {
     // Check by content if available
     if (content != null) {
       final trimmed = content.trim();
-      
+
       // M3U format starts with #EXTM3U or #EXTINF ()
       if (trimmed.startsWith('#EXTM3U') || trimmed.startsWith('#EXTINF')) {
         return 'm3u';
       }
-      
+
       // TXT format characteristics:
       // 1. Contains ,#genre# pattern (category marker)
       if (trimmed.contains(',#genre#')) {
         return 'txt';
       }
-      
+
       // 2. Lines with comma-separated format: name,url
       // Check first few non-empty lines
-      final lines = trimmed.split('\n').where((line) => line.trim().isNotEmpty).take(10);
+      final lines =
+          trimmed.split('\n').where((line) => line.trim().isNotEmpty).take(10);
       int txtFormatLines = 0;
       int totalLines = 0;
-      
+
       for (final line in lines) {
         totalLines++;
         final trimmedLine = line.trim();
         // Skip comment lines
         if (trimmedLine.startsWith('#')) continue;
-        
+
         // TXT format: name,url (comma-separated, and second part looks like URL)
         if (trimmedLine.contains(',')) {
           final parts = trimmedLine.split(',');
           if (parts.length >= 2) {
             final secondPart = parts[1].trim();
             // Check if second part looks like a URL or contains #genre#
-            if (secondPart.startsWith('http') || 
-                secondPart.startsWith('rtmp') || 
+            if (secondPart.startsWith('http') ||
+                secondPart.startsWith('rtmp') ||
                 secondPart.startsWith('rtsp') ||
                 secondPart.contains('#genre#')) {
               txtFormatLines++;
@@ -225,7 +236,7 @@ class PlaylistProvider extends ChangeNotifier {
           }
         }
       }
-      
+
       // If more than 50% of lines match TXT format, it's TXT
       if (totalLines > 0 && txtFormatLines > totalLines / 2) {
         return 'txt';
@@ -247,10 +258,11 @@ class PlaylistProvider extends ChangeNotifier {
   }) async {
     ServiceLocator.log.i(': $name', tag: 'PlaylistProvider');
     if (url != null) ServiceLocator.log.d('URL: $url', tag: 'PlaylistProvider');
-    if (filePath != null) ServiceLocator.log.d(': $filePath', tag: 'PlaylistProvider');
-    
+    if (filePath != null)
+      ServiceLocator.log.d(': $filePath', tag: 'PlaylistProvider');
+
     final startTime = DateTime.now();
-    
+
     _isLoading = true;
     _importProgress = 0.0;
     _error = null;
@@ -258,8 +270,8 @@ class PlaylistProvider extends ChangeNotifier {
 
     int? playlistId;
     String? tempFilePath;
-    String? originalContent; // 
-    
+    String? originalContent; //
+
     try {
       // Step 1: Create playlist record (10%)
       final playlistData = Playlist(
@@ -269,7 +281,8 @@ class PlaylistProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
       ).toMap();
 
-      playlistId = await ServiceLocator.database.insert('playlists', playlistData);
+      playlistId =
+          await ServiceLocator.database.insert('playlists', playlistData);
       ServiceLocator.log.d('ID: $playlistId', tag: 'PlaylistProvider');
 
       _importProgress = 0.1;
@@ -278,11 +291,12 @@ class PlaylistProvider extends ChangeNotifier {
       // Step 2: Parse channels (15% - 50%)
       late List<Channel> channels;
       String? epgUrl;
-      
+      _lastExtractedEpgUrl = null;
+
       // Use provided merge rule or default to 'name_group'
       final effectiveMergeRule = mergeRule ?? 'name_group';
       ServiceLocator.log.d(': $effectiveMergeRule', tag: 'PlaylistProvider');
-      
+
       if (url != null) {
         // From URL
         ServiceLocator.log.i('URL: $url', tag: 'PlaylistProvider');
@@ -298,7 +312,8 @@ class PlaylistProvider extends ChangeNotifier {
             final pass = creds['password'];
 
             if (base != null && user != null && pass != null) {
-              ServiceLocator.log.i('XtreamAPIplayer_api.php', tag: 'PlaylistProvider');
+              ServiceLocator.log
+                  .i('XtreamAPIplayer_api.php', tag: 'PlaylistProvider');
               try {
                 channels = await _importFromXtream(
                   baseServer: base,
@@ -307,10 +322,12 @@ class PlaylistProvider extends ChangeNotifier {
                   playlistId: playlistId!,
                   mergeRule: effectiveMergeRule,
                 );
+                epgUrl = _buildXtreamEpgUrl(base, user, pass);
                 // Do not create a large content backup for API imports
                 originalContent = '';
               } catch (e) {
-                ServiceLocator.log.w('Xtream API : $e', tag: 'PlaylistProvider');
+                ServiceLocator.log
+                    .w('Xtream API : $e', tag: 'PlaylistProvider');
                 // Fallback to the default behavior below
                 final format = _detectPlaylistFormat(url);
                 try {
@@ -319,9 +336,11 @@ class PlaylistProvider extends ChangeNotifier {
                   ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
                 }
                 if (format == 'txt') {
-                  channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                  channels = await TXTParser.parseFromUrl(url, playlistId!,
+                      mergeRule: effectiveMergeRule);
                 } else {
-                  channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                  channels = await M3UParser.parseFromUrl(url, playlistId!,
+                      mergeRule: effectiveMergeRule);
                   epgUrl = M3UParser.lastParseResult?.epgUrl;
                 }
               }
@@ -334,9 +353,11 @@ class PlaylistProvider extends ChangeNotifier {
                 ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
               }
               if (format == 'txt') {
-                channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                channels = await TXTParser.parseFromUrl(url, playlistId!,
+                    mergeRule: effectiveMergeRule);
               } else {
-                channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+                channels = await M3UParser.parseFromUrl(url, playlistId!,
+                    mergeRule: effectiveMergeRule);
                 epgUrl = M3UParser.lastParseResult?.epgUrl;
               }
             }
@@ -349,9 +370,11 @@ class PlaylistProvider extends ChangeNotifier {
               ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
             }
             if (format == 'txt') {
-              channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+              channels = await TXTParser.parseFromUrl(url, playlistId!,
+                  mergeRule: effectiveMergeRule);
             } else {
-              channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+              channels = await M3UParser.parseFromUrl(url, playlistId!,
+                  mergeRule: effectiveMergeRule);
               epgUrl = M3UParser.lastParseResult?.epgUrl;
             }
           }
@@ -360,7 +383,7 @@ class PlaylistProvider extends ChangeNotifier {
           final format = _detectPlaylistFormat(url);
           ServiceLocator.log.i(': $format', tag: 'PlaylistProvider');
 
-          // 
+          //
           try {
             originalContent = await _downloadContentFromUrl(url);
           } catch (e) {
@@ -368,60 +391,67 @@ class PlaylistProvider extends ChangeNotifier {
           }
 
           if (format == 'txt') {
-            channels = await TXTParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+            channels = await TXTParser.parseFromUrl(url, playlistId!,
+                mergeRule: effectiveMergeRule);
           } else {
-            channels = await M3UParser.parseFromUrl(url, playlistId!, mergeRule: effectiveMergeRule);
+            channels = await M3UParser.parseFromUrl(url, playlistId!,
+                mergeRule: effectiveMergeRule);
             epgUrl = M3UParser.lastParseResult?.epgUrl;
           }
         }
       } else if (content != null) {
         // From content string
-        originalContent = content; // 
-        
+        originalContent = content; //
+
         final format = _detectPlaylistFormat('', content: content);
         ServiceLocator.log.i(': $format', tag: 'PlaylistProvider');
-        
+
         _importProgress = 0.15;
         notifyListeners();
-        
+
         if (format == 'txt') {
-          channels = TXTParser.parse(content, playlistId!, mergeRule: effectiveMergeRule);
+          channels = TXTParser.parse(content, playlistId!,
+              mergeRule: effectiveMergeRule);
         } else {
-          channels = M3UParser.parse(content, playlistId!, mergeRule: effectiveMergeRule);
+          channels = M3UParser.parse(content, playlistId!,
+              mergeRule: effectiveMergeRule);
           epgUrl = M3UParser.lastParseResult?.epgUrl;
         }
-        
+
         // Save content to permanent storage for future refreshes
         // Android TV
         final appDir = await getApplicationDocumentsDirectory();
         final playlistDir = Directory('${appDir.path}/playlists');
-        
-        // 
+
+        //
         if (!await playlistDir.exists()) {
           await playlistDir.create(recursive: true);
-          ServiceLocator.log.d(': ${playlistDir.path}', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .d(': ${playlistDir.path}', tag: 'PlaylistProvider');
         }
-        
+
         // Clean up old files for this playlist before creating new one
         await _cleanupOldPlaylistFiles(playlistDir, playlistId!);
-        
+
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        // ✅ 
+        // ✅
         final extension = format == 'txt' ? 'txt' : 'm3u';
-        final playlistFile = File('${playlistDir.path}/playlist_${playlistId}_$timestamp.$extension');
+        final playlistFile = File(
+            '${playlistDir.path}/playlist_${playlistId}_$timestamp.$extension');
         await playlistFile.writeAsString(content);
         tempFilePath = playlistFile.path;
-        
-        ServiceLocator.log.d(': $tempFilePath (: $format)', tag: 'PlaylistProvider');
+
+        ServiceLocator.log
+            .d(': $tempFilePath (: $format)', tag: 'PlaylistProvider');
       } else if (filePath != null) {
         // From local file
         final format = _detectPlaylistFormat(filePath);
         ServiceLocator.log.i(': $format', tag: 'PlaylistProvider');
-        
+
         _importProgress = 0.15;
         notifyListeners();
-        
-        // 
+
+        //
         try {
           final file = File(filePath);
           if (await file.exists()) {
@@ -430,15 +460,18 @@ class PlaylistProvider extends ChangeNotifier {
         } catch (e) {
           ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
         }
-        
+
         if (format == 'txt') {
-          channels = await TXTParser.parseFromFile(filePath, playlistId!, mergeRule: effectiveMergeRule);
+          channels = await TXTParser.parseFromFile(filePath, playlistId!,
+              mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromFile(filePath, playlistId!, mergeRule: effectiveMergeRule);
+          channels = await M3UParser.parseFromFile(filePath, playlistId!,
+              mergeRule: effectiveMergeRule);
           epgUrl = M3UParser.lastParseResult?.epgUrl;
         }
       } else {
-        throw Exception('No valid source provided (url, content, or filePath required)');
+        throw Exception(
+            'No valid source provided (url, content, or filePath required)');
       }
 
       _importProgress = 0.5;
@@ -448,23 +481,25 @@ class PlaylistProvider extends ChangeNotifier {
         ServiceLocator.log.w('', tag: 'PlaylistProvider');
         throw Exception('No channels found in playlist');
       }
-      
+
       ServiceLocator.log.i(' ${channels.length} ', tag: 'PlaylistProvider');
 
       // ✅ Step 3:  (50% - 60%)
       ServiceLocator.log.i('', tag: 'PlaylistProvider');
       final channelNames = channels.map((c) => c.name).toList();
-      final fallbackLogos = await ServiceLocator.channelLogo.findLogoUrlsBulk(channelNames);
-      
-      // 
+      final fallbackLogos =
+          await ServiceLocator.channelLogo.findLogoUrlsBulk(channelNames);
+
+      //
       for (final channel in channels) {
         if (fallbackLogos.containsKey(channel.name)) {
           channel.fallbackLogoUrl = fallbackLogos[channel.name];
         }
       }
-      
-      ServiceLocator.log.i(' ${fallbackLogos.length} ', tag: 'PlaylistProvider');
-      
+
+      ServiceLocator.log
+          .i(' ${fallbackLogos.length} ', tag: 'PlaylistProvider');
+
       _importProgress = 0.6;
       notifyListeners();
 
@@ -473,16 +508,19 @@ class PlaylistProvider extends ChangeNotifier {
         // Batch insert channels in chunks
         const chunkSize = 500;
         for (int i = 0; i < channels.length; i += chunkSize) {
-          final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+          final end = (i + chunkSize < channels.length)
+              ? i + chunkSize
+              : channels.length;
           final chunk = channels.sublist(i, end);
-          
+
           final batch = txn.batch();
           for (final channel in chunk) {
             batch.insert('channels', channel.toMap());
           }
           await batch.commit(noResult: true);
-          
-          ServiceLocator.log.d(' $end/${channels.length} ', tag: 'PlaylistProvider');
+
+          ServiceLocator.log
+              .d(' $end/${channels.length} ', tag: 'PlaylistProvider');
         }
 
         // Update playlist with metadata
@@ -490,17 +528,17 @@ class PlaylistProvider extends ChangeNotifier {
           'last_updated': DateTime.now().millisecondsSinceEpoch,
           'channel_count': channels.length,
         };
-        
+
         if (epgUrl != null) {
           updateData['epg_url'] = epgUrl;
           _lastExtractedEpgUrl = epgUrl;
           ServiceLocator.log.d('EPG URL: $epgUrl', tag: 'PlaylistProvider');
         }
-        
+
         if (tempFilePath != null) {
           updateData['file_path'] = tempFilePath;
         }
-        
+
         await txn.update(
           'playlists',
           updateData,
@@ -519,13 +557,18 @@ class PlaylistProvider extends ChangeNotifier {
         final parts = <String>[];
         for (final row in counts) {
           final type = row['channel_type']?.toString() ?? 'unknown';
-          final cnt = (row['cnt'] is int) ? (row['cnt'] as int) : ((row['cnt'] is num) ? (row['cnt'] as num).toInt() : 0);
+          final cnt = (row['cnt'] is int)
+              ? (row['cnt'] as int)
+              : ((row['cnt'] is num) ? (row['cnt'] as num).toInt() : 0);
           total += cnt;
           parts.add('$type:$cnt');
         }
-        ServiceLocator.log.i('Import debug: playlist $playlistId channel counts: ${parts.join(', ')} (total $total)', tag: 'PlaylistProvider');
+        ServiceLocator.log.i(
+            'Import debug: playlist $playlistId channel counts: ${parts.join(', ')} (total $total)',
+            tag: 'PlaylistProvider');
       } catch (e) {
-        ServiceLocator.log.w('Import debug: failed to query channel counts: $e', tag: 'PlaylistProvider');
+        ServiceLocator.log.w('Import debug: failed to query channel counts: $e',
+            tag: 'PlaylistProvider');
       }
 
       // Update progress after transaction (90%)
@@ -537,18 +580,21 @@ class PlaylistProvider extends ChangeNotifier {
 
       // Reload playlists
       await loadPlaylists();
-      
-      // 
-      if (playlistId != null && originalContent != null && originalContent.isNotEmpty) {
+
+      //
+      if (playlistId != null &&
+          originalContent != null &&
+          originalContent.isNotEmpty) {
         try {
-          final format = _detectPlaylistFormat(url ?? filePath ?? '', content: originalContent);
+          final format = _detectPlaylistFormat(url ?? filePath ?? '',
+              content: originalContent);
           await _updateBackupFile(playlistId, originalContent, format);
           ServiceLocator.log.i('', tag: 'PlaylistProvider');
         } catch (e) {
           ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
         }
       }
-      
+
       // Run ANALYZE to update database statistics after large import
       if (playlistId != null) {
         try {
@@ -564,13 +610,13 @@ class PlaylistProvider extends ChangeNotifier {
 
       final totalTime = DateTime.now().difference(startTime).inMilliseconds;
       ServiceLocator.log.i(': ${totalTime}ms', tag: 'PlaylistProvider');
-      
+
       await ServiceLocator.log.flush();
 
       return _playlists.firstWhere((p) => p.id == playlistId);
     } catch (e) {
       ServiceLocator.log.e('', tag: 'PlaylistProvider', error: e);
-      
+
       // Cleanup on failure
       if (playlistId != null) {
         try {
@@ -585,10 +631,11 @@ class PlaylistProvider extends ChangeNotifier {
             whereArgs: [playlistId],
           );
         } catch (cleanupError) {
-          ServiceLocator.log.w('', tag: 'PlaylistProvider', error: cleanupError);
+          ServiceLocator.log
+              .w('', tag: 'PlaylistProvider', error: cleanupError);
         }
       }
-      
+
       if (tempFilePath != null) {
         try {
           final file = File(tempFilePath!);
@@ -596,10 +643,11 @@ class PlaylistProvider extends ChangeNotifier {
             await file.delete();
           }
         } catch (cleanupError) {
-          ServiceLocator.log.w('', tag: 'PlaylistProvider', error: cleanupError);
+          ServiceLocator.log
+              .w('', tag: 'PlaylistProvider', error: cleanupError);
         }
       }
-      
+
       _error = 'Failed to import playlist: $e';
       _isLoading = false;
       notifyListeners();
@@ -610,19 +658,21 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   /// Clean up old playlist files for a specific playlist
-  Future<void> _cleanupOldPlaylistFiles(Directory playlistDir, int playlistId) async {
+  Future<void> _cleanupOldPlaylistFiles(
+      Directory playlistDir, int playlistId) async {
     try {
       final files = playlistDir.listSync();
-      // ✅  .m3u  .txt 
+      // ✅  .m3u  .txt
       final pattern = RegExp('playlist_${playlistId}_\\d+\\.(m3u|txt)');
-      
+
       for (final file in files) {
         if (file is File && pattern.hasMatch(file.path)) {
           try {
             await file.delete();
             ServiceLocator.log.d(': ${file.path}', tag: 'PlaylistProvider');
           } catch (e) {
-            ServiceLocator.log.w(': ${file.path}', tag: 'PlaylistProvider', error: e);
+            ServiceLocator.log
+                .w(': ${file.path}', tag: 'PlaylistProvider', error: e);
           }
         }
       }
@@ -635,16 +685,17 @@ class PlaylistProvider extends ChangeNotifier {
   Future<void> _cleanupOldTempFiles(Directory tempDir, int playlistId) async {
     try {
       final files = tempDir.listSync();
-      // ✅  .m3u  .txt 
+      // ✅  .m3u  .txt
       final pattern = RegExp('playlist_${playlistId}_\\d+\\.(m3u|txt)');
-      
+
       for (final file in files) {
         if (file is File && pattern.hasMatch(file.path)) {
           try {
             await file.delete();
             ServiceLocator.log.d(': ${file.path}', tag: 'PlaylistProvider');
           } catch (e) {
-            ServiceLocator.log.w(': ${file.path}', tag: 'PlaylistProvider', error: e);
+            ServiceLocator.log
+                .w(': ${file.path}', tag: 'PlaylistProvider', error: e);
           }
         }
       }
@@ -654,30 +705,40 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // Add a new playlist from URL
-  Future<Playlist?> addPlaylistFromUrl(String name, String url, {String? mergeRule}) async {
+  Future<Playlist?> addPlaylistFromUrl(String name, String url,
+      {String? mergeRule}) async {
     return _importPlaylist(name: name, url: url, mergeRule: mergeRule);
   }
 
   // Add a new playlist from M3U content directly (for QR import)
-  Future<Playlist?> addPlaylistFromContent(String name, String content, {String? mergeRule}) async {
+  Future<Playlist?> addPlaylistFromContent(String name, String content,
+      {String? mergeRule}) async {
     return _importPlaylist(name: name, content: content, mergeRule: mergeRule);
   }
 
   // Add a new playlist from local file
-  Future<Playlist?> addPlaylistFromFile(String name, String filePath, {String? mergeRule}) async {
-    return _importPlaylist(name: name, filePath: filePath, mergeRule: mergeRule);
+  Future<Playlist?> addPlaylistFromFile(String name, String filePath,
+      {String? mergeRule}) async {
+    return _importPlaylist(
+        name: name, filePath: filePath, mergeRule: mergeRule);
   }
 
   // Refresh a playlist from its source
   // If silent=true, runs in background without blocking UI
-  Future<bool> refreshPlaylist(Playlist playlist, {bool silent = false, String? mergeRule}) async {
+  Future<bool> refreshPlaylist(Playlist playlist,
+      {bool silent = false, String? mergeRule}) async {
     if (playlist.id == null) return false;
 
-    ServiceLocator.log.d(': ${playlist.name} (ID: ${playlist.id}), : $silent', tag: 'PlaylistProvider');
-    ServiceLocator.log.d('playlist.url = ${playlist.url}', tag: 'PlaylistProvider');
-    ServiceLocator.log.d('playlist.filePath = ${playlist.filePath}', tag: 'PlaylistProvider');
-    ServiceLocator.log.d('playlist.isRemote = ${playlist.isRemote}', tag: 'PlaylistProvider');
-    ServiceLocator.log.d('playlist.isLocal = ${playlist.isLocal}', tag: 'PlaylistProvider');
+    ServiceLocator.log.d(': ${playlist.name} (ID: ${playlist.id}), : $silent',
+        tag: 'PlaylistProvider');
+    ServiceLocator.log
+        .d('playlist.url = ${playlist.url}', tag: 'PlaylistProvider');
+    ServiceLocator.log
+        .d('playlist.filePath = ${playlist.filePath}', tag: 'PlaylistProvider');
+    ServiceLocator.log
+        .d('playlist.isRemote = ${playlist.isRemote}', tag: 'PlaylistProvider');
+    ServiceLocator.log
+        .d('playlist.isLocal = ${playlist.isLocal}', tag: 'PlaylistProvider');
 
     if (!silent) {
       _isLoading = true;
@@ -687,7 +748,7 @@ class PlaylistProvider extends ChangeNotifier {
     }
 
     try {
-      //  playlist 
+      //  playlist
       final dbResults = await ServiceLocator.database.query(
         'playlists',
         where: 'id = ?',
@@ -699,19 +760,26 @@ class PlaylistProvider extends ChangeNotifier {
       }
 
       final freshPlaylist = Playlist.fromMap(dbResults.first);
-      ServiceLocator.log.d(' - URL: ${freshPlaylist.url}, FilePath: ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
+      ServiceLocator.log.d(
+          ' - URL: ${freshPlaylist.url}, FilePath: ${freshPlaylist.filePath}',
+          tag: 'PlaylistProvider');
 
       List<Channel> channels;
 
       // Use provided merge rule or default to 'name_group'
       final effectiveMergeRule = mergeRule ?? 'name_group';
+      _lastExtractedEpgUrl = null;
       ServiceLocator.log.d(': $effectiveMergeRule', tag: 'PlaylistProvider');
 
-      ServiceLocator.log.d(': ${freshPlaylist.isRemote ? "URL" : freshPlaylist.isLocal ? "" : ""}', tag: 'PlaylistProvider');
-      ServiceLocator.log.d(': ${freshPlaylist.sourcePath}', tag: 'PlaylistProvider');
+      ServiceLocator.log.d(
+          ': ${freshPlaylist.isRemote ? "URL" : freshPlaylist.isLocal ? "" : ""}',
+          tag: 'PlaylistProvider');
+      ServiceLocator.log
+          .d(': ${freshPlaylist.sourcePath}', tag: 'PlaylistProvider');
 
       if (freshPlaylist.isRemote) {
-        ServiceLocator.log.d('URL: ${freshPlaylist.url}', tag: 'PlaylistProvider');
+        ServiceLocator.log
+            .d('URL: ${freshPlaylist.url}', tag: 'PlaylistProvider');
 
         // Xtream URL: use API import path so LIVE/VOD/SERIES are all persisted correctly
         if (_looksLikeXtreamUrl(freshPlaylist.url!)) {
@@ -721,7 +789,8 @@ class PlaylistProvider extends ChangeNotifier {
           final pass = creds['password'];
 
           if (base != null && user != null && pass != null) {
-            ServiceLocator.log.i(' Xtream  API LIVE/VOD/SERIES', tag: 'PlaylistProvider');
+            ServiceLocator.log
+                .i(' Xtream  API LIVE/VOD/SERIES', tag: 'PlaylistProvider');
             channels = await _importFromXtream(
               baseServer: base,
               username: user,
@@ -729,6 +798,7 @@ class PlaylistProvider extends ChangeNotifier {
               playlistId: playlist.id!,
               mergeRule: effectiveMergeRule,
             );
+            _lastExtractedEpgUrl = _buildXtreamEpgUrl(base, user, pass);
           } else {
             ServiceLocator.log.w(' Xtream ', tag: 'PlaylistProvider');
 
@@ -736,15 +806,20 @@ class PlaylistProvider extends ChangeNotifier {
             ServiceLocator.log.d(': $format', tag: 'PlaylistProvider');
 
             if (format == 'txt') {
-              channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+              channels = await TXTParser.parseFromUrl(
+                  freshPlaylist.url!, playlist.id!,
+                  mergeRule: effectiveMergeRule);
             } else {
-              channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+              channels = await M3UParser.parseFromUrl(
+                  freshPlaylist.url!, playlist.id!,
+                  mergeRule: effectiveMergeRule);
             }
 
             if (format == 'm3u') {
               _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
               if (_lastExtractedEpgUrl != null) {
-                ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+                ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl',
+                    tag: 'PlaylistProvider');
               }
             }
           }
@@ -754,50 +829,66 @@ class PlaylistProvider extends ChangeNotifier {
           ServiceLocator.log.d(': $format', tag: 'PlaylistProvider');
 
           if (format == 'txt') {
-            channels = await TXTParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+            channels = await TXTParser.parseFromUrl(
+                freshPlaylist.url!, playlist.id!,
+                mergeRule: effectiveMergeRule);
           } else {
-            channels = await M3UParser.parseFromUrl(freshPlaylist.url!, playlist.id!, mergeRule: effectiveMergeRule);
+            channels = await M3UParser.parseFromUrl(
+                freshPlaylist.url!, playlist.id!,
+                mergeRule: effectiveMergeRule);
           }
 
           // Check for EPG URL in M3U header (only for M3U format)
           if (format == 'm3u') {
             _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
             if (_lastExtractedEpgUrl != null) {
-              ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+              ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl',
+                  tag: 'PlaylistProvider');
             }
           }
         }
       } else if (freshPlaylist.isLocal) {
-        ServiceLocator.log.d(': ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
+        ServiceLocator.log
+            .d(': ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
 
         // Check if file exists before trying to parse
         final file = File(freshPlaylist.filePath!);
         if (!await file.exists()) {
-          ServiceLocator.log.d(': ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
-          throw Exception('Local playlist file not found: ${freshPlaylist.filePath}');
+          ServiceLocator.log
+              .d(': ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
+          throw Exception(
+              'Local playlist file not found: ${freshPlaylist.filePath}');
         }
 
         // Detect format and parse accordingly
         final format = _detectPlaylistFormat(freshPlaylist.filePath!);
         ServiceLocator.log.d(': $format', tag: 'PlaylistProvider');
-        
+
         if (format == 'txt') {
-          channels = await TXTParser.parseFromFile(freshPlaylist.filePath!, playlist.id!, mergeRule: effectiveMergeRule);
+          channels = await TXTParser.parseFromFile(
+              freshPlaylist.filePath!, playlist.id!,
+              mergeRule: effectiveMergeRule);
         } else {
-          channels = await M3UParser.parseFromFile(freshPlaylist.filePath!, playlist.id!, mergeRule: effectiveMergeRule);
+          channels = await M3UParser.parseFromFile(
+              freshPlaylist.filePath!, playlist.id!,
+              mergeRule: effectiveMergeRule);
         }
-        
+
         // Check for EPG URL in M3U header (only for M3U format)
         if (format == 'm3u') {
           _lastExtractedEpgUrl = M3UParser.lastParseResult?.epgUrl;
           if (_lastExtractedEpgUrl != null) {
-            ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+            ServiceLocator.log.d('M3UEPG URL: $_lastExtractedEpgUrl',
+                tag: 'PlaylistProvider');
           }
         }
       } else {
         // Check if this is a content-imported playlist without a proper file path
-        ServiceLocator.log.d('URL: ${freshPlaylist.url}, : ${freshPlaylist.filePath}', tag: 'PlaylistProvider');
-        throw Exception('Invalid playlist source - URL: ${freshPlaylist.url}, File: ${freshPlaylist.filePath}');
+        ServiceLocator.log.d(
+            'URL: ${freshPlaylist.url}, : ${freshPlaylist.filePath}',
+            tag: 'PlaylistProvider');
+        throw Exception(
+            'Invalid playlist source - URL: ${freshPlaylist.url}, File: ${freshPlaylist.filePath}');
       }
 
       ServiceLocator.log.d(' ${channels.length} ', tag: 'PlaylistProvider');
@@ -807,19 +898,21 @@ class PlaylistProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      // ✅ 
+      // ✅
       ServiceLocator.log.i('', tag: 'PlaylistProvider');
       final channelNames = channels.map((c) => c.name).toList();
-      final fallbackLogos = await ServiceLocator.channelLogo.findLogoUrlsBulk(channelNames);
-      
-      // 
+      final fallbackLogos =
+          await ServiceLocator.channelLogo.findLogoUrlsBulk(channelNames);
+
+      //
       for (final channel in channels) {
         if (fallbackLogos.containsKey(channel.name)) {
           channel.fallbackLogoUrl = fallbackLogos[channel.name];
         }
       }
-      
-      ServiceLocator.log.i(' ${fallbackLogos.length} ', tag: 'PlaylistProvider');
+
+      ServiceLocator.log
+          .i(' ${fallbackLogos.length} ', tag: 'PlaylistProvider');
 
       if (!silent) {
         _importProgress = 0.6;
@@ -828,16 +921,20 @@ class PlaylistProvider extends ChangeNotifier {
 
       // URL
       ServiceLocator.log.d('...', tag: 'PlaylistProvider');
-      final savedChannelInfo = await ServiceLocator.watchHistory.saveWatchHistoryChannelInfo(playlist.id!);
-      ServiceLocator.log.d(' ${savedChannelInfo.length} ', tag: 'PlaylistProvider');
+      final savedChannelInfo = await ServiceLocator.watchHistory
+          .saveWatchHistoryChannelInfo(playlist.id!);
+      ServiceLocator.log
+          .d(' ${savedChannelInfo.length} ', tag: 'PlaylistProvider');
 
-      // ✅ 
+      // ✅
       ServiceLocator.log.d('...', tag: 'PlaylistProvider');
-      final favoriteChannelNames = await _saveFavoriteChannelNames(playlist.id!);
-      ServiceLocator.log.d(' ${favoriteChannelNames.length} ', tag: 'PlaylistProvider');
+      final favoriteChannelNames =
+          await _saveFavoriteChannelNames(playlist.id!);
+      ServiceLocator.log
+          .d(' ${favoriteChannelNames.length} ', tag: 'PlaylistProvider');
 
-      // 
-      // 
+      //
+      //
       await ServiceLocator.database.db.transaction((txn) async {
         // Delete existing channels
         ServiceLocator.log.d('...', tag: 'PlaylistProvider');
@@ -848,26 +945,30 @@ class PlaylistProvider extends ChangeNotifier {
         );
         ServiceLocator.log.d(' $deleteResult ', tag: 'PlaylistProvider');
 
-        // Insert new channels - 
+        // Insert new channels -
         const chunkSize = 500;
         for (int i = 0; i < channels.length; i += chunkSize) {
-          final end = (i + chunkSize < channels.length) ? i + chunkSize : channels.length;
+          final end = (i + chunkSize < channels.length)
+              ? i + chunkSize
+              : channels.length;
           final chunk = channels.sublist(i, end);
-          
+
           final batch = txn.batch();
           for (final channel in chunk) {
             final channelMap = channel.toMap();
             batch.insert('channels', channelMap);
           }
           await batch.commit(noResult: true);
-          ServiceLocator.log.d(' $end/${channels.length} ', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .d(' $end/${channels.length} ', tag: 'PlaylistProvider');
         }
       });
 
-      // ✅ 
+      // ✅
       if (favoriteChannelNames.isNotEmpty) {
         ServiceLocator.log.d('...', tag: 'PlaylistProvider');
-        final restoredCount = await _restoreFavoritesByName(playlist.id!, favoriteChannelNames);
+        final restoredCount =
+            await _restoreFavoritesByName(playlist.id!, favoriteChannelNames);
         ServiceLocator.log.d(' $restoredCount ', tag: 'PlaylistProvider');
       }
 
@@ -877,13 +978,14 @@ class PlaylistProvider extends ChangeNotifier {
         'last_updated': DateTime.now().millisecondsSinceEpoch,
         'channel_count': channels.length,
       };
-      
+
       //  EPG URL
       if (_lastExtractedEpgUrl != null) {
         updateData['epg_url'] = _lastExtractedEpgUrl;
-        ServiceLocator.log.d('EPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
+        ServiceLocator.log
+            .d('EPG URL: $_lastExtractedEpgUrl', tag: 'PlaylistProvider');
       }
-      
+
       await ServiceLocator.database.update(
         'playlists',
         updateData,
@@ -899,7 +1001,8 @@ class PlaylistProvider extends ChangeNotifier {
 
       // IDURLID
       ServiceLocator.log.d('ID...', tag: 'PlaylistProvider');
-      await ServiceLocator.watchHistory.updateChannelIdsAfterRefresh(playlist.id!, savedChannelInfo);
+      await ServiceLocator.watchHistory
+          .updateChannelIdsAfterRefresh(playlist.id!, savedChannelInfo);
       ServiceLocator.log.d('ID', tag: 'PlaylistProvider');
 
       // URL
@@ -911,25 +1014,25 @@ class PlaylistProvider extends ChangeNotifier {
       await loadPlaylists();
 
       ServiceLocator.log.d('', tag: 'PlaylistProvider');
-      
+
       if (!silent) {
         _isLoading = false;
       }
-      
-      // ✅  Provider 
+
+      // ✅  Provider
       notifyListeners();
-      
+
       return true;
     } catch (e) {
       ServiceLocator.log.e('', tag: 'PlaylistProvider', error: e);
       ServiceLocator.log.d(': ${StackTrace.current}', tag: 'PlaylistProvider');
       _error = 'Failed to refresh playlist: $e';
-      
+
       if (!silent) {
         _isLoading = false;
         notifyListeners();
       }
-      
+
       return false;
     }
   }
@@ -938,10 +1041,8 @@ class PlaylistProvider extends ChangeNotifier {
   Future<bool> deletePlaylist(int playlistId) async {
     try {
       // Find the playlist before deletion to check for temp files
-      final playlist = _playlists.firstWhere(
-        (p) => p.id == playlistId, 
-        orElse: () => Playlist(name: '')
-      );
+      final playlist = _playlists.firstWhere((p) => p.id == playlistId,
+          orElse: () => Playlist(name: ''));
       final wasActive = _activePlaylist?.id == playlistId;
 
       // Use transaction for data consistency
@@ -967,26 +1068,27 @@ class PlaylistProvider extends ChangeNotifier {
           final file = File(playlist.filePath!);
           if (await file.exists()) {
             await file.delete();
-            ServiceLocator.log.d(': ${playlist.filePath}', tag: 'PlaylistProvider');
+            ServiceLocator.log
+                .d(': ${playlist.filePath}', tag: 'PlaylistProvider');
           }
         } catch (e) {
           ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
         }
       }
-      
+
       // Also clean up any old files for this playlist in both directories
       try {
         // Clean up from temp directory
         final tempDir = await getTemporaryDirectory();
         await _cleanupOldTempFiles(tempDir, playlistId);
-        
+
         // Clean up from permanent storage
         final appDir = await getApplicationDocumentsDirectory();
         final playlistDir = Directory('${appDir.path}/playlists');
         if (await playlistDir.exists()) {
           await _cleanupOldPlaylistFiles(playlistDir, playlistId);
         }
-        
+
         // ✅ Clean up backup file
         final backupDir = Directory('${appDir.path}/playlists/backups');
         if (await backupDir.exists()) {
@@ -994,11 +1096,12 @@ class PlaylistProvider extends ChangeNotifier {
             File('${backupDir.path}/playlist_${playlistId}_backup.m3u'),
             File('${backupDir.path}/playlist_${playlistId}_backup.txt'),
           ];
-          
+
           for (final backupFile in backupFiles) {
             if (await backupFile.exists()) {
               await backupFile.delete();
-              ServiceLocator.log.d(': ${backupFile.path}', tag: 'PlaylistProvider');
+              ServiceLocator.log
+                  .d(': ${backupFile.path}', tag: 'PlaylistProvider');
             }
           }
         }
@@ -1018,8 +1121,11 @@ class PlaylistProvider extends ChangeNotifier {
         if (_playlists.isNotEmpty) {
           _activePlaylist = _playlists.first;
           // Save the new active playlist to database
-          await ServiceLocator.prefs.setInt('active_playlist_id', _activePlaylist!.id!);
-          ServiceLocator.log.d(': ${_activePlaylist!.name} (ID: ${_activePlaylist!.id})', tag: 'PlaylistProvider');
+          await ServiceLocator.prefs
+              .setInt('active_playlist_id', _activePlaylist!.id!);
+          ServiceLocator.log.d(
+              ': ${_activePlaylist!.name} (ID: ${_activePlaylist!.id})',
+              tag: 'PlaylistProvider');
         } else {
           _activePlaylist = null;
           await ServiceLocator.prefs.remove('active_playlist_id');
@@ -1046,7 +1152,9 @@ class PlaylistProvider extends ChangeNotifier {
   }
 
   // Set active playlist
-  void setActivePlaylist(Playlist playlist, {Function(int)? onPlaylistChanged, FavoritesProvider? favoritesProvider}) async {
+  void setActivePlaylist(Playlist playlist,
+      {Function(int)? onPlaylistChanged,
+      FavoritesProvider? favoritesProvider}) async {
     ServiceLocator.log.d('DEBUG: : ${playlist.name} (ID: ${playlist.id})');
     _activePlaylist = playlist;
 
@@ -1131,14 +1239,14 @@ class PlaylistProvider extends ChangeNotifier {
   /// Clean up all old playlist files from both temp and permanent storage
   Future<void> cleanupAllTempFiles() async {
     int totalDeleted = 0;
-    
+
     try {
-      // 
+      //
       final tempDir = await getTemporaryDirectory();
       if (await tempDir.exists()) {
         final tempFiles = tempDir.listSync();
         final pattern = RegExp(r'playlist_\d+_\d+\.m3u');
-        
+
         for (final file in tempFiles) {
           if (file is File && pattern.hasMatch(file.path)) {
             try {
@@ -1150,39 +1258,44 @@ class PlaylistProvider extends ChangeNotifier {
           }
         }
       }
-      
-      // 
+
+      //
       final appDir = await getApplicationDocumentsDirectory();
       final playlistDir = Directory('${appDir.path}/playlists');
-      
+
       if (await playlistDir.exists()) {
         final playlistFiles = playlistDir.listSync();
         final pattern = RegExp(r'playlist_\d+_\d+\.m3u');
-        
+
         // ID
-        final validPlaylistIds = _playlists.map((p) => p.id).whereType<int>().toSet();
-        
+        final validPlaylistIds =
+            _playlists.map((p) => p.id).whereType<int>().toSet();
+
         for (final file in playlistFiles) {
           if (file is File && pattern.hasMatch(file.path)) {
             // ID
-            final match = RegExp(r'playlist_(\d+)_\d+\.m3u').firstMatch(file.path);
+            final match =
+                RegExp(r'playlist_(\d+)_\d+\.m3u').firstMatch(file.path);
             if (match != null) {
               final playlistId = int.tryParse(match.group(1)!);
               // ID
-              if (playlistId != null && !validPlaylistIds.contains(playlistId)) {
+              if (playlistId != null &&
+                  !validPlaylistIds.contains(playlistId)) {
                 try {
                   await file.delete();
                   totalDeleted++;
-                  ServiceLocator.log.d(': ${file.path}', tag: 'PlaylistProvider');
+                  ServiceLocator.log
+                      .d(': ${file.path}', tag: 'PlaylistProvider');
                 } catch (e) {
-                  ServiceLocator.log.w(': ${file.path}', tag: 'PlaylistProvider');
+                  ServiceLocator.log
+                      .w(': ${file.path}', tag: 'PlaylistProvider');
                 }
               }
             }
           }
         }
       }
-      
+
       if (totalDeleted > 0) {
         ServiceLocator.log.i(' $totalDeleted ', tag: 'PlaylistProvider');
       }
@@ -1210,9 +1323,8 @@ class PlaylistProvider extends ChangeNotifier {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(silent 
-              ? ' ${playlist.name}...' 
-              : ' ${playlist.name}...'),
+          content:
+              Text(silent ? ' ${playlist.name}...' : ' ${playlist.name}...'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -1223,18 +1335,19 @@ class PlaylistProvider extends ChangeNotifier {
     final mergeRule = settings.channelMergeRule;
 
     // Execute refresh
-    final success = await refreshPlaylist(playlist, silent: silent, mergeRule: mergeRule);
-    
+    final success =
+        await refreshPlaylist(playlist, silent: silent, mergeRule: mergeRule);
+
     final refreshTime = DateTime.now().difference(startTime).inMilliseconds;
 
     // Use scheduleMicrotask to ensure we're on the main thread for UI updates
     if (context.mounted) {
       scheduleMicrotask(() {
         if (!context.mounted) return;
-        
+
         if (success) {
           ServiceLocator.log.i(': ${refreshTime}ms', tag: 'PlaylistProvider');
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${playlist.name} '),
@@ -1244,7 +1357,7 @@ class PlaylistProvider extends ChangeNotifier {
           );
         } else {
           ServiceLocator.log.e('', tag: 'PlaylistProvider');
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -1266,14 +1379,14 @@ class PlaylistProvider extends ChangeNotifier {
   Future<bool> optimizeDatabase() async {
     try {
       ServiceLocator.log.i('', tag: 'PlaylistProvider');
-      
+
       final sizeBefore = await ServiceLocator.database.getDatabaseSize();
       await ServiceLocator.database.vacuum();
       final sizeAfter = await ServiceLocator.database.getDatabaseSize();
-      
+
       final savedBytes = sizeBefore - sizeAfter;
       final savedMB = (savedBytes / (1024 * 1024)).toStringAsFixed(2);
-      
+
       ServiceLocator.log.i(': ${savedMB}MB', tag: 'PlaylistProvider');
       return true;
     } catch (e) {
@@ -1282,11 +1395,11 @@ class PlaylistProvider extends ChangeNotifier {
     }
   }
 
-  /// ✅ 
+  /// ✅
   Future<Map<String, int>> _saveFavoriteChannelNames(int playlistId) async {
     try {
       ServiceLocator.log.i(' $playlistId ', tag: 'PlaylistProvider');
-      
+
       final results = await ServiceLocator.database.rawQuery('''
         SELECT c.name, f.position
         FROM favorites f
@@ -1294,9 +1407,9 @@ class PlaylistProvider extends ChangeNotifier {
         WHERE c.playlist_id = ?
         ORDER BY f.position
       ''', [playlistId]);
-      
+
       ServiceLocator.log.i(' ${results.length} ', tag: 'PlaylistProvider');
-      
+
       final Map<String, int> favoriteMap = {};
       for (final row in results) {
         final name = row['name'] as String;
@@ -1304,7 +1417,7 @@ class PlaylistProvider extends ChangeNotifier {
         favoriteMap[name] = position;
         ServiceLocator.log.d(': $name (: $position)', tag: 'PlaylistProvider');
       }
-      
+
       return favoriteMap;
     } catch (e) {
       ServiceLocator.log.e('', tag: 'PlaylistProvider', error: e);
@@ -1312,43 +1425,44 @@ class PlaylistProvider extends ChangeNotifier {
     }
   }
 
-  /// ✅ 
-  Future<int> _restoreFavoritesByName(int playlistId, Map<String, int> favoriteMap) async {
+  /// ✅
+  Future<int> _restoreFavoritesByName(
+      int playlistId, Map<String, int> favoriteMap) async {
     try {
       ServiceLocator.log.i(' ${favoriteMap.length} ', tag: 'PlaylistProvider');
       int restoredCount = 0;
-      
+
       for (final entry in favoriteMap.entries) {
         final channelName = entry.key;
         final position = entry.value;
-        
+
         ServiceLocator.log.d(': $channelName', tag: 'PlaylistProvider');
-        
+
         // ID
         final results = await ServiceLocator.database.rawQuery('''
           SELECT id FROM channels 
           WHERE playlist_id = ? AND name = ? 
           LIMIT 1
         ''', [playlistId, channelName]);
-        
+
         if (results.isNotEmpty) {
           final channelId = results.first['id'] as int;
-          
+
           ServiceLocator.log.d('ID: $channelId', tag: 'PlaylistProvider');
-          
-          // 
+
+          //
           await ServiceLocator.database.insert('favorites', {
             'channel_id': channelId,
             'position': position,
             'created_at': DateTime.now().millisecondsSinceEpoch,
           });
-          
+
           restoredCount++;
         } else {
           ServiceLocator.log.w(': $channelName', tag: 'PlaylistProvider');
         }
       }
-      
+
       ServiceLocator.log.i(' $restoredCount ', tag: 'PlaylistProvider');
       return restoredCount;
     } catch (e) {
@@ -1356,9 +1470,9 @@ class PlaylistProvider extends ChangeNotifier {
       return 0;
     }
   }
-  
+
   // ============  ============
-  
+
   /// UI
   Future<void> _createMissingBackups() async {
     for (final playlistId in _playlistsNeedingBackup.toList()) {
@@ -1370,51 +1484,54 @@ class PlaylistProvider extends ChangeNotifier {
       }
     }
   }
-  
-  /// 
+
+  ///
   Future<void> _createBackupForPlaylist(int playlistId) async {
     final playlist = _playlists.firstWhere(
       (p) => p.id == playlistId,
       orElse: () => Playlist(name: ''),
     );
-    
+
     if (playlist.id == null) {
       ServiceLocator.log.w('ID', tag: 'PlaylistProvider');
       return;
     }
-    
+
     String? sourceContent;
-    
-    // 
+
+    //
     try {
       if (playlist.url != null && playlist.url!.isNotEmpty) {
         // URL
         ServiceLocator.log.d('URL: ${playlist.url}', tag: 'PlaylistProvider');
         sourceContent = await _downloadContentFromUrl(playlist.url!);
       } else if (playlist.filePath != null && playlist.filePath!.isNotEmpty) {
-        // 
+        //
         final file = File(playlist.filePath!);
         if (await file.exists()) {
-          ServiceLocator.log.d(': ${playlist.filePath}', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .d(': ${playlist.filePath}', tag: 'PlaylistProvider');
           sourceContent = await file.readAsString();
         } else {
-          ServiceLocator.log.w(': ${playlist.filePath}', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .w(': ${playlist.filePath}', tag: 'PlaylistProvider');
         }
       }
-      
-      // 
+
+      //
       if (sourceContent == null) {
         sourceContent = await _tryFindOldTempFile(playlistId);
       }
     } catch (e) {
       ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
     }
-    
+
     if (sourceContent != null && sourceContent.isNotEmpty) {
-      // 
-      final backupPath = await _saveBackupFile(playlistId, sourceContent, playlist.format);
-      
-      // 
+      //
+      final backupPath =
+          await _saveBackupFile(playlistId, sourceContent, playlist.format);
+
+      //
       await ServiceLocator.database.update(
         'playlists',
         {
@@ -1425,13 +1542,16 @@ class PlaylistProvider extends ChangeNotifier {
         where: 'id = ?',
         whereArgs: [playlistId],
       );
-      
-      ServiceLocator.log.i(' "${playlist.name}" (ID: $playlistId) : $backupPath', tag: 'PlaylistProvider');
+
+      ServiceLocator.log.i(
+          ' "${playlist.name}" (ID: $playlistId) : $backupPath',
+          tag: 'PlaylistProvider');
     } else {
-      ServiceLocator.log.w(' "${playlist.name}" (ID: $playlistId) ', tag: 'PlaylistProvider');
+      ServiceLocator.log
+          .w(' "${playlist.name}" (ID: $playlistId) ', tag: 'PlaylistProvider');
     }
   }
-  
+
   /// URL
   Future<String> _downloadContentFromUrl(String url) async {
     final dio = ServiceLocator.createDio();
@@ -1443,7 +1563,7 @@ class PlaylistProvider extends ChangeNotifier {
         validateStatus: (status) => status! < 500,
       ),
     );
-    
+
     if (response.statusCode == 200) {
       return response.data.toString();
     } else {
@@ -1458,8 +1578,10 @@ class PlaylistProvider extends ChangeNotifier {
       final path = uri.path.toLowerCase();
       final query = uri.query.toLowerCase();
 
-      if (path.contains('player_api.php') || path.contains('get.php')) return true;
-      if (query.contains('username=') && query.contains('password=')) return true;
+      if (path.contains('player_api.php') || path.contains('get.php'))
+        return true;
+      if (query.contains('username=') && query.contains('password='))
+        return true;
       return false;
     } catch (e) {
       return false;
@@ -1483,6 +1605,10 @@ class PlaylistProvider extends ChangeNotifier {
     };
   }
 
+  String _buildXtreamEpgUrl(String base, String username, String password) {
+    return '$base/xmltv.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}';
+  }
+
   /// Import channels using the Xtream `player_api.php` endpoints.
   /// This avoids downloading a monolithic M3U and uses the API to fetch categories and streams.
   Future<List<Channel>> _importFromXtream({
@@ -1498,16 +1624,20 @@ class PlaylistProvider extends ChangeNotifier {
     dio.options.validateStatus = (status) => status != null && status < 500;
 
     // Validate main endpoint
-    final authUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}';
+    final authUrl =
+        '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}';
     final authResp = await dio.get(authUrl);
-    if (authResp.statusCode != 200 || authResp.data == null || authResp.data is! Map) {
+    if (authResp.statusCode != 200 ||
+        authResp.data == null ||
+        authResp.data is! Map) {
       throw Exception('No se pudo validar la cuenta Xtream');
     }
 
     final result = <Channel>[];
 
     // Fetch LIVE categories (if available)
-    final catUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_categories';
+    final catUrl =
+        '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_categories';
     final catResp = await dio.get(catUrl);
 
     List categories = [];
@@ -1520,46 +1650,59 @@ class PlaylistProvider extends ChangeNotifier {
     for (final c in categories) {
       if (c is! Map) continue;
       final categoryId = c['category_id']?.toString();
-      final categoryName = c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
+      final categoryName =
+          c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
       if (categoryId != null && categoryId.isNotEmpty) {
         categoryNames[categoryId] = categoryName;
       }
     }
 
     // Fast path: fetch all LIVE streams in one request (much faster on TV boxes)
-    final allStreamsUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams';
+    final allStreamsUrl =
+        '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams';
     final allStreamsResp = await dio.get(allStreamsUrl);
     if (allStreamsResp.statusCode == 200 && allStreamsResp.data is List) {
       final streams = allStreamsResp.data as List;
       for (final s in streams) {
         if (s is! Map) continue;
         final streamCategoryId = s['category_id']?.toString();
-        final groupName = (streamCategoryId != null && categoryNames.containsKey(streamCategoryId))
+        final groupName = (streamCategoryId != null &&
+                categoryNames.containsKey(streamCategoryId))
             ? categoryNames[streamCategoryId]
             : null;
-        final ch = _channelFromXtreamMap(s, groupName, baseServer, username, password, playlistId, channelType: 'live');
+        final ch = _channelFromXtreamMap(
+            s, groupName, baseServer, username, password, playlistId,
+            channelType: 'live');
         result.add(ch);
       }
-      ServiceLocator.log.i('Xtream LIVE: ${result.length} ', tag: 'PlaylistProvider');
+      ServiceLocator.log
+          .i('Xtream LIVE: ${result.length} ', tag: 'PlaylistProvider');
     } else if (categories.isNotEmpty) {
       // Fallback: per-category live streams
       for (final c in categories) {
         if (c is! Map) continue;
         final categoryId = c['category_id']?.toString();
-        final categoryName = c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
+        final categoryName =
+            c['category_name']?.toString() ?? c['title']?.toString() ?? 'LIVE';
         if (categoryId == null) continue;
-        final streamsUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams&category_id=${Uri.encodeComponent(categoryId)}';
+        final streamsUrl =
+            '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_live_streams&category_id=${Uri.encodeComponent(categoryId)}';
         final streamsResp = await dio.get(streamsUrl);
-        if (streamsResp.statusCode != 200 || streamsResp.data is! List) continue;
+        if (streamsResp.statusCode != 200 || streamsResp.data is! List)
+          continue;
         for (final s in (streamsResp.data as List)) {
-          if (s is Map) result.add(_channelFromXtreamMap(s, categoryName, baseServer, username, password, playlistId, channelType: 'live'));
+          if (s is Map)
+            result.add(_channelFromXtreamMap(
+                s, categoryName, baseServer, username, password, playlistId,
+                channelType: 'live'));
         }
       }
     }
 
     // ── VOD (Movies) ─────────────────────────────────────────────────────────
     try {
-      final vodCatUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_categories';
+      final vodCatUrl =
+          '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_categories';
       final vodCatResp = await dio.get(vodCatUrl);
       if (vodCatResp.statusCode == 200 && vodCatResp.data is List) {
         final vodCategoryNames = <String, String>{};
@@ -1570,18 +1713,24 @@ class PlaylistProvider extends ChangeNotifier {
           if (id != null) vodCategoryNames[id] = name;
         }
 
-        final vodUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_streams';
+        final vodUrl =
+            '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_vod_streams';
         final vodResp = await dio.get(vodUrl);
         if (vodResp.statusCode == 200 && vodResp.data is List) {
           int vodCount = 0;
           for (final s in (vodResp.data as List)) {
             if (s is! Map) continue;
             final catId = s['category_id']?.toString();
-            final groupName = (catId != null && vodCategoryNames.containsKey(catId)) ? vodCategoryNames[catId] : null;
-            result.add(_channelFromVodMap(s, groupName, baseServer, username, password, playlistId));
+            final groupName =
+                (catId != null && vodCategoryNames.containsKey(catId))
+                    ? vodCategoryNames[catId]
+                    : null;
+            result.add(_channelFromVodMap(
+                s, groupName, baseServer, username, password, playlistId));
             vodCount++;
           }
-          ServiceLocator.log.i('Xtream VOD: $vodCount ', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .i('Xtream VOD: $vodCount ', tag: 'PlaylistProvider');
         }
       }
     } catch (e) {
@@ -1590,7 +1739,8 @@ class PlaylistProvider extends ChangeNotifier {
 
     // ── Series ────────────────────────────────────────────────────────────────
     try {
-      final serCatUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series_categories';
+      final serCatUrl =
+          '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series_categories';
       final serCatResp = await dio.get(serCatUrl);
       if (serCatResp.statusCode == 200 && serCatResp.data is List) {
         final seriesCategoryNames = <String, String>{};
@@ -1601,18 +1751,24 @@ class PlaylistProvider extends ChangeNotifier {
           if (id != null) seriesCategoryNames[id] = name;
         }
 
-        final serUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series';
+        final serUrl =
+            '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&action=get_series';
         final serResp = await dio.get(serUrl);
         if (serResp.statusCode == 200 && serResp.data is List) {
           int serCount = 0;
           for (final s in (serResp.data as List)) {
             if (s is! Map) continue;
             final catId = s['category_id']?.toString();
-            final groupName = (catId != null && seriesCategoryNames.containsKey(catId)) ? seriesCategoryNames[catId] : null;
-            result.add(_channelFromSeriesMap(s, groupName, baseServer, username, password, playlistId));
+            final groupName =
+                (catId != null && seriesCategoryNames.containsKey(catId))
+                    ? seriesCategoryNames[catId]
+                    : null;
+            result.add(_channelFromSeriesMap(
+                s, groupName, baseServer, username, password, playlistId));
             serCount++;
           }
-          ServiceLocator.log.i('Xtream Series: $serCount ', tag: 'PlaylistProvider');
+          ServiceLocator.log
+              .i('Xtream Series: $serCount ', tag: 'PlaylistProvider');
         }
       }
     } catch (e) {
@@ -1623,10 +1779,15 @@ class PlaylistProvider extends ChangeNotifier {
     return result;
   }
 
-  Channel _channelFromVodMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId) {
-    final name = (s['name'] ?? s['title'] ?? s['stream_name'] ?? 'Unknown').toString();
-    String? logo = s['stream_icon']?.toString() ?? s['cover']?.toString() ?? s['logo']?.toString();
-    final ext = (s['container_extension']?.toString() ?? 'mp4').replaceAll('.', '');
+  Channel _channelFromVodMap(Map s, String? categoryName, String baseServer,
+      String username, String password, int playlistId) {
+    final name =
+        (s['name'] ?? s['title'] ?? s['stream_name'] ?? 'Unknown').toString();
+    String? logo = s['stream_icon']?.toString() ??
+        s['cover']?.toString() ??
+        s['logo']?.toString();
+    final ext =
+        (s['container_extension']?.toString() ?? 'mp4').replaceAll('.', '');
     final streamId = (s['stream_id'] ?? s['id'])?.toString();
     String url = streamId != null
         ? '$baseServer/movie/$username/$password/$streamId.$ext'
@@ -1642,7 +1803,8 @@ class PlaylistProvider extends ChangeNotifier {
     );
   }
 
-  Channel _channelFromSeriesMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId) {
+  Channel _channelFromSeriesMap(Map s, String? categoryName, String baseServer,
+      String username, String password, int playlistId) {
     final name = (s['name'] ?? s['title'] ?? 'Unknown Series').toString();
     String? logo = s['cover']?.toString() ?? s['stream_icon']?.toString();
     final seriesId = (s['series_id'] ?? s['id'])?.toString();
@@ -1661,8 +1823,14 @@ class PlaylistProvider extends ChangeNotifier {
     );
   }
 
-  Channel _channelFromXtreamMap(Map s, String? categoryName, String baseServer, String username, String password, int playlistId, {String channelType = 'live'}) {
-    final name = (s['name'] ?? s['channel_name'] ?? s['stream_name'] ?? 'Unknown Channel').toString();
+  Channel _channelFromXtreamMap(Map s, String? categoryName, String baseServer,
+      String username, String password, int playlistId,
+      {String channelType = 'live'}) {
+    final name = (s['name'] ??
+            s['channel_name'] ??
+            s['stream_name'] ??
+            'Unknown Channel')
+        .toString();
 
     String? logo;
     if (s['stream_icon'] != null) logo = s['stream_icon'].toString();
@@ -1686,7 +1854,8 @@ class PlaylistProvider extends ChangeNotifier {
       url = '$baseServer/live/$username/$password/$sid.ts';
     } else {
       // Fallback to base get.php (server-wide M3U) - not ideal but last resort
-      url = '$baseServer/get.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&output=ts&type=m3u_plus';
+      url =
+          '$baseServer/get.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}&output=ts&type=m3u_plus';
     }
 
     // Provide alternative sources where reasonable
@@ -1710,56 +1879,58 @@ class PlaylistProvider extends ChangeNotifier {
       channelType: channelType,
     );
   }
-  
-  /// 
-  Future<String> _saveBackupFile(int playlistId, String content, String format) async {
+
+  ///
+  Future<String> _saveBackupFile(
+      int playlistId, String content, String format) async {
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory('${appDir.path}/playlists/backups');
-    
-    // 
+
+    //
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
       ServiceLocator.log.d(': ${backupDir.path}', tag: 'PlaylistProvider');
     }
-    
-    // 
+
+    //
     final extension = format.toLowerCase() == 'txt' ? 'txt' : 'm3u';
-    final backupFile = File('${backupDir.path}/playlist_${playlistId}_backup.$extension');
-    
+    final backupFile =
+        File('${backupDir.path}/playlist_${playlistId}_backup.$extension');
+
     await backupFile.writeAsString(content);
     ServiceLocator.log.d(': ${backupFile.path}', tag: 'PlaylistProvider');
-    
+
     return backupFile.path;
   }
-  
-  /// 
+
+  ///
   Future<String?> _tryFindOldTempFile(int playlistId) async {
     try {
-      // 
+      //
       final tempDir = await getTemporaryDirectory();
       if (!await tempDir.exists()) return null;
-      
+
       final files = tempDir.listSync();
       final pattern = RegExp('playlist_${playlistId}_\\d+\\.m3u');
-      
+
       for (final file in files) {
         if (file is File && pattern.hasMatch(file.path)) {
           ServiceLocator.log.i(': ${file.path}', tag: 'PlaylistProvider');
           final content = await file.readAsString();
-          
-          // 
+
+          //
           try {
             await file.delete();
             ServiceLocator.log.d(': ${file.path}', tag: 'PlaylistProvider');
           } catch (e) {
             ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
           }
-          
+
           return content;
         }
       }
-      
-      // 
+
+      //
       final appDir = await getApplicationDocumentsDirectory();
       final playlistDir = Directory('${appDir.path}/playlists');
       if (await playlistDir.exists()) {
@@ -1774,16 +1945,17 @@ class PlaylistProvider extends ChangeNotifier {
     } catch (e) {
       ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
     }
-    
+
     return null;
   }
-  
-  /// 
-  Future<void> _updateBackupFile(int playlistId, String content, String format) async {
+
+  ///
+  Future<void> _updateBackupFile(
+      int playlistId, String content, String format) async {
     try {
       final backupPath = await _saveBackupFile(playlistId, content, format);
-      
-      // 
+
+      //
       await ServiceLocator.database.update(
         'playlists',
         {
@@ -1794,7 +1966,7 @@ class PlaylistProvider extends ChangeNotifier {
         where: 'id = ?',
         whereArgs: [playlistId],
       );
-      
+
       ServiceLocator.log.d(' $playlistId ', tag: 'PlaylistProvider');
     } catch (e) {
       ServiceLocator.log.w(': $e', tag: 'PlaylistProvider');
