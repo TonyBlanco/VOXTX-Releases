@@ -1,4 +1,8 @@
 # Changelog
+## [1.5.34] - 2026-02-25
+### Fixed
+- **APKs vuelven a VOXTX-Releases (repo público)**: desde v1.5.30 los APKs se publicaban por error en VOXTX-Android (privado) — los usuarios no podían descargarlos. Todos los releases van a VOXTX-Releases según AGENT_WORKFLOW.md.
+- **URL "Update now" corregida**: apunta de nuevo a `VOXTX-Releases/releases`.
 
 ## [1.5.33] - 2026-02-25
 ### Fixed

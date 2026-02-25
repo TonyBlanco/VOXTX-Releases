@@ -13,7 +13,7 @@ class UpdateService {
   //  VOXTX-Android 
 
   static const String _versionJsonUrl = 'https://raw.githubusercontent.com/TonyBlanco/VOXTX-Releases/main/version.json';
-  static const String _githubReleasesUrl = 'https://github.com/TonyBlanco/VOXTX-Android/releases';
+  static const String _githubReleasesUrl = 'https://github.com/TonyBlanco/VOXTX-Releases/releases';
 
   // 
   static const int _checkUpdateInterval = 24;
