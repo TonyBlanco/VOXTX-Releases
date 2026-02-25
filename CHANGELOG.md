@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.23] - 2026-02-25
+### Fixed
+- **Navegación D-Pad Android TV — capa completa de focus**:
+  - `TvAppFocusWrapper` en raíz de MaterialApp → `ReadingOrderTraversalPolicy` tiene scope válido; las flechas mueven el foco correctamente (#1)
+  - `TVSidebar` ahora llama `requestFocus()` en `initState` vía `addPostFrameCallback` → sidebar resaltado al montar sin necesidad de pulsar ninguna tecla (#2)
+  - `TvFocusManager.saveFocus/restoreFocus` para recuperar el foco tras cerrar diálogos, menús o el reproductor (#3)
+  - `TVFocusable` acepta `KeyRepeatEvent` además de `KeyDownEvent` → teclas mantenidas en Xiaomi Mi Box y similares ya funcionan (#4)
+  - `TvTextField` drop-in con `FocusNode` propio activa el teclado virtual de Android TV y devuelve el control al D-Pad tras el submit (#5)
+  - Atajos de teclado explícitos `arrowUp/Down/Left/Right → DirectionalFocusIntent` añadidos a MaterialApp.shortcuts
+
 ## [1.5.22] - 2026-02-24
 ### Novedades
 - **Guía de Programas — Selector de categoría**: Chips horizontales para filtrar canales por grupo. Al abrir se pre-selecciona el grupo del canal activo
