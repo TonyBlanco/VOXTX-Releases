@@ -9,6 +9,7 @@ import '../../../core/widgets/tv_sidebar.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../../core/platform/platform_detector.dart';
 import '../providers/playlist_provider.dart';
+import '../widgets/add_playlist_dialog.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../settings/providers/settings_provider.dart';
@@ -358,16 +359,37 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.of(context)?.goToHomeToAdd ??
-                'Go to Home to add playlists',
+            AppStrings.of(context)?.addPlaylistToStart ?? 'Add a playlist to get started',
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
             ),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => _showAddPlaylistDialog(),
+            icon: const Icon(Icons.add_rounded, size: 20),
+            label: Text(AppStrings.of(context)?.addPlaylist ?? 'Add Playlist'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.getPrimaryColor(context),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  void _showAddPlaylistDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => const AddPlaylistDialog(),
     );
   }
 
@@ -378,16 +400,53 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     _cleanupTvFocusNodes(sortedPlaylists);
     _ensureTvFocusAlive(provider);
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: sortedPlaylists.length,
-      itemBuilder: (context, index) {
-        final playlist = sortedPlaylists[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildPlaylistCard(provider, playlist, index),
-        );
-      },
+    return Column(
+      children: [
+        // Add playlist button row for desktop/TV layout
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+          child: Row(
+            children: [
+              Text(
+                AppStrings.of(context)?.playlistList ?? 'Playlists',
+                style: TextStyle(
+                  color: AppTheme.getTextPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                onPressed: () => _showAddPlaylistDialog(),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(AppStrings.of(context)?.addPlaylist ?? 'Add Playlist'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.getPrimaryColor(context),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: sortedPlaylists.length,
+            itemBuilder: (context, index) {
+              final playlist = sortedPlaylists[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildPlaylistCard(provider, playlist, index),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
