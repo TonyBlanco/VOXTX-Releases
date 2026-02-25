@@ -21,7 +21,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  static const Duration _minimumSplashDuration = Duration(milliseconds: 12800);
+  static const Duration _minimumSplashDuration = Duration(milliseconds: 5000);
   static const String _kLegalAccepted = 'legal_accepted';
 
   // Disclaimer state
@@ -175,10 +175,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget _buildDisclaimerScreen(BuildContext context, Color primaryColor) {
     final strings = AppStrings.of(context);
     final isEs = Localizations.localeOf(context).languageCode == 'es';
-    final bg = AppTheme.getBackgroundColor(context);
-    final surface = AppTheme.getSurfaceColor(context);
-    final textPrimary = AppTheme.getTextPrimary(context);
-    final textSecondary = AppTheme.getTextSecondary(context);
     final appName = strings?.lotusIptv ?? 'VoXtv';
 
     final title = isEs
@@ -230,93 +226,93 @@ By tapping "I Agree" you declare under your responsibility that:
   3. You release the developer from any consequences arising from unlawful use.''';
 
     final btnLabel = isEs ? 'He leído y acepto' : 'I have read and agree';
+    const filmBg = Color(0xFF080808);
+    const filmLine = Color(0xFF2A2A2A);
+    const filmText = Color(0xFFD8D8D8);
+    const filmDim = Color(0xFF888888);
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: filmBg,
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [primaryColor.withOpacity(0.15), bg],
+            // Top cinematic line
+            Container(height: 1, color: filmLine),
+            const SizedBox(height: 32),
+
+            // App name + icon centered
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.movie_filter_rounded, color: primaryColor.withOpacity(0.7), size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  appName.toUpperCase(),
+                  style: TextStyle(
+                    color: primaryColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    letterSpacing: 4,
+                  ),
                 ),
-                border: Border(bottom: BorderSide(color: primaryColor.withOpacity(0.2), width: 1)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.gavel_rounded, color: primaryColor, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          appName,
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Title centered uppercase
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                title.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: filmText,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  letterSpacing: 2.5,
+                  height: 1.4,
+                ),
               ),
             ),
+            const SizedBox(height: 20),
+            Container(height: 1, color: filmLine),
+            const SizedBox(height: 4),
 
-            // Scrollable disclaimer text
+            // Scrollable body — centered text
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: primaryColor.withOpacity(0.12)),
-                  ),
-                  child: Text(
-                    body,
-                    style: TextStyle(
-                      color: textSecondary,
-                      fontSize: 13.5,
-                      height: 1.7,
-                    ),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                child: Text(
+                  body,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: filmText,
+                    fontSize: 15,
+                    height: 1.85,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
             ),
 
-            // Accept button
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-              decoration: BoxDecoration(
-                color: bg,
-                border: Border(top: BorderSide(color: primaryColor.withOpacity(0.15), width: 1)),
-              ),
+            const SizedBox(height: 4),
+            Container(height: 1, color: filmLine),
+            const SizedBox(height: 20),
+
+            // Dim notice
+            Text(
+              isEs
+                  ? 'Al continuar aceptas los términos anteriores'
+                  : 'By continuing you accept the above terms',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: filmDim, fontSize: 11, letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 16),
+
+            // Accept button — centered, not full width
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -324,7 +320,7 @@ By tapping "I Agree" you declare under your responsibility that:
                   decoration: BoxDecoration(
                     gradient: AppTheme.getGradient(context),
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [BoxShadow(color: primaryColor.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: primaryColor.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 4))],
                   ),
                   child: Material(
                     color: Colors.transparent,
@@ -333,12 +329,12 @@ By tapping "I Agree" you declare under your responsibility that:
                       onTap: _acceptDisclaimer,
                       child: Center(
                         child: Text(
-                          btnLabel,
+                          btnLabel.toUpperCase(),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            letterSpacing: 0.5,
+                            fontSize: 14,
+                            letterSpacing: 2,
                           ),
                         ),
                       ),
@@ -347,6 +343,7 @@ By tapping "I Agree" you declare under your responsibility that:
                 ),
               ),
             ),
+            const SizedBox(height: 28),
           ],
         ),
       ),

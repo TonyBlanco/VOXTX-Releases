@@ -728,7 +728,6 @@ class _ChannelsScreenState extends State<ChannelsScreen>
         if (isTV) _buildGroupsSidebar(),
         // Channels Grid
         Expanded(child: _buildChannelsContent()),
-        if (isTV) _buildMiniPreviewPanel(),
       ],
     );
 
@@ -917,7 +916,7 @@ class _ChannelsScreenState extends State<ChannelsScreen>
 
         return FocusTraversalGroup(
           child: Container(
-            width: 180,
+            width: 220,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -990,12 +989,16 @@ class _ChannelsScreenState extends State<ChannelsScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        AppStrings.of(context)?.categories ?? 'Categories',
-                        style: TextStyle(
-                          color: AppTheme.getTextPrimary(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          AppStrings.of(context)?.categories ?? 'Categories',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppTheme.getTextPrimary(context),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -1275,7 +1278,7 @@ class _ChannelsScreenState extends State<ChannelsScreen>
                 Expanded(
                   child: AutoScrollText(
                     text: name,
-                    forceScroll: true,
+                    forceScroll: false,
                     style: TextStyle(
                       color: isSelected
                           ? AppTheme.getPrimaryColor(context)
@@ -1605,7 +1608,6 @@ class _ChannelsScreenState extends State<ChannelsScreen>
                                 ? () {
                                     //
                                     _lastChannelIndex = index;
-                                    _setPreviewChannel(channel);
                                   }
                                 : null,
                             onLeft: (PlatformDetector.isTV && isFirstColumn)
