@@ -18,7 +18,7 @@ import '../../../core/services/service_locator.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final bool embedded;
-  
+
   const FavoritesScreen({super.key, this.embedded = false});
 
   @override
@@ -34,31 +34,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   void _playChannel(dynamic channel) {
     final settingsProvider = context.read<SettingsProvider>();
-    
+
     // ID
     if (settingsProvider.rememberLastChannel && channel.id != null) {
       settingsProvider.setLastChannelId(channel.id);
     }
 
-    // 
+    //
     if (settingsProvider.enableMultiScreen) {
-      // TV 
+      // TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         final channelProvider = context.read<ChannelProvider>();
-        // ✅ 
+        // ✅
         final channels = channelProvider.allChannels;
-        
-        // 
+
+        //
         final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
-        
-        // 
+
+        //
         final urls = channels.map((c) => c.url).toList();
         final names = channels.map((c) => c.name).toList();
         final groups = channels.map((c) => c.groupName ?? '').toList();
         final sources = channels.map((c) => c.sources).toList();
         final logos = channels.map((c) => c.logoUrl ?? '').toList();
-        
-        // 
+
+        //
         NativePlayerChannel.launchMultiScreen(
           urls: urls,
           names: names,
@@ -77,9 +77,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         final multiScreenProvider = context.read<MultiScreenProvider>();
         final defaultPosition = settingsProvider.defaultScreenPosition;
         // Provider
-        multiScreenProvider.setVolumeSettings(1.0, settingsProvider.volumeBoost);
-        multiScreenProvider.playChannelAtDefaultPosition(channel, defaultPosition);
-        
+        multiScreenProvider.setVolumeSettings(
+            1.0, settingsProvider.volumeBoost);
+        multiScreenProvider.playChannelAtDefaultPosition(
+            channel, defaultPosition);
+
         Navigator.pushNamed(context, AppRouter.player, arguments: {
           'channelUrl': '',
           'channelName': '',
@@ -112,24 +114,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       return Scaffold(
         body: Container(
           decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: Theme.of(context).brightness == Brightness.dark
-                        ? [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.15),
-                            AppTheme.getBackgroundColor(context),
-                          ]
-                        : [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getBackgroundColor(context).withOpacity(0.9),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.08),
-                          ],
-                  ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                      AppTheme.getBackgroundColor(context),
+                    ]
+                  : [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getBackgroundColor(context).withOpacity(0.9),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.08),
+                    ],
+            ),
           ),
           child: TVSidebar(
-            selectedIndex: 5, // 
+            selectedIndex: 6, //
             child: content,
           ),
         ),
@@ -140,46 +142,51 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     if (widget.embedded) {
       final isMobile = PlatformDetector.isMobile;
       final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
-      final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
-      final topPadding = isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
-      
+      final statusBarHeight =
+          isMobile ? MediaQuery.of(context).padding.top : 0.0;
+      final topPadding =
+          isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
+
       return Column(
         children: [
-          // 
-          if (isLandscape && topPadding > 0)
-            SizedBox(height: topPadding),
-          // 
+          //
+          if (isLandscape && topPadding > 0) SizedBox(height: topPadding),
+          //
           Container(
-            height: isLandscape ? 24.0 : null,  // 24pxAppBar
+            height: isLandscape ? 24.0 : null, // 24pxAppBar
             padding: EdgeInsets.fromLTRB(
               12,
-              isLandscape ? 0 : (topPadding + 8),  // padding
+              isLandscape ? 0 : (topPadding + 8), // padding
               12,
-              0,  // padding0height
+              0, // padding0height
             ),
-            alignment: Alignment.centerLeft,  // 
+            alignment: Alignment.centerLeft, //
             child: Row(
               children: [
                 Text(
                   AppStrings.of(context)?.favorites ?? 'Favorites',
                   style: TextStyle(
                     color: AppTheme.getTextPrimary(context),
-                    fontSize: isLandscape ? 14 : 18,  // 14px
+                    fontSize: isLandscape ? 14 : 18, // 14px
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Spacer(),
                 Consumer<FavoritesProvider>(
                   builder: (context, provider, _) {
-                    if (provider.favorites.isEmpty) return const SizedBox.shrink();
+                    if (provider.favorites.isEmpty)
+                      return const SizedBox.shrink();
                     return IconButton(
                       icon: Icon(
-                        Icons.delete_sweep_rounded, 
+                        Icons.delete_sweep_rounded,
                         color: AppTheme.getTextSecondary(context),
-                        size: isLandscape ? 14 : 24,  // AppBar
+                        size: isLandscape ? 14 : 24, // AppBar
                       ),
-                      padding: isLandscape ? const EdgeInsets.all(2) : null,  // padding
-                      constraints: isLandscape ? const BoxConstraints() : null,  // 
+                      padding: isLandscape
+                          ? const EdgeInsets.all(2)
+                          : null, // padding
+                      constraints:
+                          isLandscape ? const BoxConstraints() : null, //
                       onPressed: () => _confirmClearAll(context, provider),
                       tooltip: AppStrings.of(context)?.clearAll ?? 'Clear All',
                     );
@@ -208,7 +215,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
         child: Column(
           children: [
-            // 
+            //
             if (PlatformDetector.isMobile)
               SizedBox(height: MediaQuery.of(context).padding.top),
             Builder(
@@ -218,39 +225,42 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 final isLandscape = isMobile && width > 600;
                 return AppBar(
                   backgroundColor: Colors.transparent,
-                  primary: false,  // SafeArea padding
-                  toolbarHeight: isLandscape ? 24.0 : 56.0,  // 24px
+                  primary: false, // SafeArea padding
+                  toolbarHeight: isLandscape ? 24.0 : 56.0, // 24px
                   title: Text(
                     AppStrings.of(context)?.favorites ?? 'Favorites',
                     style: TextStyle(
                       color: AppTheme.getTextPrimary(context),
-                      fontSize: isLandscape ? 14 : 20,  // 14px
+                      fontSize: isLandscape ? 14 : 20, // 14px
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   leading: IconButton(
                     icon: Icon(
                       Icons.arrow_back_rounded,
-                      size: isLandscape ? 14 : 24,  // 
+                      size: isLandscape ? 14 : 24, //
                     ),
                     padding: isLandscape ? const EdgeInsets.all(2) : null,
-                    constraints: isLandscape ? const BoxConstraints() : null,  // 
+                    constraints: isLandscape ? const BoxConstraints() : null, //
                     onPressed: () => Navigator.pop(context),
                   ),
                   actions: [
                     Consumer<FavoritesProvider>(
                       builder: (context, provider, _) {
-                        if (provider.favorites.isEmpty) return const SizedBox.shrink();
+                        if (provider.favorites.isEmpty)
+                          return const SizedBox.shrink();
 
                         return IconButton(
                           icon: Icon(
                             Icons.delete_sweep_rounded,
-                            size: isLandscape ? 14 : 24,  // 
+                            size: isLandscape ? 14 : 24, //
                           ),
                           padding: isLandscape ? const EdgeInsets.all(2) : null,
-                          constraints: isLandscape ? const BoxConstraints() : null,  // 
+                          constraints:
+                              isLandscape ? const BoxConstraints() : null, //
                           onPressed: () => _confirmClearAll(context, provider),
-                          tooltip: AppStrings.of(context)?.clearAll ?? 'Clear All',
+                          tooltip:
+                              AppStrings.of(context)?.clearAll ?? 'Clear All',
                         );
                       },
                     ),
@@ -312,7 +322,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.of(context)?.favoritesHint ?? 'Long press on a channel to add it to favorites',
+            AppStrings.of(context)?.favoritesHint ??
+                'Long press on a channel to add it to favorites',
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -325,7 +336,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.pushNamed(context, AppRouter.channels),
               icon: const Icon(Icons.live_tv_rounded),
-              label: Text(AppStrings.of(context)?.browseChannels ?? 'Browse Channels'),
+              label: Text(
+                  AppStrings.of(context)?.browseChannels ?? 'Browse Channels'),
             ),
           ),
         ],
@@ -368,10 +380,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildFavoriteCard(FavoritesProvider provider, dynamic channel, int index) {
+  Widget _buildFavoriteCard(
+      FavoritesProvider provider, dynamic channel, int index) {
     final isMobile = PlatformDetector.isMobile;
     final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
-    
+
     return _FavoriteCardWrapper(
       index: index,
       channel: channel,
@@ -383,7 +396,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text((AppStrings.of(context)?.removedFromFavorites ?? 'Removed "{name}" from favorites').replaceAll('{name}', channel.name)),
+              content: Text((AppStrings.of(context)?.removedFromFavorites ??
+                      'Removed "{name}" from favorites')
+                  .replaceAll('{name}', channel.name)),
               action: SnackBarAction(
                 label: AppStrings.of(context)?.undo ?? 'Undo',
                 onPressed: () => provider.addFavorite(channel),
@@ -409,7 +424,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
           ),
           content: Text(
-            AppStrings.of(context)?.clearFavoritesConfirm ?? 'Are you sure you want to remove all channels from your favorites?',
+            AppStrings.of(context)?.clearFavoritesConfirm ??
+                'Are you sure you want to remove all channels from your favorites?',
             style: TextStyle(color: AppTheme.getTextSecondary(context)),
           ),
           actions: [
@@ -425,7 +441,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppStrings.of(context)?.allFavoritesCleared ?? 'All favorites cleared'),
+                      content: Text(
+                          AppStrings.of(context)?.allFavoritesCleared ??
+                              'All favorites cleared'),
                     ),
                   );
                 }
@@ -481,7 +499,9 @@ class _FavoriteCardWrapperState extends State<_FavoriteCardWrapper> {
             color: AppTheme.getSurfaceColor(context),
             borderRadius: BorderRadius.circular(widget.isLandscape ? 12 : 16),
             border: Border.all(
-              color: isFocused ? AppTheme.getPrimaryColor(context) : Colors.transparent,
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : Colors.transparent,
               width: isFocused ? 2 : 0,
             ),
             boxShadow: isFocused
@@ -570,7 +590,8 @@ class _FavoriteCardWrapperState extends State<_FavoriteCardWrapper> {
                     padding: EdgeInsets.all(widget.isLandscape ? 6 : 8),
                     decoration: BoxDecoration(
                       color: AppTheme.getPrimaryColor(context).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(widget.isLandscape ? 6 : 8),
+                      borderRadius:
+                          BorderRadius.circular(widget.isLandscape ? 6 : 8),
                     ),
                     child: Icon(
                       Icons.play_arrow_rounded,
@@ -588,7 +609,8 @@ class _FavoriteCardWrapperState extends State<_FavoriteCardWrapper> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: AppTheme.errorColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(widget.isLandscape ? 6 : 8),
+                      borderRadius:
+                          BorderRadius.circular(widget.isLandscape ? 6 : 8),
                     ),
                     child: Icon(
                       Icons.favorite,

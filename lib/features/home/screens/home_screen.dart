@@ -40,26 +40,34 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, RouteAware, ThrottledStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, RouteAware, ThrottledStateMixin {
   int _selectedNavIndex = 0;
   List<Channel> _watchHistoryChannels = [];
   int? _lastPlaylistId; // ID
-  int _lastChannelCount = 0; // 
+  int _lastChannelCount = 0; //
   String _appVersion = '';
-  AppUpdate? _availableUpdate; // 
-  final ScrollController _scrollController = ScrollController(); // 
-  final FocusNode _continueButtonFocusNode = FocusNode(); // 
-  bool _hasTriggeredEmptyChannelLoad = false; // ✅ 
+  AppUpdate? _availableUpdate; //
+  final ScrollController _scrollController = ScrollController(); //
+  final FocusNode _continueButtonFocusNode = FocusNode(); //
+  bool _hasTriggeredEmptyChannelLoad = false; // ✅
+
+  void _runAfterBuild(VoidCallback action) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      action();
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this); // 
-    _loadData();
+    WidgetsBinding.instance.addObserver(this); //
     _loadVersion();
     _checkForUpdates();
-    // 
+    //
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
       context.read<ChannelProvider>().addListener(_onChannelProviderChanged);
       context.read<PlaylistProvider>().addListener(_onPlaylistProviderChanged);
       context
@@ -71,16 +79,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 
+    //
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
       AppRouter.routeObserver.subscribe(this, route);
     }
-    // 
+    //
     _checkAndReloadIfNeeded();
   }
 
-  // 
+  //
   @override
   void didPopNext() {
     super.didPopNext();
@@ -93,11 +101,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     super.didChangeAppLifecycleState(state);
     // ServiceLocator.log.i(': $state', tag: 'HomeScreen');
 
-    // 
+    //
     if (state == AppLifecycleState.resumed) {
       // ServiceLocator.log.i('', tag: 'HomeScreen');
       _checkAndReloadIfNeeded();
-      // 
+      //
       _refreshWatchHistory();
     }
   }
@@ -113,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         });
       }
     } catch (e) {
-      // 
+      //
     }
   }
 
@@ -132,11 +140,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
   @override
   void dispose() {
-    _scrollController.dispose(); // 
-    _continueButtonFocusNode.dispose(); // 
-    WidgetsBinding.instance.removeObserver(this); // 
-    AppRouter.routeObserver.unsubscribe(this); // 
-    //  context 
+    _scrollController.dispose(); //
+    _continueButtonFocusNode.dispose(); //
+    WidgetsBinding.instance.removeObserver(this); //
+    AppRouter.routeObserver.unsubscribe(this); //
+    //  context
     super.dispose();
   }
 
@@ -144,12 +152,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     if (!mounted) return;
     final channelProvider = context.read<ChannelProvider>();
 
-    // 
+    //
     if (!channelProvider.isLoading && channelProvider.channels.isNotEmpty) {
-      // ✅ 
+      // ✅
       _hasTriggeredEmptyChannelLoad = false;
-      
-      // 
+
+      //
       if (channelProvider.channels.length != _lastChannelCount ||
           _watchHistoryChannels.isEmpty) {
         _lastChannelCount = channelProvider.channels.length;
@@ -168,69 +176,75 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       _lastPlaylistId = currentPlaylistId;
       _watchHistoryChannels = [];
       _lastChannelCount = 0;
-      _hasTriggeredEmptyChannelLoad = false; // ✅ 
+      _hasTriggeredEmptyChannelLoad = false; // ✅
 
-      // ✅ 
+      // ✅
       if (currentPlaylistId != null) {
         final channelProvider = context.read<ChannelProvider>();
         ServiceLocator.log.i(': $currentPlaylistId', tag: 'HomeScreen');
-        
-        // 1.  setState 
+
+        // 1.  setState
         clearPendingSetState();
-        
-        // 2.  Provider 
-        channelProvider.clearCache(); // 
-        channelProvider.clearLogoLoadingQueue(); // 
-        
-        // 3. 
-        channelProvider.loadAllChannelsToCache(currentPlaylistId);
+
+        // 2.  Provider
+        channelProvider.clearCache(); //
+        channelProvider.clearLogoLoadingQueue(); //
+
+        // 3.
+        _runAfterBuild(() {
+          channelProvider.loadAllChannelsToCache(currentPlaylistId);
+        });
       }
     }
 
     // isLoading  true  false
-    //  M3U 
+    //  M3U
     if (!playlistProvider.isLoading && playlistProvider.hasPlaylists) {
       final channelProvider = context.read<ChannelProvider>();
       final favoritesProvider = context.read<FavoritesProvider>();
       final currentId = playlistProvider.activePlaylist?.id;
-      
-      // ✅ 
+
+      // ✅
       if (!channelProvider.isLoading && currentId != null) {
-        // 
+        //
         if (channelProvider.channels.isEmpty) {
           ServiceLocator.log.i('', tag: 'HomeScreen');
-          
-          // 1.  setState 
+
+          // 1.  setState
           clearPendingSetState();
-          
-          // 2.  Provider 
-          channelProvider.clearCache(); // 
-          channelProvider.clearLogoLoadingQueue(); // 
-          
-          // 3. 
-          channelProvider.loadAllChannelsToCache(currentId);
+
+          // 2.  Provider
+          channelProvider.clearCache(); //
+          channelProvider.clearLogoLoadingQueue(); //
+
+          // 3.
+          _runAfterBuild(() {
+            channelProvider.loadAllChannelsToCache(currentId);
+          });
         }
-        
-        // ✅ 
+
+        // ✅
         ServiceLocator.log.i('', tag: 'HomeScreen');
-        favoritesProvider.loadFavorites();
-        _refreshWatchHistory();
+        _runAfterBuild(() {
+          favoritesProvider.loadFavorites();
+          _refreshWatchHistory();
+        });
       }
     }
   }
 
   void _onFavoritesProviderChanged() {
     if (!mounted) return;
-    // 
+    //
     _refreshWatchHistory();
   }
 
-  /// 
+  ///
   void _checkAndReloadIfNeeded() {
     final playlistProvider = context.read<PlaylistProvider>();
     final channelProvider = context.read<ChannelProvider>();
 
-    // 
+    //
     if (playlistProvider.hasPlaylists &&
         !playlistProvider.isLoading &&
         channelProvider.channels.isEmpty &&
@@ -238,7 +252,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       ServiceLocator.log.w('', tag: 'HomeScreen');
       final activePlaylist = playlistProvider.activePlaylist;
       if (activePlaylist?.id != null) {
-        channelProvider.loadAllChannelsToCache(activePlaylist!.id!);
+        _runAfterBuild(() {
+          channelProvider.loadAllChannelsToCache(activePlaylist!.id!);
+        });
       }
     }
   }
@@ -253,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     final settingsProvider = context.read<SettingsProvider>();
     final epgProvider = context.read<EpgProvider>();
 
-    // 
+    //
     if (!playlistProvider.hasPlaylists) {
       ServiceLocator.log.w('', tag: 'HomeScreen');
       await playlistProvider.loadPlaylists();
@@ -267,9 +283,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           tag: 'HomeScreen');
 
       if (activePlaylist != null && activePlaylist.id != null) {
-        ServiceLocator.log
-            .d(': ', tag: 'HomeScreen');
-        // ✅ 
+        ServiceLocator.log.d(': ', tag: 'HomeScreen');
+        // ✅
         await channelProvider.loadAllChannelsToCache(activePlaylist.id!);
       } else {
         ServiceLocator.log.d('', tag: 'HomeScreen');
@@ -292,8 +307,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           'HomeScreen:  EPG  - activePlaylist.epgUrl=${activePlaylist?.epgUrl}, settingsProvider.epgUrl=${settingsProvider.epgUrl}');
       if (activePlaylist?.epgUrl != null &&
           activePlaylist!.epgUrl!.isNotEmpty) {
-        ServiceLocator.log
-            .d('HomeScreen:  EPG URL: ${activePlaylist.epgUrl}');
+        ServiceLocator.log.d('HomeScreen:  EPG URL: ${activePlaylist.epgUrl}');
         // Background loading - don't block UI
         await epgProvider.loadEpg(
           activePlaylist.epgUrl!,
@@ -315,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         Future.delayed(const Duration(milliseconds: 500), () {
           if (!mounted) return;
 
-          // 
+          //
           final isMultiScreenMode = settingsProvider.lastPlayMode == 'multi' &&
               settingsProvider.hasMultiScreenState;
           Channel? lastChannel;
@@ -327,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                 (c) => c.id == settingsProvider.lastChannelId,
               );
             } catch (_) {
-              // 
+              //
               lastChannel = channelProvider.channels.isNotEmpty
                   ? channelProvider.channels.first
                   : null;
@@ -338,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                 : null;
           }
 
-          // 
+          //
           if (lastChannel != null || isMultiScreenMode) {
             ServiceLocator.log.d(
                 'HomeScreen: Auto-play triggered - isMultiScreen=$isMultiScreenMode');
@@ -355,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
     final playlistProvider = context.read<PlaylistProvider>();
     final activePlaylist = playlistProvider.activePlaylist;
-    
+
     if (activePlaylist?.id == null) {
       if (_watchHistoryChannels.isNotEmpty) {
         throttledSetState(() {
@@ -365,8 +379,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       return;
     }
 
-    // 
-    ServiceLocator.watchHistory.getWatchHistory(activePlaylist!.id!, limit: 20).then((history) {
+    //
+    ServiceLocator.watchHistory
+        .getWatchHistory(activePlaylist!.id!, limit: 20)
+        .then((history) {
       if (mounted) {
         throttledSetState(() {
           _watchHistoryChannels = history;
@@ -405,12 +421,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   void _onNavItemTap(int index) {
     if (index == _selectedNavIndex) return;
 
-    // 
+    //
     clearLogoLoadingQueue();
 
-    immediateSetState(() => _selectedNavIndex = index); // 
-    
-    // ✅ 
+    immediateSetState(() => _selectedNavIndex = index); //
+
+    // ✅
     if (index == 0) {
       _refreshWatchHistory();
     }
@@ -449,7 +465,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       );
     }
 
-    // 
+    //
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -463,18 +479,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
             ],
           ),
         ),
-        // 
+        //
         alignment: Alignment.topCenter,
         child: _buildMobileBody(),
       ),
       bottomNavigationBar: _buildBottomNav(context),
-      // 
+      //
       floatingActionButton:
           PlatformDetector.isMobile ? _buildOrientationFab() : null,
     );
   }
 
-  /// 
+  ///
   Widget _buildOrientationFab() {
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
@@ -482,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         IconData icon;
         String tooltip;
 
-        // 
+        //
         switch (orientation) {
           case 'landscape':
             icon = Icons.screen_rotation_rounded;
@@ -506,13 +522,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     );
   }
 
-  /// 
+  ///
   Future<void> _toggleOrientation(SettingsProvider settings) async {
     String newOrientation;
     List<DeviceOrientation> orientations;
     String message;
 
-    // 
+    //
     if (settings.mobileOrientation == 'portrait') {
       newOrientation = 'landscape';
       orientations = [
@@ -600,17 +616,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
   Widget _buildMainContent(BuildContext context) {
     return Consumer3<PlaylistProvider, ChannelProvider, SettingsProvider>(
-      builder: (context, playlistProvider, channelProvider, settingsProvider, _) {
+      builder:
+          (context, playlistProvider, channelProvider, settingsProvider, _) {
         if (!playlistProvider.hasPlaylists) return _buildEmptyState();
 
-        // 
+        //
         if (playlistProvider.isLoading) {
           return _buildContentLoadingState(playlistProvider, channelProvider);
         }
 
-        // 
-        if (playlistProvider.hasPlaylists && channelProvider.totalContentChannelCount == 0) {
-          // ✅ 
+        //
+        if (playlistProvider.hasPlaylists &&
+            channelProvider.totalContentChannelCount == 0) {
+          // ✅
           if (!_hasTriggeredEmptyChannelLoad && !channelProvider.isLoading) {
             _hasTriggeredEmptyChannelLoad = true;
             //  addPostFrameCallback  build  setState
@@ -624,18 +642,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
               }
             });
           }
-          
-          // ✅ 
+
+          // ✅
           if (channelProvider.isLoading && !_hasTriggeredEmptyChannelLoad) {
             return const Center(
                 child: CircularProgressIndicator(color: AppTheme.primaryColor));
           }
-          
+
           // ✅ UI
           return _buildEmptyChannelsState(playlistProvider);
         }
 
-        // ✅ 
+        // ✅
         if (channelProvider.isLoading) {
           if (channelProvider.totalContentChannelCount == 0) {
             return _buildContentLoadingState(playlistProvider, channelProvider);
@@ -649,18 +667,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         final upNextMedia = _getUpNextMediaChannels(channelProvider);
         final movieChannels = channelProvider.vodChannels.take(12).toList();
         final seriesChannels = channelProvider.seriesChannels.take(12).toList();
-        
+
         // ✅ 8
-        final homeChannelsByGroup = channelProvider.getHomeChannelsByGroup(maxGroups: 8, channelsPerGroup: 12);
+        final homeChannelsByGroup = channelProvider.getHomeChannelsByGroup(
+            maxGroups: 8, channelsPerGroup: 12);
         final homeGroups = channelProvider.getHomeGroups(maxGroups: 8);
 
         return Column(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 
+            //
             _buildCompactHeader(channelProvider),
-            // 
+            //
             if (MediaQuery.of(context).size.width <= 700 ||
                 !PlatformDetector.isMobile)
               _buildCategoryChips(channelProvider),
@@ -669,32 +688,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                         MediaQuery.of(context).size.width > 700
                     ? 0
                     : (PlatformDetector.isMobile ? 2 : 16)), // 0
-            // 
+            //
             Expanded(
               child: CustomScrollView(
-                controller: _scrollController, // 
+                controller: _scrollController, //
                 slivers: [
                   SliverPadding(
                     padding: EdgeInsets.symmetric(
                         horizontal: PlatformDetector.isMobile ? 12 : 24),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        // 
-                        if (settingsProvider.showWatchHistoryOnHome && _watchHistoryChannels.isNotEmpty) ...[
+                        //
+                        if (settingsProvider.showWatchHistoryOnHome &&
+                            _watchHistoryChannels.isNotEmpty) ...[
                           _buildChannelRow(
-                              AppStrings.of(context)?.watchHistory ?? 'Watch History',
+                              AppStrings.of(context)?.watchHistory ??
+                                  'Watch History',
                               _watchHistoryChannels,
-                              isFirstRow: true), // 
+                              isFirstRow: true), //
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
-                        // 
-                        if (settingsProvider.showFavoritesOnHome && favChannels.isNotEmpty) ...[
+                        //
+                        if (settingsProvider.showFavoritesOnHome &&
+                            favChannels.isNotEmpty) ...[
                           _buildChannelRow(
-                              AppStrings.of(context)?.myFavorites ?? 'My Favorites',
+                              AppStrings.of(context)?.myFavorites ??
+                                  'My Favorites',
                               favChannels,
                               showMore: true,
-                              onMoreTap: () => Navigator.pushNamed(context, AppRouter.favorites),
-                              isFirstRow: !settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty), // 
+                              onMoreTap: () => Navigator.pushNamed(
+                                  context, AppRouter.favorites),
+                              isFirstRow:
+                                  !settingsProvider.showWatchHistoryOnHome ||
+                                      _watchHistoryChannels.isEmpty), //
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
                         // Watch Later row
@@ -703,8 +729,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                             'Watch Later',
                             watchLaterChannels,
                             showMore: false,
-                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
-                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty),
+                            isFirstRow:
+                                (!settingsProvider.showWatchHistoryOnHome ||
+                                        _watchHistoryChannels.isEmpty) &&
+                                    (!settingsProvider.showFavoritesOnHome ||
+                                        favChannels.isEmpty),
                           ),
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
@@ -714,9 +743,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                             AppStrings.of(context)?.upNext ?? 'Up Next',
                             upNextMedia,
                             showMore: false,
-                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
-                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
-                                watchLaterChannels.isEmpty,
+                            isFirstRow:
+                                (!settingsProvider.showWatchHistoryOnHome ||
+                                        _watchHistoryChannels.isEmpty) &&
+                                    (!settingsProvider.showFavoritesOnHome ||
+                                        favChannels.isEmpty) &&
+                                    watchLaterChannels.isEmpty,
                           ),
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
@@ -726,11 +758,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                             AppStrings.of(context)?.movies ?? 'Movies',
                             movieChannels,
                             showMore: true,
-                            onMoreTap: () => Navigator.pushNamed(context, AppRouter.movies),
-                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
-                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
-                                watchLaterChannels.isEmpty &&
-                                upNextMedia.isEmpty,
+                            onMoreTap: () =>
+                                Navigator.pushNamed(context, AppRouter.movies),
+                            isFirstRow:
+                                (!settingsProvider.showWatchHistoryOnHome ||
+                                        _watchHistoryChannels.isEmpty) &&
+                                    (!settingsProvider.showFavoritesOnHome ||
+                                        favChannels.isEmpty) &&
+                                    watchLaterChannels.isEmpty &&
+                                    upNextMedia.isEmpty,
                           ),
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
@@ -740,31 +776,38 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                             AppStrings.of(context)?.series ?? 'Series',
                             seriesChannels,
                             showMore: true,
-                            onMoreTap: () => Navigator.pushNamed(context, AppRouter.series),
-                            isFirstRow: (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) &&
-                                (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty) &&
-                              watchLaterChannels.isEmpty &&
-                                upNextMedia.isEmpty &&
-                                movieChannels.isEmpty,
+                            onMoreTap: () =>
+                                Navigator.pushNamed(context, AppRouter.series),
+                            isFirstRow:
+                                (!settingsProvider.showWatchHistoryOnHome ||
+                                        _watchHistoryChannels.isEmpty) &&
+                                    (!settingsProvider.showFavoritesOnHome ||
+                                        favChannels.isEmpty) &&
+                                    watchLaterChannels.isEmpty &&
+                                    upNextMedia.isEmpty &&
+                                    movieChannels.isEmpty,
                           ),
                           SizedBox(height: PlatformDetector.isMobile ? 8 : 12),
                         ],
-                        // ✅ 
+                        // ✅
                         ...homeGroups.asMap().entries.map((entry) {
                           final index = entry.key;
                           final group = entry.value;
-                          // ✅ 
-                          final channels = homeChannelsByGroup[group.name] ?? [];
-                          
-                          // ✅ 
+                          // ✅
+                          final channels =
+                              homeChannelsByGroup[group.name] ?? [];
+
+                          // ✅
                           if (channels.isEmpty) {
                             return const SizedBox.shrink();
                           }
-                          
-                          // 
-                          final isFirst = index == 0 && 
-                              (!settingsProvider.showWatchHistoryOnHome || _watchHistoryChannels.isEmpty) && 
-                              (!settingsProvider.showFavoritesOnHome || favChannels.isEmpty);
+
+                          //
+                          final isFirst = index == 0 &&
+                              (!settingsProvider.showWatchHistoryOnHome ||
+                                  _watchHistoryChannels.isEmpty) &&
+                              (!settingsProvider.showFavoritesOnHome ||
+                                  favChannels.isEmpty);
                           return Padding(
                             padding: EdgeInsets.only(
                                 bottom: PlatformDetector.isMobile ? 8 : 12),
@@ -792,7 +835,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   }
 
   Widget _buildCompactHeader(ChannelProvider provider) {
-    //  -  watch 
+    //  -  watch
     final settingsProvider = context.watch<SettingsProvider>();
     final playlistProvider = context.watch<PlaylistProvider>();
     final activePlaylist = playlistProvider.activePlaylist;
@@ -812,7 +855,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           (c) => c.id == settingsProvider.lastChannelId,
         );
       } catch (_) {
-        // 
+        //
         lastChannel =
             provider.channels.isNotEmpty ? provider.channels.first : null;
       }
@@ -821,7 +864,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           provider.channels.isNotEmpty ? provider.channels.first : null;
     }
 
-    // 
+    //
     String playlistInfo = '';
     if (activePlaylist != null) {
       final type = activePlaylist.isRemote ? 'URL' : '';
@@ -841,9 +884,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         AppStrings.of(context)?.continueWatching ?? 'Continue';
     final isMobile = PlatformDetector.isMobile;
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLandscape = isMobile && screenWidth > 700; // 
+    final isLandscape = isMobile && screenWidth > 700; //
 
-    // 
+    //
     final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
     final topPadding = isMobile
         ? (statusBarHeight > 0 ? statusBarHeight - 10.0 : 0.0)
@@ -853,7 +896,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       // paddingSafeArea
       padding: EdgeInsets.fromLTRB(
           isMobile ? 12 : 24,
-          topPadding, // 
+          topPadding, //
           isMobile ? 12 : 24,
           isMobile ? 2 : 12),
       child: Row(
@@ -932,7 +975,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                     ],
                   ),
                 ),
-                // 
+                //
                 if (!isMobile || MediaQuery.of(context).size.width <= 700) ...[
                   SizedBox(height: isMobile ? 2 : 4),
                   Text(
@@ -956,7 +999,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                       ? () => _continuePlayback(provider, lastChannel,
                           isMultiScreenMode, settingsProvider)
                       : null,
-                  focusNode: _continueButtonFocusNode), // 
+                  focusNode: _continueButtonFocusNode), //
               SizedBox(width: isMobile ? 6 : 10),
               _buildHeaderButton(
                   Icons.playlist_add_rounded,
@@ -981,23 +1024,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     );
   }
 
-  ///  - 
+  ///  -
   void _continuePlayback(ChannelProvider provider, Channel? lastChannel,
       bool isMultiScreenMode, SettingsProvider settingsProvider) {
     ServiceLocator.log
         .i(' - : ${isMultiScreenMode ? "" : ""}', tag: 'HomeScreen');
 
     if (isMultiScreenMode) {
-      // 
+      //
       _resumeMultiScreen(provider, settingsProvider);
     } else if (lastChannel != null) {
-      // 
+      //
       ServiceLocator.log.d(': ${lastChannel.name}', tag: 'HomeScreen');
       _playChannel(lastChannel);
     }
   }
 
-  /// 
+  ///
   Future<void> _showAddPlaylistDialog() async {
     final result = PlatformDetector.isMobile
         ? await showModalBottomSheet<bool>(
@@ -1012,14 +1055,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
             builder: (context) => const AddPlaylistDialog(),
           );
 
-    // 
+    //
     if (result == true && mounted) {
-      _hasTriggeredEmptyChannelLoad = false; // ✅ 
+      _hasTriggeredEmptyChannelLoad = false; // ✅
       _loadData();
     }
   }
 
-  /// 
+  ///
   Future<void> _refreshCurrentPlaylist(PlaylistProvider playlistProvider,
       ChannelProvider channelProvider) async {
     ServiceLocator.log.i('', tag: 'HomeScreen');
@@ -1044,10 +1087,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           // Reload channels
           if (activePlaylist.id != null) {
             await channelProvider.loadChannels(activePlaylist.id!);
-            
+
             // Clear logo cache
             clearAllLogoCache();
-            
+
             // Refresh watch history
             _refreshWatchHistory();
 
@@ -1081,20 +1124,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     );
   }
 
-  /// 
+  ///
   Future<void> _resumeMultiScreen(
       ChannelProvider provider, SettingsProvider settingsProvider) async {
     ServiceLocator.log.i('', tag: 'HomeScreen');
 
     final channels = provider.channels;
     final multiScreenChannelIds = settingsProvider.lastMultiScreenChannels;
-    final multiScreenSourceIndexes = settingsProvider.lastMultiScreenSourceIndexes;
+    final multiScreenSourceIndexes =
+        settingsProvider.lastMultiScreenSourceIndexes;
     final activeIndex = settingsProvider.activeScreenIndex;
 
     ServiceLocator.log.d('ID: $multiScreenChannelIds', tag: 'HomeScreen');
     ServiceLocator.log.d(': $activeIndex', tag: 'HomeScreen');
 
-    //  providers 
+    //  providers
     final favoritesProvider = context.read<FavoritesProvider>();
     NativePlayerChannel.setProviders(
         favoritesProvider, provider, settingsProvider);
@@ -1153,20 +1197,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       );
       ServiceLocator.log.i('', tag: 'HomeScreen');
     } else {
-      // Windows/ Flutter 
+      // Windows/ Flutter
       ServiceLocator.log.d(' Flutter ', tag: 'HomeScreen');
       if (!mounted) return;
 
-      //  MultiScreenProvider 
+      //  MultiScreenProvider
       final multiScreenProvider = context.read<MultiScreenProvider>();
 
-      // 
+      //
       multiScreenProvider.setVolumeSettings(1.0, settingsProvider.volumeBoost);
 
-      // 
+      //
       multiScreenProvider.setActiveScreen(activeIndex);
 
-      // 
+      //
       final futures = <Future>[];
       for (int i = 0; i < multiScreenChannelIds.length && i < 4; i++) {
         final channelId = multiScreenChannelIds[i];
@@ -1175,30 +1219,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
             (c) => c.id == channelId,
             orElse: () => channels.first,
           );
-          final sourceIndex =
-              (i < multiScreenSourceIndexes.length ? multiScreenSourceIndexes[i] : 0)
-                  .clamp(0, channel.sourceCount - 1);
+          final sourceIndex = (i < multiScreenSourceIndexes.length
+                  ? multiScreenSourceIndexes[i]
+                  : 0)
+              .clamp(0, channel.sourceCount - 1);
           final restoredChannel =
               channel.copyWith(currentSourceIndex: sourceIndex);
-          // 
-          futures.add(multiScreenProvider.playChannelOnScreen(i, restoredChannel));
+          //
+          futures
+              .add(multiScreenProvider.playChannelOnScreen(i, restoredChannel));
         }
       }
 
-      // 
+      //
       await Future.wait(futures);
 
       ServiceLocator.log.d('', tag: 'HomeScreen');
 
-      // 
+      //
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // 
+      //
       await multiScreenProvider.reapplyVolumeToAllScreens();
 
       ServiceLocator.log.i('Flutter ', tag: 'HomeScreen');
 
-      // 
+      //
       Channel? initialChannel;
       if (initialChannelIndex >= 0 && initialChannelIndex < channels.length) {
         initialChannel = channels[initialChannelIndex];
@@ -1221,7 +1267,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   }
 
   Widget _buildHeaderButton(
-      IconData icon, String label, bool isPrimary, VoidCallback? onTap, {FocusNode? focusNode}) {
+      IconData icon, String label, bool isPrimary, VoidCallback? onTap,
+      {FocusNode? focusNode}) {
     final isMobile = PlatformDetector.isMobile;
     return TVFocusable(
       focusNode: focusNode, // focusNode
@@ -1253,7 +1300,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           final textColor = isPrimary
               ? Colors.white
               : (isDark ? Colors.white : AppTheme.textPrimaryLight);
-          // 
+          //
           if (isMobile) {
             return Icon(icon, color: textColor, size: 16);
           }
@@ -1310,7 +1357,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           final textColor =
               themeIsDark ? Colors.white : AppTheme.textPrimaryLight;
 
-          // 
+          //
           if (isMobile) {
             return Icon(
                 isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
@@ -1345,7 +1392,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
   Widget _buildCategoryChips(ChannelProvider provider) {
     return _ResponsiveCategoryChips(
-      groups: provider.getHomeGroups(maxGroups: 8), // ✅ 
+      groups: provider.getHomeGroups(maxGroups: 8), // ✅
       onGroupTap: (groupName) => Navigator.pushNamed(
           context, AppRouter.channels,
           arguments: {'groupName': groupName}),
@@ -1355,7 +1402,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
   Widget _buildChannelRow(String title, List<Channel> channels,
       {bool showMore = false,
       VoidCallback? onMoreTap,
-      bool isFirstRow = false}) { // isFirstRow
+      bool isFirstRow = false}) {
+    // isFirstRow
     if (channels.isEmpty) return const SizedBox.shrink();
     final isMobile = PlatformDetector.isMobile;
 
@@ -1407,13 +1455,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
         SizedBox(height: isMobile ? 6 : 8),
         LayoutBuilder(
           builder: (context, constraints) {
-            // 
+            //
             if (channels.isEmpty) {
               return const SizedBox.shrink();
             }
 
             final availableWidth = constraints.maxWidth;
-            // 
+            //
             final cardsPerRow =
                 CardSizeCalculator.calculateHomeCardsPerRow(availableWidth);
             final cardSpacing = CardSizeCalculator.spacing;
@@ -1421,7 +1469,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
             final cardWidth = (availableWidth - totalSpacing) / cardsPerRow;
             final cardHeight = cardWidth / CardSizeCalculator.aspectRatio();
 
-            // 
+            //
             final displayCount = cardsPerRow.clamp(1, channels.length);
 
             return SizedBox(
@@ -1441,8 +1489,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                         onUp: isFirstRow && PlatformDetector.isTV
                             ? () {
                                 // TV""
-                                if (_scrollController.hasClients && _scrollController.offset > 0) {
-                                  // 
+                                if (_scrollController.hasClients &&
+                                    _scrollController.offset > 0) {
+                                  //
                                   _scrollController.animateTo(
                                     0,
                                     duration: const Duration(milliseconds: 300),
@@ -1475,39 +1524,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
     final channelProvider = context.read<ChannelProvider>();
     final favoritesProvider = context.read<FavoritesProvider>();
 
-    //  providers 
+    //  providers
     NativePlayerChannel.setProviders(
         favoritesProvider, channelProvider, settingsProvider);
 
     if (settingsProvider.rememberLastChannel && channel.id != null) {
-      // 
+      //
       settingsProvider.saveLastSingleChannel(channel.id);
     }
 
-    // 
+    //
     if (settingsProvider.enableMultiScreen) {
-      // TV 
+      // TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
-        // ✅ 
+        // ✅
         final channels = channelProvider.allChannels;
 
-        // 
+        //
         final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
 
         // TV
         if (channel.id != null && channel.playlistId != null) {
-          await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId!);
-          ServiceLocator.log.d('HomeScreen: Recorded watch history for channel ${channel.name} (TV multi-screen)');
+          await ServiceLocator.watchHistory
+              .addWatchHistory(channel.id!, channel.playlistId!);
+          ServiceLocator.log.d(
+              'HomeScreen: Recorded watch history for channel ${channel.name} (TV multi-screen)');
         }
 
-        // 
+        //
         final urls = channels.map((c) => c.url).toList();
         final names = channels.map((c) => c.name).toList();
         final groups = channels.map((c) => c.groupName ?? '').toList();
         final sources = channels.map((c) => c.sources).toList();
         final logos = channels.map((c) => c.logoUrl ?? '').toList();
 
-        // 
+        //
         await NativePlayerChannel.launchMultiScreen(
           urls: urls,
           names: names,
@@ -1519,13 +1570,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           defaultScreenPosition: settingsProvider.defaultScreenPosition,
           showChannelName: settingsProvider.showMultiScreenChannelName,
           onClosed: () {
-            ServiceLocator.log.d('HomeScreen: Native multi-screen closed, refreshing watch history');
+            ServiceLocator.log.d(
+                'HomeScreen: Native multi-screen closed, refreshing watch history');
             // TV
             _refreshWatchHistory();
           },
         );
       } else if (PlatformDetector.isDesktop) {
-        // 
+        //
         final multiScreenProvider = context.read<MultiScreenProvider>();
         final defaultPosition = settingsProvider.defaultScreenPosition;
         // Provider
@@ -1541,7 +1593,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
           'channelLogo': null,
         });
       } else {
-        // 
+        //
         context.read<PlayerProvider>().playChannel(channel);
         Navigator.pushNamed(context, AppRouter.player, arguments: {
           'channelUrl': channel.url,
@@ -1581,12 +1633,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
 
     if (source.isEmpty) return const [];
 
-    final historyIds = _watchHistoryChannels
-        .map((c) => c.id)
-        .whereType<int>()
-        .toSet();
+    final historyIds =
+        _watchHistoryChannels.map((c) => c.id).whereType<int>().toSet();
 
-    final unseen = source.where((c) => c.id == null || !historyIds.contains(c.id)).toList();
+    final unseen = source
+        .where((c) => c.id == null || !historyIds.contains(c.id))
+        .toList();
     final prioritized = unseen.isNotEmpty ? unseen : source;
     return prioritized.take(12).toList();
   }
@@ -1601,7 +1653,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
       ...provider.seriesChannels,
     ];
 
-    return all.where((c) => c.id != null && ids.contains(c.id)).take(20).toList();
+    return all
+        .where((c) => c.id != null && ids.contains(c.id))
+        .take(20)
+        .toList();
   }
 
   Widget _buildEmptyState() {
@@ -1850,8 +1905,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
             decoration: BoxDecoration(
                 gradient: AppTheme.getGradient(context),
                 borderRadius: BorderRadius.circular(24)),
-            child: const Icon(Icons.tv_off_rounded,
-                size: 48, color: Colors.white),
+            child:
+                const Icon(Icons.tv_off_rounded, size: 48, color: Colors.white),
           ),
           const SizedBox(height: 20),
           Text('No Channels',
@@ -1895,7 +1950,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                    const Icon(Icons.add_rounded,
+                        size: 18, color: Colors.white),
                     const SizedBox(width: 8),
                     Text(
                       AppStrings.of(context)?.addPlaylist ?? 'Add Playlist',
@@ -1936,8 +1992,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.refresh_rounded,
-                          size: 18,
-                          color: AppTheme.getTextPrimary(context)),
+                          size: 18, color: AppTheme.getTextPrimary(context)),
                       const SizedBox(width: 8),
                       Text(
                         AppStrings.of(context)?.refresh ?? 'Refresh',
@@ -1950,8 +2005,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                   ),
                 ),
               TVFocusable(
-                onSelect: () => Navigator.pushNamed(
-                    context, AppRouter.playlistList),
+                onSelect: () =>
+                    Navigator.pushNamed(context, AppRouter.playlistList),
                 focusScale: 1.0,
                 showFocusBorder: false,
                 builder: (context, isFocused, child) {
@@ -1976,8 +2031,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Ro
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.playlist_play_rounded,
-                        size: 18,
-                        color: AppTheme.getTextPrimary(context)),
+                        size: 18, color: AppTheme.getTextPrimary(context)),
                     const SizedBox(width: 8),
                     Text(
                       AppStrings.of(context)?.playlistList ?? 'Playlists',
@@ -2003,7 +2057,7 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-///  - 
+///  -
 class _ResponsiveCategoryChips extends StatefulWidget {
   final List<dynamic> groups;
   final Function(String) onGroupTap;
@@ -2018,7 +2072,8 @@ class _ResponsiveCategoryChips extends StatefulWidget {
       _ResponsiveCategoryChipsState();
 }
 
-class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with ThrottledStateMixin {
+class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips>
+    with ThrottledStateMixin {
   bool _isExpanded = false;
 
   @override
@@ -2031,7 +2086,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
         final availableWidth = constraints.maxWidth - horizontalPadding * 2;
 
         //  chip  +  + padding
-        // 
+        //
         final estimatedChipWidth = isMobile ? 75.0 : 110.0;
         final maxVisibleCount = (availableWidth / estimatedChipWidth).floor();
 
@@ -2040,7 +2095,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
           return _buildExpandedView(isMobile, horizontalPadding);
         }
 
-        //  + 
+        //  +
         return _buildCollapsedView(
             maxVisibleCount, isMobile, horizontalPadding);
       },
@@ -2067,7 +2122,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
 
   Widget _buildCollapsedView(
       int maxVisible, bool isMobile, double horizontalPadding) {
-    //  4 
+    //  4
     final visibleCount = (maxVisible - 1).clamp(3, widget.groups.length);
 
     return Padding(
@@ -2097,8 +2152,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
       builder: (context, isFocused, child) {
         return Container(
           padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 8 : 12,
-              vertical: isMobile ? 3 : 8), // 53
+              horizontal: isMobile ? 8 : 12, vertical: isMobile ? 3 : 8), // 53
           decoration: BoxDecoration(
             gradient: isFocused
                 ? AppTheme.getGradient(context)
@@ -2130,14 +2184,13 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
 
   Widget _buildExpandButton(int hiddenCount, bool isMobile) {
     return TVFocusable(
-      onSelect: () => immediateSetState(() => _isExpanded = true), // 
+      onSelect: () => immediateSetState(() => _isExpanded = true), //
       focusScale: 1.0,
       showFocusBorder: false,
       builder: (context, isFocused, child) {
         return Container(
           padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 8 : 12,
-              vertical: isMobile ? 3 : 8), // 53
+              horizontal: isMobile ? 8 : 12, vertical: isMobile ? 3 : 8), // 53
           decoration: BoxDecoration(
             gradient: isFocused
                 ? AppTheme.getGradient(context)
@@ -2169,14 +2222,13 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
 
   Widget _buildCollapseButton(bool isMobile) {
     return TVFocusable(
-      onSelect: () => immediateSetState(() => _isExpanded = false), // 
+      onSelect: () => immediateSetState(() => _isExpanded = false), //
       focusScale: 1.0,
       showFocusBorder: false,
       builder: (context, isFocused, child) {
         return Container(
           padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 8 : 12,
-              vertical: isMobile ? 3 : 8), // 53
+              horizontal: isMobile ? 8 : 12, vertical: isMobile ? 3 : 8), // 53
           decoration: BoxDecoration(
             gradient: isFocused
                 ? AppTheme.getGradient(context)
@@ -2207,7 +2259,7 @@ class _ResponsiveCategoryChipsState extends State<_ResponsiveCategoryChips> with
   }
 }
 
-///  -  Selector 
+///  -  Selector
 class _OptimizedChannelCard extends StatelessWidget {
   final Channel channel;
   final VoidCallback onTap;
@@ -2221,7 +2273,7 @@ class _OptimizedChannelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //  Selector  EPG 
+    //  Selector  EPG
     return Selector2<FavoritesProvider, EpgProvider, _ChannelCardData>(
       selector: (_, favProvider, epgProvider) {
         final currentProgram =
@@ -2238,7 +2290,7 @@ class _OptimizedChannelCard extends StatelessWidget {
         return ChannelCard(
           name: channel.name,
           logoUrl: channel.logoUrl,
-          channel: channel, //  channel 
+          channel: channel, //  channel
           groupName: channel.groupName,
           currentProgram: data.currentProgram,
           nextProgram: data.nextProgram,
@@ -2253,7 +2305,7 @@ class _OptimizedChannelCard extends StatelessWidget {
   }
 }
 
-///  Selector 
+///  Selector
 class _ChannelCardData {
   final bool isFavorite;
   final String? currentProgram;
@@ -2278,7 +2330,7 @@ class _ChannelCardData {
   int get hashCode => Object.hash(isFavorite, currentProgram, nextProgram);
 }
 
-/// 
+///
 class _EmbeddedChannelsScreen extends StatefulWidget {
   const _EmbeddedChannelsScreen();
 
@@ -2291,7 +2343,7 @@ class _EmbeddedChannelsScreenState extends State<_EmbeddedChannelsScreen> {
   @override
   void initState() {
     super.initState();
-    // 
+    //
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChannelProvider>().clearGroupFilter();
     });
@@ -2303,7 +2355,7 @@ class _EmbeddedChannelsScreenState extends State<_EmbeddedChannelsScreen> {
   }
 }
 
-/// 
+///
 class _EmbeddedFavoritesScreen extends StatelessWidget {
   const _EmbeddedFavoritesScreen();
 
@@ -2313,7 +2365,7 @@ class _EmbeddedFavoritesScreen extends StatelessWidget {
   }
 }
 
-/// 
+///
 class _EmbeddedPlaylistListScreen extends StatelessWidget {
   const _EmbeddedPlaylistListScreen();
 
@@ -2323,7 +2375,7 @@ class _EmbeddedPlaylistListScreen extends StatelessWidget {
   }
 }
 
-/// 
+///
 class _EmbeddedSearchScreen extends StatelessWidget {
   const _EmbeddedSearchScreen();
 
@@ -2333,7 +2385,7 @@ class _EmbeddedSearchScreen extends StatelessWidget {
   }
 }
 
-/// 
+///
 class _EmbeddedSettingsScreen extends StatelessWidget {
   const _EmbeddedSettingsScreen();
 

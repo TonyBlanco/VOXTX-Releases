@@ -56,7 +56,9 @@ class _SeriesScreenState extends State<SeriesScreen> {
     if (activeId == null || channelProvider.isLoading) return;
 
     if (channelProvider.seriesChannels.isEmpty) {
-      ServiceLocator.log.i('SeriesScreen: Series vacío, recargando canales del playlist activo $activeId', tag: 'SeriesScreen');
+      ServiceLocator.log.i(
+          'SeriesScreen: Series vacío, recargando canales del playlist activo $activeId',
+          tag: 'SeriesScreen');
       await channelProvider.loadAllChannelsToCache(activeId);
     }
   }
@@ -126,7 +128,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final isFavorite = favoritesProvider.isFavorite(seriesChannel.id ?? 0);
+            final isFavorite =
+                favoritesProvider.isFavorite(seriesChannel.id ?? 0);
 
             return SafeArea(
               child: SizedBox(
@@ -142,8 +145,10 @@ class _SeriesScreenState extends State<SeriesScreen> {
                             const CircularProgressIndicator(),
                             const SizedBox(height: 12),
                             Text(
-                              _tr('Descargando capítulos…', 'Downloading episodes…'),
-                              style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                              _tr('Descargando capítulos…',
+                                  'Downloading episodes…'),
+                              style: TextStyle(
+                                  color: AppTheme.getTextPrimary(context)),
                             ),
                           ],
                         ),
@@ -157,7 +162,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _tr('No se pudieron cargar los capítulos', 'Could not load episodes'),
+                              _tr('No se pudieron cargar los capítulos',
+                                  'Could not load episodes'),
                               style: TextStyle(
                                 color: AppTheme.getTextPrimary(context),
                                 fontSize: 18,
@@ -170,12 +176,16 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                 'Esta serie no trae lista de capítulos en el proveedor o faltan datos de series_id. Sin capítulos no se puede iniciar reproducción.',
                                 'This series does not provide episode list in the provider, or series_id is missing. Without episodes, playback cannot start.',
                               ),
-                              style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13),
+                              style: TextStyle(
+                                  color: AppTheme.getTextSecondary(context),
+                                  fontSize: 13),
                             ),
                             const SizedBox(height: 10),
                             Text(
                               '${snapshot.error}',
-                              style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 12),
+                              style: TextStyle(
+                                  color: AppTheme.getTextMuted(context),
+                                  fontSize: 12),
                             ),
                             const Spacer(),
                             Align(
@@ -194,8 +204,10 @@ class _SeriesScreenState extends State<SeriesScreen> {
                     if (episodes.isEmpty) {
                       return Center(
                         child: Text(
-                          _tr('No hay capítulos disponibles para esta serie', 'No episodes available for this series'),
-                          style: TextStyle(color: AppTheme.getTextSecondary(context)),
+                          _tr('No hay capítulos disponibles para esta serie',
+                              'No episodes available for this series'),
+                          style: TextStyle(
+                              color: AppTheme.getTextSecondary(context)),
                         ),
                       );
                     }
@@ -230,7 +242,9 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                   ),
                                   IconButton(
                                     onPressed: () => Navigator.pop(context),
-                                    icon: Icon(Icons.close, color: AppTheme.getTextPrimary(context)),
+                                    icon: Icon(Icons.close,
+                                        color:
+                                            AppTheme.getTextPrimary(context)),
                                   ),
                                 ],
                               ),
@@ -239,29 +253,38 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                 future: detailsFuture,
                                 builder: (context, detailsSnapshot) {
                                   final info = detailsSnapshot.data;
-                                  final hasRating = (info?.imdbRating.isNotEmpty ?? false) && info!.imdbRating != 'N/A';
-                                  final hasYear = (info?.year.isNotEmpty ?? false) && info!.year != 'N/A';
-                                  final hasPlot = (info?.plot.isNotEmpty ?? false) && info!.plot != 'N/A';
+                                  final hasRating =
+                                      (info?.imdbRating.isNotEmpty ?? false) &&
+                                          info!.imdbRating != 'N/A';
+                                  final hasYear =
+                                      (info?.year.isNotEmpty ?? false) &&
+                                          info!.year != 'N/A';
+                                  final hasPlot =
+                                      (info?.plot.isNotEmpty ?? false) &&
+                                          info!.plot != 'N/A';
 
                                   if (!hasRating && !hasYear && !hasPlot) {
                                     return const SizedBox.shrink();
                                   }
 
                                   final meta = [
-                                    if (hasYear) '${_tr('Año', 'Year')}: ${info.year}',
+                                    if (hasYear)
+                                      '${_tr('Año', 'Year')}: ${info.year}',
                                     if (hasRating) 'IMDb ${info.imdbRating}',
                                   ].join(' · ');
 
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         if (meta.isNotEmpty)
                                           Text(
                                             meta,
                                             style: TextStyle(
-                                              color: AppTheme.getTextSecondary(context),
+                                              color: AppTheme.getTextSecondary(
+                                                  context),
                                               fontSize: 12,
                                             ),
                                           ),
@@ -271,7 +294,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
-                                              color: AppTheme.getTextMuted(context),
+                                              color: AppTheme.getTextMuted(
+                                                  context),
                                               fontSize: 11,
                                             ),
                                           ),
@@ -284,14 +308,17 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                 children: [
                                   TVFocusable(
                                     onSelect: () async {
-                                      await favoritesProvider.toggleFavorite(seriesChannel);
+                                      await favoritesProvider
+                                          .toggleFavorite(seriesChannel);
                                       if (context.mounted) setSheetState(() {});
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: isFavorite
-                                            ? AppTheme.getPrimaryColor(context).withOpacity(0.2)
+                                            ? AppTheme.getPrimaryColor(context)
+                                                .withOpacity(0.2)
                                             : AppTheme.getCardColor(context),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
@@ -299,16 +326,23 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
+                                            isFavorite
+                                                ? Icons.favorite
+                                                : Icons.favorite_border_rounded,
                                             size: 16,
                                             color: isFavorite
-                                                ? AppTheme.getPrimaryColor(context)
-                                                : AppTheme.getTextSecondary(context),
+                                                ? AppTheme.getPrimaryColor(
+                                                    context)
+                                                : AppTheme.getTextSecondary(
+                                                    context),
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
                                             _tr('Favorito', 'Favorite'),
-                                            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12),
+                                            style: TextStyle(
+                                                color: AppTheme.getTextPrimary(
+                                                    context),
+                                                fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -317,14 +351,18 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                   const SizedBox(width: 8),
                                   TVFocusable(
                                     onSelect: () async {
-                                      watchLater = await ServiceLocator.watchLater.toggle(seriesChannel.id);
+                                      watchLater = await ServiceLocator
+                                          .watchLater
+                                          .toggle(seriesChannel.id);
                                       if (context.mounted) setSheetState(() {});
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
                                         color: watchLater
-                                            ? AppTheme.getPrimaryColor(context).withOpacity(0.2)
+                                            ? AppTheme.getPrimaryColor(context)
+                                                .withOpacity(0.2)
                                             : AppTheme.getCardColor(context),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
@@ -332,16 +370,23 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            watchLater ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                            watchLater
+                                                ? Icons.bookmark_rounded
+                                                : Icons.bookmark_border_rounded,
                                             size: 16,
                                             color: watchLater
-                                                ? AppTheme.getPrimaryColor(context)
-                                                : AppTheme.getTextSecondary(context),
+                                                ? AppTheme.getPrimaryColor(
+                                                    context)
+                                                : AppTheme.getTextSecondary(
+                                                    context),
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
                                             _tr('Ver luego', 'Watch later'),
-                                            style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12),
+                                            style: TextStyle(
+                                                color: AppTheme.getTextPrimary(
+                                                    context),
+                                                fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -358,7 +403,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                             itemBuilder: (context, index) {
                               final season = seasons[index];
                               final items = grouped[season]!
-                                ..sort((a, b) => a.episodeNumber.compareTo(b.episodeNumber));
+                                ..sort((a, b) =>
+                                    a.episodeNumber.compareTo(b.episodeNumber));
 
                               return ExpansionTile(
                                 initiallyExpanded: index == 0,
@@ -375,11 +421,16 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                       ep.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context)),
                                     ),
                                     subtitle: Text(
-                                      _tr('Capítulo ${ep.episodeNumber}', 'Episode ${ep.episodeNumber}'),
-                                      style: TextStyle(color: AppTheme.getTextMuted(context)),
+                                      _tr('Capítulo ${ep.episodeNumber}',
+                                          'Episode ${ep.episodeNumber}'),
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextMuted(context)),
                                     ),
                                     trailing: Icon(
                                       Icons.play_arrow_rounded,
@@ -392,7 +443,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                                         AppRouter.player,
                                         arguments: {
                                           'channelUrl': ep.url,
-                                          'channelName': '${seriesChannel.name} · ${_tr('T', 'S')}${ep.season}${_tr('C', 'E')}${ep.episodeNumber}',
+                                          'channelName':
+                                              '${seriesChannel.name} · ${_tr('T', 'S')}${ep.season}${_tr('C', 'E')}${ep.episodeNumber}',
                                           'channelLogo': seriesChannel.logoUrl,
                                           'isMultiScreen': false,
                                         },
@@ -416,10 +468,12 @@ class _SeriesScreenState extends State<SeriesScreen> {
     );
   }
 
-  Future<List<_SeriesEpisode>> _fetchSeriesEpisodes(Channel seriesChannel) async {
+  Future<List<_SeriesEpisode>> _fetchSeriesEpisodes(
+      Channel seriesChannel) async {
     final creds = _parseSeriesCredentials(seriesChannel.url);
     if (creds == null) {
-      throw Exception(_tr('URL de serie inválida o incompleta', 'Invalid or incomplete series URL'));
+      throw Exception(_tr('URL de serie inválida o incompleta',
+          'Invalid or incomplete series URL'));
     }
 
     final base = creds['base']!;
@@ -427,7 +481,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
     final pass = creds['password']!;
     final seriesId = creds['seriesId']!;
 
-    final infoUrl = '$base/player_api.php?username=${Uri.encodeComponent(user)}&password=${Uri.encodeComponent(pass)}&action=get_series_info&series_id=${Uri.encodeComponent(seriesId)}';
+    final infoUrl =
+        '$base/player_api.php?username=${Uri.encodeComponent(user)}&password=${Uri.encodeComponent(pass)}&action=get_series_info&series_id=${Uri.encodeComponent(seriesId)}';
 
     Response<dynamic>? resp;
     final retryDelays = <Duration>[
@@ -473,17 +528,20 @@ class _SeriesScreenState extends State<SeriesScreen> {
     }
 
     if (resp == null) {
-      throw Exception(_tr('No se recibió respuesta de capítulos', 'No episodes response received'));
+      throw Exception(_tr('No se recibió respuesta de capítulos',
+          'No episodes response received'));
     }
 
     if (resp.statusCode != 200 || resp.data is! Map) {
-      throw Exception(_tr('Error al consultar capítulos en Xtream', 'Failed to query episodes from Xtream'));
+      throw Exception(_tr('Error al consultar capítulos en Xtream',
+          'Failed to query episodes from Xtream'));
     }
 
     final data = resp.data as Map;
     final episodesRaw = data['episodes'];
     if (episodesRaw is! Map || episodesRaw.isEmpty) {
-      throw Exception(_tr('El proveedor no devolvió capítulos para esta serie', 'Provider returned no episodes for this series'));
+      throw Exception(_tr('El proveedor no devolvió capítulos para esta serie',
+          'Provider returned no episodes for this series'));
     }
 
     final result = <_SeriesEpisode>[];
@@ -496,13 +554,17 @@ class _SeriesScreenState extends State<SeriesScreen> {
       for (final raw in list) {
         if (raw is! Map) continue;
 
-        final episodeId = (raw['id'] ?? raw['episode_id'] ?? raw['stream_id'])?.toString();
+        final episodeId =
+            (raw['id'] ?? raw['episode_id'] ?? raw['stream_id'])?.toString();
         if (episodeId == null || episodeId.isEmpty) continue;
 
-        final extension = (raw['container_extension']?.toString() ?? 'mp4').replaceAll('.', '');
+        final extension = (raw['container_extension']?.toString() ?? 'mp4')
+            .replaceAll('.', '');
         final directSource = raw['direct_source']?.toString();
         final title = (raw['title'] ?? raw['name'] ?? 'Episode').toString();
-        final episodeNumber = int.tryParse((raw['episode_num'] ?? raw['episode'] ?? '0').toString()) ?? 0;
+        final episodeNumber = int.tryParse(
+                (raw['episode_num'] ?? raw['episode'] ?? '0').toString()) ??
+            0;
 
         final playUrl = (directSource != null && directSource.isNotEmpty)
             ? directSource
@@ -593,7 +655,7 @@ class _SeriesScreenState extends State<SeriesScreen> {
 
   Widget _buildTVLayout() {
     return TVSidebar(
-      selectedIndex: 3, // Series is index 3
+      selectedIndex: 4, // Series is index 4
       child: Consumer<ChannelProvider>(
         builder: (context, provider, _) {
           final groups = provider.seriesGroups;
@@ -623,18 +685,23 @@ class _SeriesScreenState extends State<SeriesScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                    child: const Icon(Icons.arrow_back,
+                        color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     AppStrings.of(context)?.series ?? 'Series',
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: () => _showMobileGroupsBottomSheet(context, groups),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -643,11 +710,14 @@ class _SeriesScreenState extends State<SeriesScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _selectedGroup ?? (AppStrings.of(context)?.allChannels ?? 'All'),
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            _selectedGroup ??
+                                (AppStrings.of(context)?.allChannels ?? 'All'),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.expand_more, color: Colors.white, size: 16),
+                          const Icon(Icons.expand_more,
+                              color: Colors.white, size: 16),
                         ],
                       ),
                     ),
@@ -662,11 +732,13 @@ class _SeriesScreenState extends State<SeriesScreen> {
     );
   }
 
-  void _showMobileGroupsBottomSheet(BuildContext context, List<ChannelGroup> groups) {
+  void _showMobileGroupsBottomSheet(
+      BuildContext context, List<ChannelGroup> groups) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.getSurfaceColor(context),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -675,7 +747,10 @@ class _SeriesScreenState extends State<SeriesScreen> {
               padding: const EdgeInsets.all(12),
               child: Text(
                 AppStrings.of(context)?.categories ?? 'Categories',
-                style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             ),
             const Divider(height: 1),
@@ -684,17 +759,30 @@ class _SeriesScreenState extends State<SeriesScreen> {
                 shrinkWrap: true,
                 children: [
                   ListTile(
-                    title: Text(AppStrings.of(context)?.allChannels ?? 'All Series'),
-                    leading: Icon(Icons.video_library_rounded, color: _selectedGroup == null ? AppTheme.getPrimaryColor(context) : AppTheme.getTextSecondary(context)),
+                    title: Text(
+                        AppStrings.of(context)?.allChannels ?? 'All Series'),
+                    leading: Icon(Icons.video_library_rounded,
+                        color: _selectedGroup == null
+                            ? AppTheme.getPrimaryColor(context)
+                            : AppTheme.getTextSecondary(context)),
                     selected: _selectedGroup == null,
-                    onTap: () { setState(() => _selectedGroup = null); Navigator.pop(ctx); },
+                    onTap: () {
+                      setState(() => _selectedGroup = null);
+                      Navigator.pop(ctx);
+                    },
                   ),
                   ...groups.map((g) => ListTile(
-                    title: Text(g.name),
-                    leading: Icon(Icons.folder_rounded, color: _selectedGroup == g.name ? AppTheme.getPrimaryColor(context) : AppTheme.getTextSecondary(context)),
-                    selected: _selectedGroup == g.name,
-                    onTap: () { setState(() => _selectedGroup = g.name); Navigator.pop(ctx); },
-                  )),
+                        title: Text(g.name),
+                        leading: Icon(Icons.folder_rounded,
+                            color: _selectedGroup == g.name
+                                ? AppTheme.getPrimaryColor(context)
+                                : AppTheme.getTextSecondary(context)),
+                        selected: _selectedGroup == g.name,
+                        onTap: () {
+                          setState(() => _selectedGroup = g.name);
+                          Navigator.pop(ctx);
+                        },
+                      )),
                 ],
               ),
             ),
@@ -704,10 +792,13 @@ class _SeriesScreenState extends State<SeriesScreen> {
     );
   }
 
-  Widget _buildGroupsSidebar(List<ChannelGroup> groups, ChannelProvider provider) {
+  Widget _buildGroupsSidebar(
+      List<ChannelGroup> groups, ChannelProvider provider) {
     final totalGroups = groups.length + 1;
-    while (_groupFocusNodes.length < totalGroups) _groupFocusNodes.add(FocusNode());
-    while (_groupFocusNodes.length > totalGroups) _groupFocusNodes.removeLast().dispose();
+    while (_groupFocusNodes.length < totalGroups)
+      _groupFocusNodes.add(FocusNode());
+    while (_groupFocusNodes.length > totalGroups)
+      _groupFocusNodes.removeLast().dispose();
 
     return FocusTraversalGroup(
       child: Container(
@@ -717,10 +808,23 @@ class _SeriesScreenState extends State<SeriesScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: Theme.of(context).brightness == Brightness.dark
-                ? [AppTheme.getBackgroundColor(context), AppTheme.getPrimaryColor(context).withOpacity(0.15), AppTheme.getBackgroundColor(context)]
-                : [AppTheme.getBackgroundColor(context), AppTheme.getBackgroundColor(context).withOpacity(0.9), AppTheme.getPrimaryColor(context).withOpacity(0.08)],
+                ? [
+                    AppTheme.getBackgroundColor(context),
+                    AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                    AppTheme.getBackgroundColor(context)
+                  ]
+                : [
+                    AppTheme.getBackgroundColor(context),
+                    AppTheme.getBackgroundColor(context).withOpacity(0.9),
+                    AppTheme.getPrimaryColor(context).withOpacity(0.08)
+                  ],
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(2, 0))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(2, 0))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -733,10 +837,18 @@ class _SeriesScreenState extends State<SeriesScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: Theme.of(context).brightness == Brightness.dark
-                      ? [const Color(0xFF0A0A0A), AppTheme.getPrimaryColor(context).withOpacity(0.1)]
-                      : [const Color(0xFFE0E0E0), AppTheme.getPrimaryColor(context).withOpacity(0.12)],
+                      ? [
+                          const Color(0xFF0A0A0A),
+                          AppTheme.getPrimaryColor(context).withOpacity(0.1)
+                        ]
+                      : [
+                          const Color(0xFFE0E0E0),
+                          AppTheme.getPrimaryColor(context).withOpacity(0.12)
+                        ],
                 ),
-                border: Border(bottom: BorderSide(color: AppTheme.getCardColor(context), width: 1)),
+                border: Border(
+                    bottom: BorderSide(
+                        color: AppTheme.getCardColor(context), width: 1)),
               ),
               child: Row(
                 children: [
@@ -745,15 +857,21 @@ class _SeriesScreenState extends State<SeriesScreen> {
                     focusScale: 1.1,
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppTheme.getCardColor(context), borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.arrow_back_rounded, color: AppTheme.getTextPrimary(context), size: 20),
+                      decoration: BoxDecoration(
+                          color: AppTheme.getCardColor(context),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.arrow_back_rounded,
+                          color: AppTheme.getTextPrimary(context), size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       AppStrings.of(context)?.series ?? 'Series',
-                      style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -766,16 +884,21 @@ class _SeriesScreenState extends State<SeriesScreen> {
                 name: AppStrings.of(context)?.allChannels ?? 'All Series',
                 count: provider.seriesChannelCount,
                 isSelected: _selectedGroup == null,
-                focusNode: _groupFocusNodes.isNotEmpty ? _groupFocusNodes[0] : null,
+                focusNode:
+                    _groupFocusNodes.isNotEmpty ? _groupFocusNodes[0] : null,
                 groupIndex: 0,
-                onTap: () => setState(() { _selectedGroup = null; _currentGroupIndex = 0; }),
+                onTap: () => setState(() {
+                  _selectedGroup = null;
+                  _currentGroupIndex = 0;
+                }),
               ),
             ),
             Divider(color: AppTheme.getCardColor(context), height: 1),
             Expanded(
               child: ListView.builder(
                 controller: _groupScrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 itemCount: groups.length,
                 itemBuilder: (context, index) {
                   final g = groups[index];
@@ -784,9 +907,14 @@ class _SeriesScreenState extends State<SeriesScreen> {
                     name: g.name,
                     count: g.channelCount,
                     isSelected: _selectedGroup == g.name,
-                    focusNode: focusIndex < _groupFocusNodes.length ? _groupFocusNodes[focusIndex] : null,
+                    focusNode: focusIndex < _groupFocusNodes.length
+                        ? _groupFocusNodes[focusIndex]
+                        : null,
                     groupIndex: focusIndex,
-                    onTap: () => setState(() { _selectedGroup = g.name; _currentGroupIndex = focusIndex; }),
+                    onTap: () => setState(() {
+                      _selectedGroup = g.name;
+                      _currentGroupIndex = focusIndex;
+                    }),
                   );
                 },
               ),
@@ -814,7 +942,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
             ? () {
                 _currentGroupIndex = groupIndex;
                 _groupSelectTimer?.cancel();
-                _groupSelectTimer = Timer(const Duration(milliseconds: 300), () {
+                _groupSelectTimer =
+                    Timer(const Duration(milliseconds: 300), () {
                   if (mounted) {
                     _scrollController.jumpTo(0);
                     onTap();
@@ -824,7 +953,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
             : null,
         onRight: PlatformDetector.isTV
             ? () {
-                if (_itemFocusNodes.isNotEmpty) _itemFocusNodes[0].requestFocus();
+                if (_itemFocusNodes.isNotEmpty)
+                  _itemFocusNodes[0].requestFocus();
               }
             : null,
         child: Container(
@@ -837,8 +967,11 @@ class _SeriesScreenState extends State<SeriesScreen> {
           child: Row(
             children: [
               Icon(
-                isSelected ? Icons.video_library_rounded : Icons.chevron_right_rounded,
-                color: isSelected ? Colors.white : AppTheme.getTextMuted(context),
+                isSelected
+                    ? Icons.video_library_rounded
+                    : Icons.chevron_right_rounded,
+                color:
+                    isSelected ? Colors.white : AppTheme.getTextMuted(context),
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -848,22 +981,29 @@ class _SeriesScreenState extends State<SeriesScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.getTextSecondary(context),
                     fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white.withOpacity(0.25) : AppTheme.getCardColor(context),
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.25)
+                      : AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   count.toString(),
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.getTextMuted(context),
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.getTextMuted(context),
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -882,19 +1022,23 @@ class _SeriesScreenState extends State<SeriesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.video_library_outlined, size: 64, color: AppTheme.getTextMuted(context)),
+            Icon(Icons.video_library_outlined,
+                size: 64, color: AppTheme.getTextMuted(context)),
             const SizedBox(height: 16),
             Text(
               AppStrings.of(context)?.noResultsFound ?? 'No series found',
-              style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 16),
+              style: TextStyle(
+                  color: AppTheme.getTextMuted(context), fontSize: 16),
             ),
           ],
         ),
       );
     }
 
-    while (_itemFocusNodes.length < items.length) _itemFocusNodes.add(FocusNode());
-    while (_itemFocusNodes.length > items.length) _itemFocusNodes.removeLast().dispose();
+    while (_itemFocusNodes.length < items.length)
+      _itemFocusNodes.add(FocusNode());
+    while (_itemFocusNodes.length > items.length)
+      _itemFocusNodes.removeLast().dispose();
 
     return ListView.builder(
       controller: _scrollController,
@@ -902,7 +1046,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        final focusNode = index < _itemFocusNodes.length ? _itemFocusNodes[index] : null;
+        final focusNode =
+            index < _itemFocusNodes.length ? _itemFocusNodes[index] : null;
         return _buildSeriesItem(item, focusNode, index);
       },
     );
@@ -937,16 +1082,22 @@ class _SeriesScreenState extends State<SeriesScreen> {
                             fit: BoxFit.cover,
                             placeholder: (_, __) => Container(
                               color: AppTheme.getSurfaceColor(context),
-                              child: Icon(Icons.video_library_rounded, color: AppTheme.getTextMuted(context), size: 24),
+                              child: Icon(Icons.video_library_rounded,
+                                  color: AppTheme.getTextMuted(context),
+                                  size: 24),
                             ),
                             errorWidget: (_, __, ___) => Container(
                               color: AppTheme.getSurfaceColor(context),
-                              child: Icon(Icons.video_library_rounded, color: AppTheme.getTextMuted(context), size: 24),
+                              child: Icon(Icons.video_library_rounded,
+                                  color: AppTheme.getTextMuted(context),
+                                  size: 24),
                             ),
                           )
                         : Container(
                             color: AppTheme.getSurfaceColor(context),
-                            child: Icon(Icons.video_library_rounded, color: AppTheme.getTextMuted(context), size: 24),
+                            child: Icon(Icons.video_library_rounded,
+                                color: AppTheme.getTextMuted(context),
+                                size: 24),
                           ),
                   ),
                 ),
@@ -967,7 +1118,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (item.groupName != null && item.groupName!.isNotEmpty) ...[
+                      if (item.groupName != null &&
+                          item.groupName!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           item.groupName!,
@@ -983,7 +1135,8 @@ class _SeriesScreenState extends State<SeriesScreen> {
                   ),
                 ),
                 // Play icon
-                Icon(Icons.play_circle_outline_rounded, color: AppTheme.getPrimaryColor(context), size: 24),
+                Icon(Icons.play_circle_outline_rounded,
+                    color: AppTheme.getPrimaryColor(context), size: 24),
               ],
             ),
           ),

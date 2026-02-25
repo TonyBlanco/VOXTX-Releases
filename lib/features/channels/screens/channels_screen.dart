@@ -19,7 +19,6 @@ import '../../../core/i18n/app_strings.dart';
 import '../../../core/services/channel_test_service.dart';
 import '../../../core/services/service_locator.dart';
 import '../../../core/services/background_test_service.dart';
-import '../../../core/services/epg_service.dart';
 import '../../../core/models/channel.dart';
 import '../../../core/utils/card_size_calculator.dart';
 import '../../../core/utils/throttled_state_mixin.dart'; // ✅  mixin
@@ -35,7 +34,7 @@ import '../../player/providers/player_provider.dart';
 
 class ChannelsScreen extends StatefulWidget {
   final String? groupName;
-  final bool embedded; // 
+  final bool embedded; //
 
   const ChannelsScreen({
     super.key,
@@ -47,12 +46,13 @@ class ChannelsScreen extends StatefulWidget {
   State<ChannelsScreen> createState() => _ChannelsScreenState();
 }
 
-class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixin {
+class _ChannelsScreenState extends State<ChannelsScreen>
+    with ThrottledStateMixin {
   String? _selectedGroup;
   final ScrollController _scrollController = ScrollController();
   final ScrollController _groupScrollController = ScrollController();
 
-  // ✅  Provider 
+  // ✅  Provider
   List<Channel> _cachedChannels = [];
   bool _isLoadingMore = false;
 
@@ -60,12 +60,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
   final List<FocusNode> _groupFocusNodes = [];
   final List<FocusNode> _channelFocusNodes = [];
   int _currentGroupIndex = 0;
-  int _lastChannelIndex = 0; // 
+  int _lastChannelIndex = 0; //
 
-  // 
+  //
   Timer? _groupSelectTimer;
 
-  // ✅ 
+  // ✅
   Timer? _scrollEndTimer;
   Timer? _previewStatusTimer;
   final ChannelTestService _channelTestService = ChannelTestService();
@@ -92,10 +92,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     _miniPlayer = Player();
     _miniVideoController = VideoController(_miniPlayer!);
 
-    // ✅ 
+    // ✅
     _scrollController.addListener(_onScroll);
 
-    // 
+    //
     if (widget.embedded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<ChannelProvider>().clearGroupFilter();
@@ -109,7 +109,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
           // UI
           Future.delayed(const Duration(milliseconds: 300), () {
             if (mounted) {
-              // 
+              //
               final provider = context.read<ChannelProvider>();
               final groupIndex =
                   provider.groups.indexWhere((g) => g.name == _selectedGroup);
@@ -118,9 +118,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 _currentGroupIndex = groupIndex + 1;
               }
 
-              // 
+              //
               if (_channelFocusNodes.isNotEmpty) {
-                _lastChannelIndex = 0; // 
+                _lastChannelIndex = 0; //
                 _channelFocusNodes[0].requestFocus();
               }
             }
@@ -132,7 +132,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
   @override
   void dispose() {
-    // 
+    //
     try {
       if (mounted) {
         context.read<ChannelProvider>().resumeLogoLoading();
@@ -161,7 +161,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
   void _setPreviewChannel(Channel channel) {
     if (!mounted) return;
-    if (_previewChannel?.id == channel.id && _previewChannel?.url == channel.url) return;
+    if (_previewChannel?.id == channel.id &&
+        _previewChannel?.url == channel.url) return;
 
     immediateSetState(() {
       _previewChannel = channel;
@@ -174,7 +175,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     _miniPlayTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted && _miniPlayer != null) {
         final url = channel.sources.isNotEmpty
-            ? channel.sources[channel.currentSourceIndex.clamp(0, channel.sources.length - 1)]
+            ? channel.sources[
+                channel.currentSourceIndex.clamp(0, channel.sources.length - 1)]
             : channel.url;
         _miniPlayer!.open(Media(url));
       }
@@ -183,7 +185,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
   void _scheduleAvailabilityCheck(Channel channel) {
     final key = _channelKey(channel);
-    if (_channelAvailability.containsKey(key) || _channelAvailabilityLoading.contains(key)) {
+    if (_channelAvailability.containsKey(key) ||
+        _channelAvailabilityLoading.contains(key)) {
       return;
     }
 
@@ -256,8 +259,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                     .withOpacity(0.5)),
                             const SizedBox(height: 8),
                             Text(
-                              _tr('Selecciona un canal',
-                                  'Select a channel'),
+                              _tr('Selecciona un canal', 'Select a channel'),
                               style: TextStyle(
                                 color: AppTheme.getTextMuted(context),
                                 fontSize: 11,
@@ -359,19 +361,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                         String statusLabel;
                         if (isLoading) {
                           statusColor = AppTheme.getTextMuted(context);
-                          statusLabel =
-                              _tr('Comprobando...', 'Checking...');
+                          statusLabel = _tr('Comprobando...', 'Checking...');
                         } else if (isAvailable == true) {
                           statusColor = Colors.green;
                           statusLabel = _tr('Activo', 'Active');
                         } else if (isAvailable == false) {
                           statusColor = AppTheme.errorColor;
-                          statusLabel =
-                              _tr('No disponible', 'Unavailable');
+                          statusLabel = _tr('No disponible', 'Unavailable');
                         } else {
                           statusColor = AppTheme.getTextMuted(context);
-                          statusLabel =
-                              _tr('Sin comprobar', 'Not checked');
+                          statusLabel = _tr('Sin comprobar', 'Not checked');
                         }
 
                         return Column(
@@ -410,10 +409,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 5, vertical: 1),
                                     decoration: BoxDecoration(
-                                      color:
-                                          AppTheme.getPrimaryColor(context),
-                                      borderRadius:
-                                          BorderRadius.circular(3),
+                                      color: AppTheme.getPrimaryColor(context),
+                                      borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: const Text('NOW',
                                         style: TextStyle(
@@ -428,8 +425,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        color:
-                                            AppTheme.getTextPrimary(context),
+                                        color: AppTheme.getTextPrimary(context),
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -471,8 +467,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                     decoration: BoxDecoration(
                                       color: AppTheme.getTextMuted(context)
                                           .withOpacity(0.3),
-                                      borderRadius:
-                                          BorderRadius.circular(3),
+                                      borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: const Text('NEXT',
                                         style: TextStyle(
@@ -487,8 +482,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        color: AppTheme.getTextSecondary(
-                                            context),
+                                        color:
+                                            AppTheme.getTextSecondary(context),
                                         fontSize: 10,
                                       ),
                                     ),
@@ -514,8 +509,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                 Text(
                                   statusLabel,
                                   style: TextStyle(
-                                      color: AppTheme.getTextSecondary(
-                                          context),
+                                      color: AppTheme.getTextSecondary(context),
                                       fontSize: 10),
                                 ),
                                 const Spacer(),
@@ -528,8 +522,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                   child: Text(
                                     _tr('Reintentar', 'Retry'),
                                     style: TextStyle(
-                                      color: AppTheme.getPrimaryColor(
-                                          context),
+                                      color: AppTheme.getPrimaryColor(context),
                                       fontSize: 10,
                                     ),
                                   ),
@@ -548,14 +541,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       style: OutlinedButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         side: BorderSide(
-                                          color:
-                                              isFavorite
-                                                  ? AppTheme.accentColor
-                                                  : AppTheme.getGlassBorderColor(context),
+                                          color: isFavorite
+                                              ? AppTheme.accentColor
+                                              : AppTheme.getGlassBorderColor(
+                                                  context),
                                         ),
                                       ),
-                                      onPressed: () => favorites
-                                          .toggleFavorite(channel),
+                                      onPressed: () =>
+                                          favorites.toggleFavorite(channel),
                                       child: Icon(
                                         isFavorite
                                             ? Icons.favorite
@@ -584,8 +577,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       ),
                                       onPressed: () =>
                                           _playFromPreview(channel),
-                                      icon: const Icon(
-                                          Icons.play_arrow_rounded,
+                                      icon: const Icon(Icons.play_arrow_rounded,
                                           size: 14),
                                       label: Text(
                                         _tr('Play', 'Play'),
@@ -607,7 +599,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     );
   }
 
-  // ✅ 
+  // ✅
   void setLogoLoadingScrolling(bool isScrolling) {
     if (!mounted) return;
     try {
@@ -620,12 +612,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     } catch (_) {}
   }
 
-  /// ✅  + 
+  /// ✅  +
   void _onScroll() {
-    // 
+    //
     setLogoLoadingScrolling(true);
 
-    // 
+    //
     _scrollEndTimer?.cancel();
 
     // 500ms
@@ -633,7 +625,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       setLogoLoadingScrolling(false);
     });
 
-    // ✅ 
+    // ✅
     if (!_scrollController.hasClients) return;
 
     final maxScroll = _scrollController.position.maxScrollExtent;
@@ -648,9 +640,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         ServiceLocator.log.i(
             '[ChannelsScreen] : delta=${delta.toStringAsFixed(0)}px, loaded=${provider.loadedChannelCount}/${provider.totalChannelCount}');
 
-        immediateSetState(() => _isLoadingMore = true); // 
+        immediateSetState(() => _isLoadingMore = true); //
 
-        // 
+        //
         Future<void> loadFuture;
         if (provider.selectedGroup == null) {
           ServiceLocator.log.d('[ChannelsScreen] ');
@@ -664,12 +656,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             loadFuture = provider.loadChannels(playlistId, loadMore: true);
           } else {
             ServiceLocator.log.w('[ChannelsScreen] playlistId  null');
-            immediateSetState(() => _isLoadingMore = false); // 
+            immediateSetState(() => _isLoadingMore = false); //
             return;
           }
         }
 
-        // 
+        //
         loadFuture.then((_) {
           ServiceLocator.log.i('[ChannelsScreen] ');
           if (mounted) {
@@ -718,7 +710,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         }).catchError((e) {
           ServiceLocator.log.e('[ChannelsScreen] ', error: e);
           if (mounted) {
-            immediateSetState(() => _isLoadingMore = false); // 
+            immediateSetState(() => _isLoadingMore = false); //
           }
         });
       }
@@ -761,9 +753,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 1, // 
+            selectedIndex: 1, //
             onRight: () {
-              // 
+              //
               if (_groupFocusNodes.isNotEmpty &&
                   _currentGroupIndex < _groupFocusNodes.length) {
                 _groupFocusNodes[_currentGroupIndex].requestFocus();
@@ -787,7 +779,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       return Stack(
         children: [
           content,
-          // 
+          //
           if (!isLandscape)
             Positioned(
               left: 8,
@@ -847,12 +839,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         ),
         child: content,
       ),
-      // 
+      //
       drawer: _buildMobileGroupsDrawer(),
     );
   }
 
-  /// 
+  ///
   void _showMobileGroupsBottomSheet(BuildContext context) {
     final provider = context.read<ChannelProvider>();
     showModalBottomSheet(
@@ -886,7 +878,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                     count: provider.totalChannelCount,
                     isSelected: _selectedGroup == null,
                     onTap: () {
-                      immediateSetState(() => _selectedGroup = null); // 
+                      immediateSetState(() => _selectedGroup = null); //
                       provider.clearGroupFilter();
                       Navigator.pop(ctx);
                     },
@@ -896,7 +888,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                         count: group.channelCount,
                         isSelected: _selectedGroup == group.name,
                         onTap: () {
-                          immediateSetState(() => _selectedGroup = group.name); // 
+                          immediateSetState(
+                              () => _selectedGroup = group.name); //
                           provider.selectGroup(group.name);
                           Navigator.pop(ctx);
                         },
@@ -1070,7 +1063,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     );
   }
 
-  /// 
+  ///
   Widget _buildMobileGroupsDrawer() {
     return Consumer<ChannelProvider>(
       builder: (context, provider, _) {
@@ -1104,7 +1097,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                   count: provider.totalChannelCount,
                   isSelected: _selectedGroup == null,
                   onTap: () {
-                    immediateSetState(() => _selectedGroup = null); // 
+                    immediateSetState(() => _selectedGroup = null); //
                     provider.clearGroupFilter();
                     Navigator.pop(context);
                   },
@@ -1124,7 +1117,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                         count: group.channelCount,
                         isSelected: _selectedGroup == group.name,
                         onTap: () {
-                          immediateSetState(() => _selectedGroup = group.name); // 
+                          immediateSetState(
+                              () => _selectedGroup = group.name); //
                           provider.selectGroup(group.name);
                           Navigator.pop(context);
                         },
@@ -1140,7 +1134,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     );
   }
 
-  /// 
+  ///
   Widget _buildMobileGroupItem({
     required String name,
     required int count,
@@ -1214,7 +1208,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 _groupSelectTimer =
                     Timer(const Duration(milliseconds: 300), () {
                   if (mounted) {
-                    // 
+                    //
                     _lastChannelIndex = 0;
                     _scrollController.jumpTo(0);
                     onTap();
@@ -1224,7 +1218,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             : null,
         onRight: PlatformDetector.isTV
             ? () {
-                // 
+                //
                 if (_channelFocusNodes.isNotEmpty) {
                   final targetIndex =
                       _lastChannelIndex.clamp(0, _channelFocusNodes.length - 1);
@@ -1326,13 +1320,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
   Widget _buildChannelsContent() {
     ServiceLocator.log.d('[ChannelsScreen] _buildChannelsContent ');
 
-    // ✅  Consumer 
+    // ✅  Consumer
     return Consumer<ChannelProvider>(
       builder: (context, provider, _) {
         ServiceLocator.log.d(
             '[ChannelsScreen] Consumer builder  - filteredChannels=${provider.filteredChannels.length}, cached=${_cachedChannels.length}');
 
-        // 
+        //
         if (_cachedChannels.isEmpty ||
             provider.filteredChannels.length != _cachedChannels.length) {
           ServiceLocator.log.d(
@@ -1345,14 +1339,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                     .d('[ChannelsScreen] : ${_cachedChannels.length} ');
               });
 
-              // ✅ 
+              // ✅
               Future.delayed(const Duration(milliseconds: 200), () {
                 if (mounted && _scrollController.hasClients) {
                   final maxScroll = _scrollController.position.maxScrollExtent;
-                  // 
+                  //
                   if (maxScroll < 100 && provider.hasMore && !_isLoadingMore) {
-                    ServiceLocator.log.i(
-                        '[ChannelsScreen] (maxScroll=$maxScroll)');
+                    ServiceLocator.log
+                        .i('[ChannelsScreen] (maxScroll=$maxScroll)');
                     _onScroll();
                   }
                 }
@@ -1368,7 +1362,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         final isMobile = PlatformDetector.isMobile;
         final isLandscape = isMobile && MediaQuery.of(context).size.width > 700;
 
-        // 
+        //
         final statusBarHeight =
             isMobile ? MediaQuery.of(context).padding.top : 0.0;
         final topPadding = isMobile
@@ -1377,16 +1371,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
         return CustomScrollView(
           controller: _scrollController,
-          // ✅ 
+          // ✅
           cacheExtent: 500,
           slivers: [
-            // 
+            //
             if (isMobile && !isLandscape)
               SliverToBoxAdapter(
                 child: SizedBox(height: topPadding),
               ),
 
-            //  SliverPersistentHeader 
+            //  SliverPersistentHeader
             if (isLandscape && widget.embedded)
               SliverPersistentHeader(
                 pinned: true,
@@ -1396,7 +1390,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                   channels: channels,
                   statusBarHeight: statusBarHeight,
                   onGroupSelected: (groupName) {
-                    immediateSetState(() => _selectedGroup = groupName); // 
+                    immediateSetState(() => _selectedGroup = groupName); //
                     if (groupName == null) {
                       provider.clearGroupFilter();
                     } else {
@@ -1575,38 +1569,6 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                           // }
 
                           final channel = channels[index];
-                          final currentPlayingKey =
-                              context.select<PlayerProvider, String?>((provider) {
-                            final current = provider.currentChannel;
-                            if (current == null) return null;
-                            return current.id?.toString() ?? current.url;
-                          });
-                          final isPlaying =
-                              currentPlayingKey == (channel.id?.toString() ?? channel.url);
-
-                          // ✅  select  watch
-                          // 
-                          final isFavorite =
-                              context.select<FavoritesProvider, bool>(
-                            (provider) => provider.isFavorite(channel.id ?? 0),
-                          );
-
-                          final isUnavailable =
-                              ChannelProvider.isUnavailableChannel(
-                                  channel.groupName);
-
-                          // ✅  select  EPG  EPG 
-                          final currentProgram =
-                              context.select<EpgProvider, EpgProgram?>(
-                            (provider) => provider.getCurrentProgram(
-                                channel.epgId, channel.name),
-                          );
-
-                          final nextProgram =
-                              context.select<EpgProvider, EpgProgram?>(
-                            (provider) => provider.getNextProgram(
-                                channel.epgId, channel.name),
-                          );
 
                           // TV
                           if (PlatformDetector.isTV) {
@@ -1624,18 +1586,15 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                           final currentRow = index ~/ crossAxisCount;
                           final isLastRow = currentRow == totalRows - 1;
 
-                          return ChannelCard(
-                            name: channel.name,
-                            logoUrl: channel.logoUrl,
-                            channel: channel, //  channel 
+                          final isUnavailable =
+                              ChannelProvider.isUnavailableChannel(
+                                  channel.groupName);
+                          return _ChannelGridCardBinding(
+                            channel: channel,
                             groupName: isUnavailable
                                 ? ChannelProvider.extractOriginalGroup(
                                     channel.groupName)
                                 : channel.groupName,
-                            currentProgram: currentProgram?.title,
-                            nextProgram: nextProgram?.title,
-                            isFavorite: isFavorite,
-                            isPlaying: isPlaying,
                             isUnavailable: isUnavailable,
                             autofocus: index == 0,
                             focusNode: PlatformDetector.isTV &&
@@ -1644,14 +1603,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                 : null,
                             onFocused: PlatformDetector.isTV
                                 ? () {
-                                    // 
+                                    //
                                     _lastChannelIndex = index;
                                     _setPreviewChannel(channel);
                                   }
                                 : null,
                             onLeft: (PlatformDetector.isTV && isFirstColumn)
                                 ? () {
-                                    // 
+                                    //
                                     ServiceLocator.log.d(
                                         'ChannelsScreen: onLeft pressed, _currentGroupIndex=$_currentGroupIndex, _selectedGroup=$_selectedGroup');
                                     if (_currentGroupIndex <
@@ -1663,7 +1622,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                 : null,
                             onDown: (PlatformDetector.isTV && isLastRow)
                                 ? () {
-                                    // 
+                                    //
                                   }
                                 : null,
                             onFavoriteToggle: () {
@@ -1689,9 +1648,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                               ServiceLocator.log.d(
                                   'ChannelsScreen: onTap - enableMultiScreen=${settingsProvider.enableMultiScreen}, isDesktop=${PlatformDetector.isDesktop}, isTV=${PlatformDetector.isTV}');
 
-                              // 
+                              //
                               if (settingsProvider.enableMultiScreen) {
-                                // TV 
+                                // TV
                                 if (PlatformDetector.isTV &&
                                     PlatformDetector.isAndroid) {
                                   ServiceLocator.log.d(
@@ -1700,29 +1659,29 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       context.read<ChannelProvider>();
                                   final favoritesProvider =
                                       context.read<FavoritesProvider>();
-                                  // ✅ 
+                                  // ✅
                                   final channels = channelProvider.allChannels;
 
-                                  //  providers 
+                                  //  providers
                                   NativePlayerChannel.setProviders(
                                       favoritesProvider,
                                       channelProvider,
                                       settingsProvider);
 
-                                  // 
+                                  //
                                   final clickedIndex = channels
                                       .indexWhere((c) => c.url == channel.url);
 
                                   // TV
-                                    if (channel.id != null) {
+                                  if (channel.id != null) {
                                     await ServiceLocator.watchHistory
                                         .addWatchHistory(
-                                        channel.id!, channel.playlistId);
+                                            channel.id!, channel.playlistId);
                                     ServiceLocator.log.d(
                                         'ChannelsScreen: Recorded watch history for channel ${channel.name} (TV multi-screen)');
                                   }
 
-                                  // 
+                                  //
                                   final urls =
                                       channels.map((c) => c.url).toList();
                                   final names =
@@ -1736,7 +1695,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                       .map((c) => c.logoUrl ?? '')
                                       .toList();
 
-                                  // 
+                                  //
                                   await NativePlayerChannel.launchMultiScreen(
                                     urls: urls,
                                     names: names,
@@ -1758,7 +1717,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                 } else if (PlatformDetector.isDesktop) {
                                   ServiceLocator.log.d(
                                       'ChannelsScreen: Desktop Multi-screen mode, playing channel: ${channel.name}');
-                                  // 
+                                  //
                                   final multiScreenProvider =
                                       context.read<MultiScreenProvider>();
                                   final defaultPosition =
@@ -1781,7 +1740,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                     },
                                   );
                                 } else {
-                                  // 
+                                  //
                                   Navigator.pushNamed(
                                     context,
                                     AppRouter.player,
@@ -1793,7 +1752,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                                   );
                                 }
                               } else {
-                                // 
+                                //
                                 Navigator.pushNamed(
                                   context,
                                   AppRouter.player,
@@ -1810,9 +1769,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                           );
                         },
                         childCount: channels.length,
-                        // ✅ 
-                        addAutomaticKeepAlives: false,
-                        // ✅ 
+                        // ✅
+                        addAutomaticKeepAlives: true,
+                        // ✅
                         addRepaintBoundaries: true,
                       ),
                     );
@@ -1820,7 +1779,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 ),
               ),
 
-            // ✅ 
+            // ✅
             if (_isLoadingMore)
               SliverToBoxAdapter(
                 child: Container(
@@ -1847,7 +1806,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 ),
               ),
 
-            // ✅ 
+            // ✅
             if (!provider.hasMore && channels.isNotEmpty)
               SliverToBoxAdapter(
                 child: Container(
@@ -1895,7 +1854,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: Text(_tr('Eliminar', 'Delete'), style: const TextStyle(color: Colors.white)),
+            child: Text(_tr('Eliminar', 'Delete'),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1904,7 +1864,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     if (confirm == true && mounted) {
       final deletedCount = await provider.deleteAllUnavailableChannels();
 
-      // 
+      //
       immediateSetState(() {
         _selectedGroup = null;
       });
@@ -1913,7 +1873,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_tr('Se eliminaron $deletedCount canales no disponibles', 'Deleted $deletedCount unavailable channels')),
+            content: Text(_tr(
+                'Se eliminaron $deletedCount canales no disponibles',
+                'Deleted $deletedCount unavailable channels')),
             backgroundColor: Colors.green,
           ),
         );
@@ -1925,7 +1887,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     final testService = ChannelTestService();
     final channelObj = channel as Channel;
 
-    // 
+    //
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1939,7 +1901,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
               ),
             ),
             const SizedBox(width: 12),
-            Text(_tr('Probando: ${channelObj.name}', 'Testing: ${channelObj.name}')),
+            Text(_tr(
+                'Probando: ${channelObj.name}', 'Testing: ${channelObj.name}')),
           ],
         ),
         duration: const Duration(seconds: 10),
@@ -1951,7 +1914,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     if (mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      // 
+      //
       if (result.isAvailable &&
           ChannelProvider.isUnavailableChannel(channelObj.groupName)) {
         final provider = context.read<ChannelProvider>();
@@ -1966,7 +1929,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(_tr('${channelObj.name} disponible, restaurado a "$originalGroup"', '${channelObj.name} is available, restored to "$originalGroup"')),
+                  child: Text(_tr(
+                      '${channelObj.name} disponible, restaurado a "$originalGroup"',
+                      '${channelObj.name} is available, restored to "$originalGroup"')),
                 ),
               ],
             ),
@@ -1988,8 +1953,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 Expanded(
                   child: Text(
                     result.isAvailable
-                        ? _tr('${channelObj.name} disponible (${result.responseTime}ms)', '${channelObj.name} available (${result.responseTime}ms)')
-                        : _tr('${channelObj.name} no disponible: ${result.error}', '${channelObj.name} unavailable: ${result.error}'),
+                        ? _tr(
+                            '${channelObj.name} disponible (${result.responseTime}ms)',
+                            '${channelObj.name} available (${result.responseTime}ms)')
+                        : _tr(
+                            '${channelObj.name} no disponible: ${result.error}',
+                            '${channelObj.name} unavailable: ${result.error}'),
                   ),
                 ),
               ],
@@ -2015,7 +1984,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
     if (result == null || !mounted) return;
 
-    // 
+    //
     if (result.runInBackground) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2023,7 +1992,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             children: [
               const Icon(Icons.info_outline, color: Colors.white, size: 20),
               const SizedBox(width: 12),
-              Text(_tr('Prueba en segundo plano, quedan ${result.remainingCount} canales', 'Test moved to background, ${result.remainingCount} channels remaining')),
+              Text(_tr(
+                  'Prueba en segundo plano, quedan ${result.remainingCount} canales',
+                  'Test moved to background, ${result.remainingCount} channels remaining')),
             ],
           ),
           backgroundColor: AppTheme.getPrimaryColor(context),
@@ -2038,22 +2009,23 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
       return;
     }
 
-    // 
+    //
     if (result.movedToUnavailable) {
       final unavailableCount =
           result.results.where((r) => !r.isAvailable).length;
 
-      // 
+      //
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              _tr('Se movieron $unavailableCount canales no disponibles a "${ChannelProvider.unavailableGroupName}"', 'Moved $unavailableCount unavailable channels to "${ChannelProvider.unavailableGroupName}"')),
+          content: Text(_tr(
+              'Se movieron $unavailableCount canales no disponibles a "${ChannelProvider.unavailableGroupName}"',
+              'Moved $unavailableCount unavailable channels to "${ChannelProvider.unavailableGroupName}"')),
           backgroundColor: Colors.orange,
           action: SnackBarAction(
             label: _tr('Ver', 'View'),
             textColor: Colors.white,
             onPressed: () {
-              // 
+              //
               immediateSetState(() {
                 _selectedGroup = ChannelProvider.unavailableGroupName;
               });
@@ -2065,7 +2037,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
         ),
       );
 
-      // 
+      //
       immediateSetState(() {
         _selectedGroup = ChannelProvider.unavailableGroupName;
       });
@@ -2095,7 +2067,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
           style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
-          _tr('¿Eliminar ${results.length} canales no disponibles? Esta acción no se puede deshacer.', 'Delete ${results.length} unavailable channels? This action cannot be undone.'),
+          _tr('¿Eliminar ${results.length} canales no disponibles? Esta acción no se puede deshacer.',
+              'Delete ${results.length} unavailable channels? This action cannot be undone.'),
           style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
@@ -2108,7 +2081,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: Text(_tr('Eliminar', 'Delete'), style: const TextStyle(color: Colors.white)),
+            child: Text(_tr('Eliminar', 'Delete'),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -2116,7 +2090,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 
     if (confirm == true && mounted) {
       try {
-        // 
+        //
         for (final result in results) {
           if (result.channel.id != null) {
             await ServiceLocator.database.delete(
@@ -2127,12 +2101,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
           }
         }
 
-        // 
+        //
         if (mounted) {
           context.read<ChannelProvider>().loadAllChannels();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_tr('Se eliminaron ${results.length} canales no disponibles', 'Deleted ${results.length} unavailable channels')),
+              content: Text(_tr(
+                  'Se eliminaron ${results.length} canales no disponibles',
+                  'Deleted ${results.length} unavailable channels')),
               backgroundColor: Colors.green,
             ),
           );
@@ -2244,7 +2220,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
                 },
               ),
 
-              // 
+              //
               if (ChannelProvider.isUnavailableChannel(channel.groupName))
                 ListTile(
                   leading: const Icon(
@@ -2288,7 +2264,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
     }
 
     try {
-      await ServiceLocator.offlineDownloads.startDownload(ch, duration: duration);
+      await ServiceLocator.offlineDownloads
+          .startDownload(ch, duration: duration);
       if (mounted) {
         final strings = AppStrings.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2296,8 +2273,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
             content: Text(strings?.downloadStarted ?? 'Download started'),
             action: SnackBarAction(
               label: strings?.offlineDownloads ?? 'Offline',
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRouter.offline),
+              onPressed: () => Navigator.pushNamed(context, AppRouter.offline),
             ),
           ),
         );
@@ -2356,6 +2332,74 @@ class _ChannelsScreenState extends State<ChannelsScreen> with ThrottledStateMixi
 }
 
 ///  Delegate
+class _ChannelGridCardBinding extends StatelessWidget {
+  final Channel channel;
+  final String? groupName;
+  final bool isUnavailable;
+  final bool autofocus;
+  final FocusNode? focusNode;
+  final VoidCallback? onFocused;
+  final VoidCallback? onLeft;
+  final VoidCallback? onDown;
+  final VoidCallback onFavoriteToggle;
+  final VoidCallback onTest;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  const _ChannelGridCardBinding({
+    required this.channel,
+    required this.groupName,
+    required this.isUnavailable,
+    required this.autofocus,
+    required this.focusNode,
+    required this.onFocused,
+    required this.onLeft,
+    required this.onDown,
+    required this.onFavoriteToggle,
+    required this.onTest,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer3<FavoritesProvider, EpgProvider, PlayerProvider>(
+      builder: (context, favorites, epg, player, _) {
+        final current = player.currentChannel;
+        final currentPlayingKey =
+            current == null ? null : (current.id?.toString() ?? current.url);
+        final isPlaying =
+            currentPlayingKey == (channel.id?.toString() ?? channel.url);
+        final isFavorite = favorites.isFavorite(channel.id ?? 0);
+        final currentProgram =
+            epg.getCurrentProgram(channel.epgId, channel.name);
+        final nextProgram = epg.getNextProgram(channel.epgId, channel.name);
+
+        return ChannelCard(
+          name: channel.name,
+          logoUrl: channel.logoUrl,
+          channel: channel,
+          groupName: groupName,
+          currentProgram: currentProgram?.title,
+          nextProgram: nextProgram?.title,
+          isFavorite: isFavorite,
+          isPlaying: isPlaying,
+          isUnavailable: isUnavailable,
+          autofocus: autofocus,
+          focusNode: focusNode,
+          onFocused: onFocused,
+          onLeft: onLeft,
+          onDown: onDown,
+          onFavoriteToggle: onFavoriteToggle,
+          onTest: onTest,
+          onTap: onTap,
+          onLongPress: onLongPress,
+        );
+      },
+    );
+  }
+}
+
 class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
   final ChannelProvider provider;
   final String? selectedGroup;
@@ -2405,9 +2449,9 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
       ),
       child: Column(
         children: [
-          // 
+          //
           SizedBox(height: statusBarHeight - 10),
-          // 
+          //
           Container(
             height: 40,
             decoration: BoxDecoration(
@@ -2420,7 +2464,7 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
             ),
             child: Row(
               children: [
-                // 
+                //
                 Expanded(
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
@@ -2451,7 +2495,7 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
                     },
                   ),
                 ),
-                // 
+                //
                 _buildActions(context),
               ],
             ),
@@ -2465,16 +2509,16 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 
+        //
         Container(
           width: 1,
           height: 24,
           color: AppTheme.getCardColor(context).withOpacity(0.5),
           margin: const EdgeInsets.symmetric(horizontal: 4),
         ),
-        // 
+        //
         _BackgroundTestIndicator(onTap: onShowBackgroundTest),
-        // 
+        //
         IconButton(
           icon: const Icon(Icons.speed_rounded),
           iconSize: 18,
@@ -2484,7 +2528,7 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
               : AppTheme.getTextSecondary(context),
           onPressed: channels.isEmpty ? null : onTestChannels,
         ),
-        // 
+        //
         if (onDeleteUnavailable != null)
           IconButton(
             icon: const Icon(Icons.delete_sweep_rounded),
@@ -2493,7 +2537,7 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
             color: AppTheme.errorColor,
             onPressed: onDeleteUnavailable,
           ),
-        // 
+        //
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           margin: const EdgeInsets.only(right: 8),
@@ -2602,7 +2646,7 @@ class _LandscapeCategoryBarDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-/// 
+///
 class _BackgroundTestIndicator extends StatefulWidget {
   final VoidCallback onTap;
 
@@ -2613,7 +2657,8 @@ class _BackgroundTestIndicator extends StatefulWidget {
       _BackgroundTestIndicatorState();
 }
 
-class _BackgroundTestIndicatorState extends State<_BackgroundTestIndicator> with ThrottledStateMixin {
+class _BackgroundTestIndicatorState extends State<_BackgroundTestIndicator>
+    with ThrottledStateMixin {
   final BackgroundTestService _service = BackgroundTestService();
   late BackgroundTestProgress _progress;
 
@@ -2640,7 +2685,7 @@ class _BackgroundTestIndicatorState extends State<_BackgroundTestIndicator> with
 
   @override
   Widget build(BuildContext context) {
-    // 
+    //
     if (!_progress.isRunning && !_progress.isComplete) {
       return const SizedBox.shrink();
     }

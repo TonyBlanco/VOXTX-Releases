@@ -11,7 +11,6 @@ import '../../../core/platform/platform_detector.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../../core/utils/card_size_calculator.dart';
 import '../../../core/services/service_locator.dart';
-import '../../../core/services/epg_service.dart';
 import '../../channels/providers/channel_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
 import '../../settings/providers/settings_provider.dart';
@@ -22,7 +21,7 @@ import '../widgets/qr_search_dialog.dart';
 
 class SearchScreen extends StatefulWidget {
   final bool embedded;
-  
+
   const SearchScreen({super.key, this.embedded = false});
 
   @override
@@ -59,11 +58,12 @@ class _SearchScreenState extends State<SearchScreen> {
     final isMobile = PlatformDetector.isMobile;
     final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
     final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
-    final topPadding = isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
+    final topPadding =
+        isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
 
     final content = Column(
       children: [
-        // 
+        //
         if (isLandscape && topPadding > 0 && widget.embedded)
           SizedBox(height: topPadding),
         _buildSearchHeader(),
@@ -92,7 +92,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 6, // 
+            selectedIndex: 7, //
             child: content,
           ),
         ),
@@ -123,49 +123,59 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSearchHeader() {
-    final isTV = PlatformDetector.isTV || PlatformDetector.useDPadNavigation;
+    // Use TV search dialog only on real TV devices.
+    // On desktop/macOS, keep a normal TextField so keyboard editing (delete/backspace) works.
+    final isTV = PlatformDetector.isTV;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isMobile = PlatformDetector.isMobile;
-    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 
+    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600; //
     final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
-    final topPadding = isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : (MediaQuery.of(context).padding.top + 8);
-    
+    final topPadding = isMobile
+        ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0)
+        : (MediaQuery.of(context).padding.top + 8);
+
     return Container(
-      height: isLandscape ? 24.0 : null,  // 24pxAppBar
+      height: isLandscape ? 24.0 : null, // 24pxAppBar
       padding: EdgeInsets.only(
-        top: isLandscape ? 0 : (topPadding + 8),  // padding
+        top: isLandscape ? 0 : (topPadding + 8), // padding
         left: 16,
         right: 16,
-        bottom: isLandscape ? 0 : 8,  // padding
+        bottom: isLandscape ? 0 : 8, // padding
       ),
-      alignment: isLandscape ? Alignment.centerLeft : null,  // 
+      alignment: isLandscape ? Alignment.centerLeft : null, //
       decoration: BoxDecoration(
-        gradient: isLandscape ? null : LinearGradient(  // 
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: isDark
-              ? [
-                  Colors.black.withOpacity(0.3),
-                  Colors.black.withOpacity(0.5),
-                  Colors.black.withOpacity(0.3),
-                ]
-              : [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.5),
-                  Colors.white.withOpacity(0.3),
-                ],
-        ),
-        boxShadow: isLandscape ? null : [  // 
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        gradient: isLandscape
+            ? null
+            : LinearGradient(
+                //
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: isDark
+                    ? [
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.5),
+                        Colors.black.withOpacity(0.3),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.3),
+                        Colors.white.withOpacity(0.5),
+                        Colors.white.withOpacity(0.3),
+                      ],
+              ),
+        boxShadow: isLandscape
+            ? null
+            : [
+                //
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Row(
         children: [
-          // Back Button - 
+          // Back Button -
           if (!widget.embedded)
             TVFocusable(
               onSelect: () => Navigator.pop(context),
@@ -173,7 +183,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark 
+                  color: isDark
                       ? Colors.white.withOpacity(0.1)
                       : Colors.black.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
@@ -192,21 +202,18 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
 
-          if (!widget.embedded)
-            const SizedBox(width: 12),
+          if (!widget.embedded) const SizedBox(width: 12),
 
-          // Search Field - TV 
+          // Search Field - TV
           Expanded(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: isTV 
-                  ? _buildTVSearchField()
-                  : _buildMobileSearchField(),
+              child: isTV ? _buildTVSearchField() : _buildMobileSearchField(),
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // QR Code Scan Button (TV only)
           if (isTV)
             TVFocusable(
@@ -236,22 +243,22 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildTVSearchField() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return TVFocusable(
-      autofocus: false,  // 
+      autofocus: false, //
       onSelect: () => _showTVSearchDialog(),
       focusScale: 1.02,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isDark 
-              ? const Color(0x14FFFFFF)  //  8% 
-              : const Color(0x08000000),  //  3% 
+          color: isDark
+              ? const Color(0x14FFFFFF) //  8%
+              : const Color(0x08000000), //  3%
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isDark
-                ? const Color(0x26FFFFFF)  //  15% 
-                : const Color(0x14000000),  //  8% 
+                ? const Color(0x26FFFFFF) //  15%
+                : const Color(0x14000000), //  8%
             width: 1,
           ),
         ),
@@ -265,11 +272,12 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                _searchQuery.isEmpty 
-                    ? (AppStrings.of(context)?.searchHint ?? 'Search channels...')
+                _searchQuery.isEmpty
+                    ? (AppStrings.of(context)?.searchHint ??
+                        'Search channels...')
                     : _searchQuery,
                 style: TextStyle(
-                  color: _searchQuery.isEmpty 
+                  color: _searchQuery.isEmpty
                       ? AppTheme.getTextMuted(context)
                       : AppTheme.getTextPrimary(context),
                   fontSize: 14,
@@ -296,39 +304,40 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildMobileSearchField() {
     final isMobile = PlatformDetector.isMobile;
-    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;  // 
-    
+    final isLandscape = isMobile && MediaQuery.of(context).size.width > 600; //
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.getCardColor(context),
-        borderRadius: BorderRadius.circular(isLandscape ? 10 : 12),  // 
+        borderRadius: BorderRadius.circular(isLandscape ? 10 : 12), //
       ),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
         style: TextStyle(
           color: AppTheme.getTextPrimary(context),
-          fontSize: isLandscape ? 14 : 16,  // 
+          fontSize: isLandscape ? 14 : 16, //
         ),
         decoration: InputDecoration(
           hintText: AppStrings.of(context)?.searchHint ?? 'Search channels...',
           hintStyle: TextStyle(
             color: AppTheme.getTextMuted(context),
-            fontSize: isLandscape ? 14 : 16,  // 
+            fontSize: isLandscape ? 14 : 16, //
           ),
           prefixIcon: Icon(
             Icons.search_rounded,
             color: AppTheme.getTextMuted(context),
-            size: isLandscape ? 20 : 24,  // 
+            size: isLandscape ? 20 : 24, //
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear_rounded,
                     color: AppTheme.getTextMuted(context),
-                    size: isLandscape ? 20 : 24,  // 
+                    size: isLandscape ? 20 : 24, //
                   ),
-                  padding: isLandscape ? const EdgeInsets.all(4) : null,  // padding
+                  padding:
+                      isLandscape ? const EdgeInsets.all(4) : null, // padding
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');
@@ -337,8 +346,8 @@ class _SearchScreenState extends State<SearchScreen> {
               : null,
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
-            horizontal: isLandscape ? 12 : 16,  // padding
-            vertical: isLandscape ? 6 : 8,  // padding
+            horizontal: isLandscape ? 12 : 16, // padding
+            vertical: isLandscape ? 6 : 8, // padding
           ),
         ),
         onChanged: (value) {
@@ -355,7 +364,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final cancelButtonFocusNode = FocusNode();
     final inputFocusNode = FocusNode();
     bool isInputFocused = false;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -372,7 +381,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    //  -  Focus 
+                    //  -  Focus
                     Focus(
                       onFocusChange: (hasFocus) {
                         setDialogState(() {
@@ -380,9 +389,10 @@ class _SearchScreenState extends State<SearchScreen> {
                         });
                       },
                       onKeyEvent: (node, event) {
-                        // 
+                        //
                         if (event is KeyDownEvent) {
-                          if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                          if (event.logicalKey ==
+                              LogicalKeyboardKey.arrowDown) {
                             searchButtonFocusNode.requestFocus();
                             return KeyEventResult.handled;
                           }
@@ -393,7 +403,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isInputFocused ? AppTheme.getPrimaryColor(context) : Colors.transparent,
+                            color: isInputFocused
+                                ? AppTheme.getPrimaryColor(context)
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -406,8 +418,10 @@ class _SearchScreenState extends State<SearchScreen> {
                             fontSize: 18,
                           ),
                           decoration: InputDecoration(
-                            hintText: AppStrings.of(context)?.searchHint ?? 'Search channels...',
-                            hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
+                            hintText: AppStrings.of(context)?.searchHint ??
+                                'Search channels...',
+                            hintStyle: TextStyle(
+                                color: AppTheme.getTextMuted(context)),
                             filled: true,
                             fillColor: AppTheme.getCardColor(context),
                             border: OutlineInputBorder(
@@ -433,21 +447,25 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // 
+                        //
                         Focus(
                           focusNode: cancelButtonFocusNode,
                           onKeyEvent: (node, event) {
                             if (event is KeyDownEvent) {
-                              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                              if (event.logicalKey ==
+                                  LogicalKeyboardKey.arrowUp) {
                                 inputFocusNode.requestFocus();
                                 return KeyEventResult.handled;
                               }
-                              if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                              if (event.logicalKey ==
+                                  LogicalKeyboardKey.arrowRight) {
                                 searchButtonFocusNode.requestFocus();
                                 return KeyEventResult.handled;
                               }
-                              if (event.logicalKey == LogicalKeyboardKey.select ||
-                                  event.logicalKey == LogicalKeyboardKey.enter) {
+                              if (event.logicalKey ==
+                                      LogicalKeyboardKey.select ||
+                                  event.logicalKey ==
+                                      LogicalKeyboardKey.enter) {
                                 Navigator.pop(dialogContext);
                                 return KeyEventResult.handled;
                               }
@@ -461,7 +479,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: hasFocus ? AppTheme.getPrimaryColor(context) : Colors.transparent,
+                                    color: hasFocus
+                                        ? AppTheme.getPrimaryColor(context)
+                                        : Colors.transparent,
                                     width: 2,
                                   ),
                                 ),
@@ -469,7 +489,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                   onPressed: () => Navigator.pop(dialogContext),
                                   child: Text(
                                     AppStrings.of(context)?.cancel ?? 'Cancel',
-                                    style: const TextStyle(color: AppTheme.textMuted),
+                                    style: const TextStyle(
+                                        color: AppTheme.textMuted),
                                   ),
                                 ),
                               );
@@ -477,24 +498,29 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // 
+                        //
                         Focus(
                           focusNode: searchButtonFocusNode,
                           onKeyEvent: (node, event) {
                             if (event is KeyDownEvent) {
-                              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                              if (event.logicalKey ==
+                                  LogicalKeyboardKey.arrowUp) {
                                 inputFocusNode.requestFocus();
                                 return KeyEventResult.handled;
                               }
-                              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                              if (event.logicalKey ==
+                                  LogicalKeyboardKey.arrowLeft) {
                                 cancelButtonFocusNode.requestFocus();
                                 return KeyEventResult.handled;
                               }
-                              if (event.logicalKey == LogicalKeyboardKey.select ||
-                                  event.logicalKey == LogicalKeyboardKey.enter) {
+                              if (event.logicalKey ==
+                                      LogicalKeyboardKey.select ||
+                                  event.logicalKey ==
+                                      LogicalKeyboardKey.enter) {
                                 setState(() {
                                   _searchQuery = dialogController.text;
-                                  _searchController.text = dialogController.text;
+                                  _searchController.text =
+                                      dialogController.text;
                                 });
                                 Navigator.pop(dialogContext);
                                 return KeyEventResult.handled;
@@ -509,7 +535,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: hasFocus ? Colors.white : Colors.transparent,
+                                    color: hasFocus
+                                        ? Colors.white
+                                        : Colors.transparent,
                                     width: 2,
                                   ),
                                 ),
@@ -517,12 +545,14 @@ class _SearchScreenState extends State<SearchScreen> {
                                   onPressed: () {
                                     setState(() {
                                       _searchQuery = dialogController.text;
-                                      _searchController.text = dialogController.text;
+                                      _searchController.text =
+                                          dialogController.text;
                                     });
                                     Navigator.pop(dialogContext);
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.getPrimaryColor(context),
+                                    backgroundColor:
+                                        AppTheme.getPrimaryColor(context),
                                   ),
                                   child: Text(
                                     AppStrings.of(context)?.search ?? 'Search',
@@ -610,7 +640,8 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.of(context)?.typeToSearch ?? 'Type to search by channel name or category',
+            AppStrings.of(context)?.typeToSearch ??
+                'Type to search by channel name or category',
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -682,7 +713,9 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            (AppStrings.of(context)?.noChannelsMatch ?? 'No channels match "{query}"').replaceAll('{query}', _searchQuery),
+            (AppStrings.of(context)?.noChannelsMatch ??
+                    'No channels match "{query}"')
+                .replaceAll('{query}', _searchQuery),
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -701,7 +734,10 @@ class _SearchScreenState extends State<SearchScreen> {
         Padding(
           padding: const EdgeInsets.all(20),
           child: Text(
-            (AppStrings.of(context)?.resultsFor ?? '{count} result(s) for "{query}"').replaceAll('{count}', '${results.length}').replaceAll('{query}', _searchQuery),
+            (AppStrings.of(context)?.resultsFor ??
+                    '{count} result(s) for "{query}"')
+                .replaceAll('{count}', '${results.length}')
+                .replaceAll('{query}', _searchQuery),
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -713,12 +749,15 @@ class _SearchScreenState extends State<SearchScreen> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth - (PlatformDetector.isMobile ? 16 : 40); // padding
-              final crossAxisCount = CardSizeCalculator.calculateCardsPerRow(availableWidth);
-              
+              final availableWidth = constraints.maxWidth -
+                  (PlatformDetector.isMobile ? 16 : 40); // padding
+              final crossAxisCount =
+                  CardSizeCalculator.calculateCardsPerRow(availableWidth);
+
               return GridView.builder(
-                padding: EdgeInsets.symmetric(horizontal: PlatformDetector.isMobile ? 8 : 20),
-                // ✅ 
+                padding: EdgeInsets.symmetric(
+                    horizontal: PlatformDetector.isMobile ? 8 : 20),
+                // ✅
                 cacheExtent: 500,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
@@ -729,28 +768,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 itemCount: results.length,
                 itemBuilder: (context, index) {
                   final channel = results[index];
-                  
-                  // ✅  select  watch
-                  final isFavorite = context.select<FavoritesProvider, bool>(
-                    (provider) => provider.isFavorite(channel.id ?? 0),
-                  );
-                  
-                  final currentProgram = context.select<EpgProvider, EpgProgram?>(
-                    (provider) => provider.getCurrentProgram(channel.epgId, channel.name),
-                  );
-                  
-                  final nextProgram = context.select<EpgProvider, EpgProgram?>(
-                    (provider) => provider.getNextProgram(channel.epgId, channel.name),
-                  );
-
-                  return ChannelCard(
-                    name: channel.name,
-                    logoUrl: channel.logoUrl,
-                    channel: channel, //  channel 
-                    groupName: channel.groupName,
-                    currentProgram: currentProgram?.title,
-                    nextProgram: nextProgram?.title,
-                    isFavorite: isFavorite,
+                  return _SearchResultCardBinding(
+                    channel: channel,
                     autofocus: index == 0 && PlatformDetector.useDPadNavigation,
                     onFavoriteToggle: () {
                       context.read<FavoritesProvider>().toggleFavorite(channel);
@@ -758,55 +777,71 @@ class _SearchScreenState extends State<SearchScreen> {
                     onTap: () {
                       // ID
                       final settingsProvider = context.read<SettingsProvider>();
-                      if (settingsProvider.rememberLastChannel && channel.id != null) {
+                      if (settingsProvider.rememberLastChannel &&
+                          channel.id != null) {
                         settingsProvider.setLastChannelId(channel.id);
                       }
 
-                      // 
+                      //
                       if (settingsProvider.enableMultiScreen) {
-                        // TV 
-                        if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
-                          final channelProvider = context.read<ChannelProvider>();
-                          // ✅ 
+                        // TV
+                        if (PlatformDetector.isTV &&
+                            PlatformDetector.isAndroid) {
+                          final channelProvider =
+                              context.read<ChannelProvider>();
+                          // ✅
                           final channels = channelProvider.allChannels;
-                          
-                          // 
-                          final clickedIndex = channels.indexWhere((c) => c.url == channel.url);
-                          
-                          // 
+
+                          //
+                          final clickedIndex =
+                              channels.indexWhere((c) => c.url == channel.url);
+
+                          //
                           final urls = channels.map((c) => c.url).toList();
                           final names = channels.map((c) => c.name).toList();
-                          final groups = channels.map((c) => c.groupName ?? '').toList();
-                          final sources = channels.map((c) => c.sources).toList();
-                          final logos = channels.map((c) => c.logoUrl ?? '').toList();
-                          
-                          // 
+                          final groups =
+                              channels.map((c) => c.groupName ?? '').toList();
+                          final sources =
+                              channels.map((c) => c.sources).toList();
+                          final logos =
+                              channels.map((c) => c.logoUrl ?? '').toList();
+
+                          //
                           NativePlayerChannel.launchMultiScreen(
                             urls: urls,
                             names: names,
                             groups: groups,
                             sources: sources,
                             logos: logos,
-                            initialChannelIndex: clickedIndex >= 0 ? clickedIndex : 0,
+                            initialChannelIndex:
+                                clickedIndex >= 0 ? clickedIndex : 0,
                             volumeBoostDb: settingsProvider.volumeBoost,
-                            defaultScreenPosition: settingsProvider.defaultScreenPosition,
-                            showChannelName: settingsProvider.showMultiScreenChannelName,
+                            defaultScreenPosition:
+                                settingsProvider.defaultScreenPosition,
+                            showChannelName:
+                                settingsProvider.showMultiScreenChannelName,
                             onClosed: () {
-                              ServiceLocator.log.d('Native multi-screen closed', tag: 'SearchScreen');
+                              ServiceLocator.log.d('Native multi-screen closed',
+                                  tag: 'SearchScreen');
                             },
                           );
                         } else if (PlatformDetector.isDesktop) {
-                          final multiScreenProvider = context.read<MultiScreenProvider>();
-                          final defaultPosition = settingsProvider.defaultScreenPosition;
+                          final multiScreenProvider =
+                              context.read<MultiScreenProvider>();
+                          final defaultPosition =
+                              settingsProvider.defaultScreenPosition;
                           // Provider
-                          multiScreenProvider.setVolumeSettings(1.0, settingsProvider.volumeBoost);
-                          multiScreenProvider.playChannelAtDefaultPosition(channel, defaultPosition);
-                          
-                          Navigator.pushNamed(context, AppRouter.player, arguments: {
-                            'channelUrl': '',
-                            'channelName': '',
-                            'channelLogo': null,
-                          });
+                          multiScreenProvider.setVolumeSettings(
+                              1.0, settingsProvider.volumeBoost);
+                          multiScreenProvider.playChannelAtDefaultPosition(
+                              channel, defaultPosition);
+
+                          Navigator.pushNamed(context, AppRouter.player,
+                              arguments: {
+                                'channelUrl': '',
+                                'channelName': '',
+                                'channelLogo': null,
+                              });
                         } else {
                           Navigator.pushNamed(
                             context,
@@ -837,6 +872,45 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SearchResultCardBinding extends StatelessWidget {
+  final dynamic channel;
+  final bool autofocus;
+  final VoidCallback onFavoriteToggle;
+  final VoidCallback onTap;
+
+  const _SearchResultCardBinding({
+    required this.channel,
+    required this.autofocus,
+    required this.onFavoriteToggle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<FavoritesProvider, EpgProvider>(
+      builder: (context, favorites, epg, _) {
+        final isFavorite = favorites.isFavorite(channel.id ?? 0);
+        final currentProgram =
+            epg.getCurrentProgram(channel.epgId, channel.name);
+        final nextProgram = epg.getNextProgram(channel.epgId, channel.name);
+
+        return ChannelCard(
+          name: channel.name,
+          logoUrl: channel.logoUrl,
+          channel: channel,
+          groupName: channel.groupName,
+          currentProgram: currentProgram?.title,
+          nextProgram: nextProgram?.title,
+          isFavorite: isFavorite,
+          autofocus: autofocus,
+          onFavoriteToggle: onFavoriteToggle,
+          onTap: onTap,
+        );
+      },
     );
   }
 }

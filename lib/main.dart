@@ -74,7 +74,7 @@ void main() async {
 
     // Initialize native player channel for Android TV
     NativePlayerChannel.init();
-    
+
     // Initialize native log channel for Android TV only
     if (Platform.isAndroid) {
       await NativeLogChannel.init();
@@ -86,28 +86,30 @@ void main() async {
       databaseFactory = databaseFactoryFfi;
     }
 
-    // Initialize window manager for Windows
-    if (Platform.isWindows) {
+    // Initialize window manager before any desktop fullscreen/window calls.
+    // Multi-screen and player flows use window_manager on desktop (including macOS).
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       await windowManager.ensureInitialized();
+      if (Platform.isWindows) {
+        WindowOptions windowOptions = const WindowOptions(
+          size: Size(1280, 720),
+          minimumSize: Size(360, 600),
+          center: true,
+          backgroundColor: Colors.black,
+          titleBarStyle: TitleBarStyle.hidden,
+          windowButtonVisibility: false,
+        );
 
-      WindowOptions windowOptions = const WindowOptions(
-        size: Size(1280, 720),
-        minimumSize: Size(360, 600),
-        center: true,
-        backgroundColor: Colors.black,
-        titleBarStyle: TitleBarStyle.hidden,
-        windowButtonVisibility: false,
-      );
-
-      await windowManager.waitUntilReadyToShow(windowOptions, () async {
-        await windowManager.show();
-        await windowManager.focus();
-      });
+        await windowManager.waitUntilReadyToShow(windowOptions, () async {
+          await windowManager.show();
+          await windowManager.focus();
+        });
+      }
     }
 
     // Initialize PlatformDetector for settings page
     await PlatformDetector.init();
-    
+
     // ✅ Inicializar el pool de conexiones HTTP para la carga de logos
     initializeLogoConnectionPool();
 
@@ -228,7 +230,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
   @override
   void initState() {
     super.initState();
-    ServiceLocator.log.d('_DlnaAwareApp.initState() llamado', tag: 'AutoRefresh');
+    ServiceLocator.log
+        .d('_DlnaAwareApp.initState() llamado', tag: 'AutoRefresh');
 
     // Listener de cierre de ventana en Windows
     if (Platform.isWindows) {
@@ -239,15 +242,16 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ServiceLocator.log.d('addPostFrameCallback invocado', tag: 'DLNA');
       _setupDlnaCallbacks();
-      // 
-      ServiceLocator.log.d('addPostFrameCallback ejecutado', tag: 'AutoRefresh');
+      //
+      ServiceLocator.log
+          .d('addPostFrameCallback ejecutado', tag: 'AutoRefresh');
       _initAutoRefresh();
-      // 
+      //
       _applyOrientationSettings();
     });
   }
 
-  /// 
+  ///
   Future<void> _applyOrientationSettings() async {
     if (!PlatformDetector.isMobile) return;
 
@@ -278,7 +282,8 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     }
 
     await SystemChrome.setPreferredOrientations(orientations);
-    ServiceLocator.log.d('Aplicar configuración de orientación: $orientation', tag: 'Orientation');
+    ServiceLocator.log.d('Aplicar configuración de orientación: $orientation',
+        tag: 'Orientation');
   }
 
   @override
@@ -298,15 +303,16 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
     ServiceLocator.log.d('_initAutoRefresh() inicio', tag: 'AutoRefresh');
 
     if (!mounted) {
-      ServiceLocator.log.d('Widget no montado, saliendo de inicialización', tag: 'AutoRefresh');
+      ServiceLocator.log.d('Widget no montado, saliendo de inicialización',
+          tag: 'AutoRefresh');
       return;
     }
 
     try {
-      // 
+      //
       await _autoRefreshService.loadLastRefreshTime();
 
-      // 
+      //
       final settings = context.read<SettingsProvider>();
       _lastAutoRefreshState = settings.autoRefresh;
       _lastRefreshInterval = settings.refreshInterval;
@@ -327,7 +333,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       _settingsRefreshListener = () {
         if (!mounted) return;
 
-        //  autoRefresh 
+        //  autoRefresh
         final currentAutoRefresh = settings.autoRefresh;
         final currentInterval = settings.refreshInterval;
 
@@ -337,8 +343,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
           _lastRefreshInterval = currentInterval;
 
           if (currentAutoRefresh) {
-            ServiceLocator.log
-                .d(' - : $currentInterval', tag: 'AutoRefresh');
+            ServiceLocator.log.d(' - : $currentInterval', tag: 'AutoRefresh');
             _startAutoRefresh(settings);
           } else {
             ServiceLocator.log.d('', tag: 'AutoRefresh');
@@ -382,31 +387,29 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
       String? lastError;
 
-      // 
+      //
       for (final playlist in playlists) {
         if (playlist.id != null) {
           try {
-            ServiceLocator.log
-                .d(': ${playlist.name}', tag: 'AutoRefresh');
-            final success = await playlistProvider.refreshPlaylist(playlist, mergeRule: settings.channelMergeRule);
+            ServiceLocator.log.d(': ${playlist.name}', tag: 'AutoRefresh');
+            final success = await playlistProvider.refreshPlaylist(playlist,
+                mergeRule: settings.channelMergeRule);
             if (success) {
               successCount++;
             } else {
               failCount++;
               lastError = playlistProvider.error; // Get the error from provider
-              ServiceLocator.log
-                  .d(': ${playlist.name}', tag: 'AutoRefresh');
+              ServiceLocator.log.d(': ${playlist.name}', tag: 'AutoRefresh');
             }
           } catch (e) {
             failCount++;
             lastError = e.toString();
-            ServiceLocator.log
-                .d(': ${playlist.name} - $e', tag: 'AutoRefresh');
+            ServiceLocator.log.d(': ${playlist.name} - $e', tag: 'AutoRefresh');
           }
         }
       }
 
-      // 
+      //
       if (playlistProvider.activePlaylist?.id != null) {
         try {
           final channelProvider = context.read<ChannelProvider>();
@@ -420,7 +423,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       ServiceLocator.log
           .d(' - : $successCount, : $failCount', tag: 'AutoRefresh');
 
-      // 
+      //
       if (failCount > 0) {
         ServiceLocator.log.d('', tag: 'AutoRefresh');
 
@@ -452,19 +455,19 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       }
     } catch (e) {
       ServiceLocator.log.d(': $e', tag: 'AutoRefresh');
-      // 
+      //
     }
   }
 
   @override
   void onWindowClose() async {
-    //  DLNA 
+    //  DLNA
     try {
       final dlnaProvider = context.read<DlnaProvider>();
       await dlnaProvider.setEnabled(false);
       ServiceLocator.log.d('', tag: 'DLNA');
     } catch (e) {
-      // 
+      //
     }
     await windowManager.destroy();
   }
@@ -485,19 +488,19 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
       return;
     }
 
-    // 
+    //
     try {
       final playerProvider = context.read<PlayerProvider>();
       playerProvider.stop();
 
-      // 
+      //
       final multiScreenProvider = context.read<MultiScreenProvider>();
       await multiScreenProvider.clearAllScreens();
     } catch (e) {
       ServiceLocator.log.d(' - $e', tag: 'DLNA');
     }
 
-    // 
+    //
     _navigatorKey.currentState?.popUntil((route) => route.isFirst);
 
     _currentDlnaUrl = url;
@@ -514,7 +517,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
   void _handleDlnaPause() {
     try {
-      // Android TV 
+      // Android TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.pause();
       } else {
@@ -522,31 +525,31 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.pause();
       }
     } catch (e) {
-      // 
+      //
     }
   }
 
   void _handleDlnaStop() {
     _currentDlnaUrl = null;
     try {
-      // Android TV 
+      // Android TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
-        // closePlayer  onClosed 
+        // closePlayer  onClosed
         NativePlayerChannel.closePlayer();
-        //  popUntilonClosed 
+        //  popUntilonClosed
       } else {
         final playerProvider = context.read<PlayerProvider>();
         playerProvider.stop();
         _navigatorKey.currentState?.popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      // 
+      //
     }
   }
 
   void _handleDlnaSeek(Duration position) {
     try {
-      // Android TV 
+      // Android TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.seekTo(position.inMilliseconds);
       } else {
@@ -554,13 +557,13 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.seek(position);
       }
     } catch (e) {
-      // 
+      //
     }
   }
 
   void _handleDlnaVolume(int volume) {
     try {
-      // Android TV 
+      // Android TV
       if (PlatformDetector.isTV && PlatformDetector.isAndroid) {
         NativePlayerChannel.setVolume(volume);
       } else {
@@ -568,13 +571,13 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         playerProvider.setVolume(volume / 100.0);
       }
     } catch (e) {
-      // 
+      //
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    //  settings 
+    //  settings
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
         ServiceLocator.log.d(
@@ -583,7 +586,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         final fontFamily = AppTheme.resolveFontFamily(settings.fontFamily);
         return MaterialApp(
           navigatorKey: _navigatorKey,
-          navigatorObservers: [AppRouter.routeObserver], // 
+          navigatorObservers: [AppRouter.routeObserver], //
           title: AppStrings.of(context)?.lotusIptv ?? 'VoXtv',
           debugShowCheckedModeBanner: false,
           theme: AppThemeDynamic.getLightTheme(

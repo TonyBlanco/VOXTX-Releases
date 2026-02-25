@@ -55,7 +55,9 @@ class _MoviesScreenState extends State<MoviesScreen> {
     if (activeId == null || channelProvider.isLoading) return;
 
     if (channelProvider.vodChannels.isEmpty) {
-      ServiceLocator.log.i('MoviesScreen: VOD vacío, recargando canales del playlist activo $activeId', tag: 'MoviesScreen');
+      ServiceLocator.log.i(
+          'MoviesScreen: VOD vacío, recargando canales del playlist activo $activeId',
+          tag: 'MoviesScreen');
       await channelProvider.loadAllChannelsToCache(activeId);
     }
   }
@@ -133,186 +135,239 @@ class _MoviesScreenState extends State<MoviesScreen> {
             final isFavorite = favoritesProvider.isFavorite(movie.id ?? 0);
 
             return AlertDialog(
-          backgroundColor: AppTheme.getSurfaceColor(ctx),
-          contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-          content: SizedBox(
-            width: 620,
-            child: FutureBuilder<OmdbMovieInfo?>(
-              future: _getOmdbInfo(movie),
-              builder: (context, snapshot) {
-                final info = snapshot.data;
-                final title = (info?.title.isNotEmpty ?? false) ? info!.title : movie.name;
-                final year = (info?.year.isNotEmpty ?? false) && info!.year != 'N/A' ? info.year : '—';
-                final rating = (info?.imdbRating.isNotEmpty ?? false) && info!.imdbRating != 'N/A' ? info.imdbRating : '—';
-                final genre = (info?.genre.isNotEmpty ?? false) && info!.genre != 'N/A' ? info.genre : '—';
-                final runtime = (info?.runtime.isNotEmpty ?? false) && info!.runtime != 'N/A' ? info.runtime : '—';
-                final plot = (info?.plot.isNotEmpty ?? false) && info!.plot != 'N/A'
-                    ? info.plot
-                    : _tr('Sin descripción disponible', 'No description available');
+              backgroundColor: AppTheme.getSurfaceColor(ctx),
+              contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+              content: SizedBox(
+                width: 620,
+                child: FutureBuilder<OmdbMovieInfo?>(
+                  future: _getOmdbInfo(movie),
+                  builder: (context, snapshot) {
+                    final info = snapshot.data;
+                    final title = (info?.title.isNotEmpty ?? false)
+                        ? info!.title
+                        : movie.name;
+                    final year =
+                        (info?.year.isNotEmpty ?? false) && info!.year != 'N/A'
+                            ? info.year
+                            : '—';
+                    final rating = (info?.imdbRating.isNotEmpty ?? false) &&
+                            info!.imdbRating != 'N/A'
+                        ? info.imdbRating
+                        : '—';
+                    final genre = (info?.genre.isNotEmpty ?? false) &&
+                            info!.genre != 'N/A'
+                        ? info.genre
+                        : '—';
+                    final runtime = (info?.runtime.isNotEmpty ?? false) &&
+                            info!.runtime != 'N/A'
+                        ? info.runtime
+                        : '—';
+                    final plot =
+                        (info?.plot.isNotEmpty ?? false) && info!.plot != 'N/A'
+                            ? info.plot
+                            : _tr('Sin descripción disponible',
+                                'No description available');
 
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        TVFocusable(
-                          onSelect: () async {
-                            await favoritesProvider.toggleFavorite(movie);
-                            if (context.mounted) setDialogState(() {});
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isFavorite
-                                  ? AppTheme.getPrimaryColor(context).withOpacity(0.2)
-                                  : AppTheme.getCardColor(context),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
-                                  size: 16,
-                                  color: isFavorite
-                                      ? AppTheme.getPrimaryColor(context)
-                                      : AppTheme.getTextSecondary(context),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _tr('Favorito', 'Favorite'),
-                                  style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        TVFocusable(
-                          onSelect: () async {
-                            watchLater = await ServiceLocator.watchLater.toggle(movie.id);
-                            if (context.mounted) setDialogState(() {});
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: watchLater
-                                  ? AppTheme.getPrimaryColor(context).withOpacity(0.2)
-                                  : AppTheme.getCardColor(context),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  watchLater ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                  size: 16,
-                                  color: watchLater
-                                      ? AppTheme.getPrimaryColor(context)
-                                      : AppTheme.getTextSecondary(context),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _tr('Ver luego', 'Watch later'),
-                                  style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: SizedBox(
-                            width: 120,
-                            height: 170,
-                            child: () {
-                              final posterUrl = _bestPosterUrl(movie, info);
-                              if (posterUrl == null) {
-                                return Container(
-                                  color: AppTheme.getCardColor(context),
-                                  child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 36),
-                                );
-                              }
-
-                              return CachedNetworkImage(
-                                imageUrl: posterUrl,
-                                fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) => Container(
-                                  color: AppTheme.getCardColor(context),
-                                  child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 36),
+                        Row(
+                          children: [
+                            TVFocusable(
+                              onSelect: () async {
+                                await favoritesProvider.toggleFavorite(movie);
+                                if (context.mounted) setDialogState(() {});
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isFavorite
+                                      ? AppTheme.getPrimaryColor(context)
+                                          .withOpacity(0.2)
+                                      : AppTheme.getCardColor(context),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              );
-                            }(),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: AppTheme.getTextPrimary(context),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border_rounded,
+                                      size: 16,
+                                      color: isFavorite
+                                          ? AppTheme.getPrimaryColor(context)
+                                          : AppTheme.getTextSecondary(context),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _tr('Favorito', 'Favorite'),
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Text('IMDb: $rating', style: TextStyle(color: AppTheme.getTextSecondary(context))),
-                              const SizedBox(height: 4),
-                              Text('${_tr('Año', 'Year')}: $year', style: TextStyle(color: AppTheme.getTextSecondary(context))),
-                              const SizedBox(height: 4),
-                              Text('${_tr('Género', 'Genre')}: $genre', style: TextStyle(color: AppTheme.getTextSecondary(context))),
-                              const SizedBox(height: 4),
-                              Text('${_tr('Duración', 'Runtime')}: $runtime', style: TextStyle(color: AppTheme.getTextSecondary(context))),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 8),
+                            TVFocusable(
+                              onSelect: () async {
+                                watchLater = await ServiceLocator.watchLater
+                                    .toggle(movie.id);
+                                if (context.mounted) setDialogState(() {});
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: watchLater
+                                      ? AppTheme.getPrimaryColor(context)
+                                          .withOpacity(0.2)
+                                      : AppTheme.getCardColor(context),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      watchLater
+                                          ? Icons.bookmark_rounded
+                                          : Icons.bookmark_border_rounded,
+                                      size: 16,
+                                      color: watchLater
+                                          ? AppTheme.getPrimaryColor(context)
+                                          : AppTheme.getTextSecondary(context),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _tr('Ver luego', 'Watch later'),
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 12),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: SizedBox(
+                                width: 120,
+                                height: 170,
+                                child: () {
+                                  final posterUrl = _bestPosterUrl(movie, info);
+                                  if (posterUrl == null) {
+                                    return Container(
+                                      color: AppTheme.getCardColor(context),
+                                      child: Icon(Icons.movie_rounded,
+                                          color: AppTheme.getTextMuted(context),
+                                          size: 36),
+                                    );
+                                  }
+
+                                  return CachedNetworkImage(
+                                    imageUrl: posterUrl,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) => Container(
+                                      color: AppTheme.getCardColor(context),
+                                      child: Icon(Icons.movie_rounded,
+                                          color: AppTheme.getTextMuted(context),
+                                          size: 36),
+                                    ),
+                                  );
+                                }(),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: AppTheme.getTextPrimary(context),
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text('IMDb: $rating',
+                                      style: TextStyle(
+                                          color: AppTheme.getTextSecondary(
+                                              context))),
+                                  const SizedBox(height: 4),
+                                  Text('${_tr('Año', 'Year')}: $year',
+                                      style: TextStyle(
+                                          color: AppTheme.getTextSecondary(
+                                              context))),
+                                  const SizedBox(height: 4),
+                                  Text('${_tr('Género', 'Genre')}: $genre',
+                                      style: TextStyle(
+                                          color: AppTheme.getTextSecondary(
+                                              context))),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                      '${_tr('Duración', 'Runtime')}: $runtime',
+                                      style: TextStyle(
+                                          color: AppTheme.getTextSecondary(
+                                              context))),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          plot,
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: AppTheme.getTextPrimary(context),
+                              height: 1.3),
+                        ),
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _tr('Consultando OMDb…', 'Loading OMDb…'),
+                            style: TextStyle(
+                                color: AppTheme.getTextMuted(context),
+                                fontSize: 12),
+                          ),
+                        ],
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      plot,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: AppTheme.getTextPrimary(context), height: 1.3),
-                    ),
-                    if (snapshot.connectionState == ConnectionState.waiting) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _tr('Consultando OMDb…', 'Loading OMDb…'),
-                        style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 12),
-                      ),
-                    ],
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(_tr('Cerrar', 'Close')),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _playChannel(movie);
-              },
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: Text(_tr('Reproducir', 'Play')),
-            ),
-          ],
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(_tr('Cerrar', 'Close')),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _playChannel(movie);
+                  },
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(_tr('Reproducir', 'Play')),
+                ),
+              ],
             );
           },
         );
@@ -345,7 +400,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
 
   Widget _buildTVLayout() {
     return TVSidebar(
-      selectedIndex: 2, // Movies is index 2
+      selectedIndex: 3, // Movies is index 3
       child: Consumer<ChannelProvider>(
         builder: (context, provider, _) {
           final groups = provider.vodGroups;
@@ -376,18 +431,23 @@ class _MoviesScreenState extends State<MoviesScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                    child: const Icon(Icons.arrow_back,
+                        color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     AppStrings.of(context)?.movies ?? 'Movies',
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
-                    onTap: () => _showMobileGroupsBottomSheet(context, groups),  
+                    onTap: () => _showMobileGroupsBottomSheet(context, groups),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -396,11 +456,14 @@ class _MoviesScreenState extends State<MoviesScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _selectedGroup ?? (AppStrings.of(context)?.allChannels ?? 'All'),
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            _selectedGroup ??
+                                (AppStrings.of(context)?.allChannels ?? 'All'),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.expand_more, color: Colors.white, size: 16),
+                          const Icon(Icons.expand_more,
+                              color: Colors.white, size: 16),
                         ],
                       ),
                     ),
@@ -415,11 +478,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
     );
   }
 
-  void _showMobileGroupsBottomSheet(BuildContext context, List<ChannelGroup> groups) {
+  void _showMobileGroupsBottomSheet(
+      BuildContext context, List<ChannelGroup> groups) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.getSurfaceColor(context),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -428,7 +493,10 @@ class _MoviesScreenState extends State<MoviesScreen> {
               padding: const EdgeInsets.all(12),
               child: Text(
                 AppStrings.of(context)?.categories ?? 'Categories',
-                style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: AppTheme.getTextPrimary(context),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             ),
             const Divider(height: 1),
@@ -437,8 +505,12 @@ class _MoviesScreenState extends State<MoviesScreen> {
                 shrinkWrap: true,
                 children: [
                   ListTile(
-                    title: Text(AppStrings.of(context)?.allChannels ?? 'All Movies'),
-                    leading: Icon(Icons.movie_rounded, color: _selectedGroup == null ? AppTheme.getPrimaryColor(context) : AppTheme.getTextSecondary(context)),
+                    title: Text(
+                        AppStrings.of(context)?.allChannels ?? 'All Movies'),
+                    leading: Icon(Icons.movie_rounded,
+                        color: _selectedGroup == null
+                            ? AppTheme.getPrimaryColor(context)
+                            : AppTheme.getTextSecondary(context)),
                     selected: _selectedGroup == null,
                     onTap: () {
                       setState(() => _selectedGroup = null);
@@ -446,14 +518,17 @@ class _MoviesScreenState extends State<MoviesScreen> {
                     },
                   ),
                   ...groups.map((g) => ListTile(
-                    title: Text(g.name),
-                    leading: Icon(Icons.folder_rounded, color: _selectedGroup == g.name ? AppTheme.getPrimaryColor(context) : AppTheme.getTextSecondary(context)),
-                    selected: _selectedGroup == g.name,
-                    onTap: () {
-                      setState(() => _selectedGroup = g.name);
-                      Navigator.pop(ctx);
-                    },
-                  )),
+                        title: Text(g.name),
+                        leading: Icon(Icons.folder_rounded,
+                            color: _selectedGroup == g.name
+                                ? AppTheme.getPrimaryColor(context)
+                                : AppTheme.getTextSecondary(context)),
+                        selected: _selectedGroup == g.name,
+                        onTap: () {
+                          setState(() => _selectedGroup = g.name);
+                          Navigator.pop(ctx);
+                        },
+                      )),
                 ],
               ),
             ),
@@ -463,11 +538,14 @@ class _MoviesScreenState extends State<MoviesScreen> {
     );
   }
 
-  Widget _buildGroupsSidebar(List<ChannelGroup> groups, ChannelProvider provider) {
+  Widget _buildGroupsSidebar(
+      List<ChannelGroup> groups, ChannelProvider provider) {
     // Ensure focus nodes
     final totalGroups = groups.length + 1; // +1 for "All"
-    while (_groupFocusNodes.length < totalGroups) _groupFocusNodes.add(FocusNode());
-    while (_groupFocusNodes.length > totalGroups) _groupFocusNodes.removeLast().dispose();
+    while (_groupFocusNodes.length < totalGroups)
+      _groupFocusNodes.add(FocusNode());
+    while (_groupFocusNodes.length > totalGroups)
+      _groupFocusNodes.removeLast().dispose();
 
     return FocusTraversalGroup(
       child: Container(
@@ -477,10 +555,23 @@ class _MoviesScreenState extends State<MoviesScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: Theme.of(context).brightness == Brightness.dark
-                ? [AppTheme.getBackgroundColor(context), AppTheme.getPrimaryColor(context).withOpacity(0.15), AppTheme.getBackgroundColor(context)]
-                : [AppTheme.getBackgroundColor(context), AppTheme.getBackgroundColor(context).withOpacity(0.9), AppTheme.getPrimaryColor(context).withOpacity(0.08)],
+                ? [
+                    AppTheme.getBackgroundColor(context),
+                    AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                    AppTheme.getBackgroundColor(context)
+                  ]
+                : [
+                    AppTheme.getBackgroundColor(context),
+                    AppTheme.getBackgroundColor(context).withOpacity(0.9),
+                    AppTheme.getPrimaryColor(context).withOpacity(0.08)
+                  ],
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(2, 0))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(2, 0))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -493,10 +584,18 @@ class _MoviesScreenState extends State<MoviesScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: Theme.of(context).brightness == Brightness.dark
-                      ? [const Color(0xFF0A0A0A), AppTheme.getPrimaryColor(context).withOpacity(0.1)]
-                      : [const Color(0xFFE0E0E0), AppTheme.getPrimaryColor(context).withOpacity(0.12)],
+                      ? [
+                          const Color(0xFF0A0A0A),
+                          AppTheme.getPrimaryColor(context).withOpacity(0.1)
+                        ]
+                      : [
+                          const Color(0xFFE0E0E0),
+                          AppTheme.getPrimaryColor(context).withOpacity(0.12)
+                        ],
                 ),
-                border: Border(bottom: BorderSide(color: AppTheme.getCardColor(context), width: 1)),
+                border: Border(
+                    bottom: BorderSide(
+                        color: AppTheme.getCardColor(context), width: 1)),
               ),
               child: Row(
                 children: [
@@ -505,15 +604,21 @@ class _MoviesScreenState extends State<MoviesScreen> {
                     focusScale: 1.1,
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppTheme.getCardColor(context), borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.arrow_back_rounded, color: AppTheme.getTextPrimary(context), size: 20),
+                      decoration: BoxDecoration(
+                          color: AppTheme.getCardColor(context),
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.arrow_back_rounded,
+                          color: AppTheme.getTextPrimary(context), size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       AppStrings.of(context)?.movies ?? 'Movies',
-                      style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: AppTheme.getTextPrimary(context),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -526,16 +631,20 @@ class _MoviesScreenState extends State<MoviesScreen> {
                 name: AppStrings.of(context)?.allChannels ?? 'All Movies',
                 count: provider.vodChannelCount,
                 isSelected: _selectedGroup == null,
-                focusNode: _groupFocusNodes.isNotEmpty ? _groupFocusNodes[0] : null,
+                focusNode:
+                    _groupFocusNodes.isNotEmpty ? _groupFocusNodes[0] : null,
                 groupIndex: 0,
-                onTap: () => setState(() { _selectedGroup = null; }),
+                onTap: () => setState(() {
+                  _selectedGroup = null;
+                }),
               ),
             ),
             Divider(color: AppTheme.getCardColor(context), height: 1),
             Expanded(
               child: ListView.builder(
                 controller: _groupScrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 itemCount: groups.length,
                 itemBuilder: (context, index) {
                   final g = groups[index];
@@ -544,9 +653,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
                     name: g.name,
                     count: g.channelCount,
                     isSelected: _selectedGroup == g.name,
-                    focusNode: focusIndex < _groupFocusNodes.length ? _groupFocusNodes[focusIndex] : null,
+                    focusNode: focusIndex < _groupFocusNodes.length
+                        ? _groupFocusNodes[focusIndex]
+                        : null,
                     groupIndex: focusIndex,
-                    onTap: () => setState(() { _selectedGroup = g.name; }),
+                    onTap: () => setState(() {
+                      _selectedGroup = g.name;
+                    }),
                   );
                 },
               ),
@@ -573,7 +686,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
         onFocus: PlatformDetector.isTV
             ? () {
                 _groupSelectTimer?.cancel();
-                _groupSelectTimer = Timer(const Duration(milliseconds: 300), () {
+                _groupSelectTimer =
+                    Timer(const Duration(milliseconds: 300), () {
                   if (mounted) {
                     _scrollController.jumpTo(0);
                     onTap();
@@ -583,7 +697,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
             : null,
         onRight: PlatformDetector.isTV
             ? () {
-                if (_cardFocusNodes.isNotEmpty) _cardFocusNodes[0].requestFocus();
+                if (_cardFocusNodes.isNotEmpty)
+                  _cardFocusNodes[0].requestFocus();
               }
             : null,
         child: Container(
@@ -597,7 +712,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
             children: [
               Icon(
                 isSelected ? Icons.movie_rounded : Icons.folder_rounded,
-                color: isSelected ? Colors.white : AppTheme.getTextMuted(context),
+                color:
+                    isSelected ? Colors.white : AppTheme.getTextMuted(context),
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -607,22 +723,29 @@ class _MoviesScreenState extends State<MoviesScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.getTextSecondary(context),
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.getTextSecondary(context),
                     fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white.withOpacity(0.25) : AppTheme.getCardColor(context),
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.25)
+                      : AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   count.toString(),
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.getTextMuted(context),
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.getTextMuted(context),
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -641,11 +764,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.movie_outlined, size: 64, color: AppTheme.getTextMuted(context)),
+            Icon(Icons.movie_outlined,
+                size: 64, color: AppTheme.getTextMuted(context)),
             const SizedBox(height: 16),
             Text(
               AppStrings.of(context)?.noResultsFound ?? 'No movies found',
-              style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 16),
+              style: TextStyle(
+                  color: AppTheme.getTextMuted(context), fontSize: 16),
             ),
           ],
         ),
@@ -653,8 +778,10 @@ class _MoviesScreenState extends State<MoviesScreen> {
     }
 
     // Ensure card focus nodes
-    while (_cardFocusNodes.length < movies.length) _cardFocusNodes.add(FocusNode());
-    while (_cardFocusNodes.length > movies.length) _cardFocusNodes.removeLast().dispose();
+    while (_cardFocusNodes.length < movies.length)
+      _cardFocusNodes.add(FocusNode());
+    while (_cardFocusNodes.length > movies.length)
+      _cardFocusNodes.removeLast().dispose();
 
     final crossAxisCount = _posterColumns();
 
@@ -670,7 +797,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
       itemCount: movies.length,
       itemBuilder: (context, index) {
         final movie = movies[index];
-        final focusNode = index < _cardFocusNodes.length ? _cardFocusNodes[index] : null;
+        final focusNode =
+            index < _cardFocusNodes.length ? _cardFocusNodes[index] : null;
         return _buildPosterCard(movie, focusNode);
       },
     );
@@ -709,7 +837,12 @@ class _MoviesScreenState extends State<MoviesScreen> {
           decoration: BoxDecoration(
             color: AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(8),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 3))],
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3))
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -718,23 +851,29 @@ class _MoviesScreenState extends State<MoviesScreen> {
               Expanded(
                 flex: 7,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(8)),
                   child: movie.logoUrl != null && movie.logoUrl!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: movie.logoUrl!,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
                             color: AppTheme.getSurfaceColor(context),
-                            child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 32),
+                            child: Icon(Icons.movie_rounded,
+                                color: AppTheme.getTextMuted(context),
+                                size: 32),
                           ),
                           errorWidget: (_, __, ___) => Container(
                             color: AppTheme.getSurfaceColor(context),
-                            child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 32),
+                            child: Icon(Icons.movie_rounded,
+                                color: AppTheme.getTextMuted(context),
+                                size: 32),
                           ),
                         )
                       : Container(
                           color: AppTheme.getSurfaceColor(context),
-                          child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 32),
+                          child: Icon(Icons.movie_rounded,
+                              color: AppTheme.getTextMuted(context), size: 32),
                         ),
                 ),
               ),
@@ -742,7 +881,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
               Expanded(
                 flex: 3,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -757,7 +897,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (movie.groupName != null && movie.groupName!.isNotEmpty) ...[
+                      if (movie.groupName != null &&
+                          movie.groupName!.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           movie.groupName!,

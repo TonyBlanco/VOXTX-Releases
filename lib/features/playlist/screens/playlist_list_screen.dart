@@ -44,9 +44,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   }
 
   void _cleanupTvFocusNodes(List<dynamic> playlists) {
-    final validIds = playlists
-        .map((p) => (p.id).toString())
-        .toSet();
+    final validIds = playlists.map((p) => (p.id).toString()).toSet();
     final keysToRemove = <String>[];
     for (final key in _tvFocusNodes.keys) {
       final underscoreIndex = key.lastIndexOf('_');
@@ -219,12 +217,13 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
             ),
           ),
           child: TVSidebar(
-            selectedIndex: 4, // Playlist sources page
+            selectedIndex: 5, // Playlist sources page
             onRight: () {
               final provider = context.read<PlaylistProvider>();
               final sortedPlaylists = List.from(provider.playlists)
                 ..sort((a, b) => (b.id ?? 0).compareTo(a.id ?? 0));
-              if (sortedPlaylists.isNotEmpty && sortedPlaylists.first.id != null) {
+              if (sortedPlaylists.isNotEmpty &&
+                  sortedPlaylists.first.id != null) {
                 _requestTvFocusWithRetry(
                   'card_${sortedPlaylists.first.id}',
                   onFailure: () => _requestTvFallbackFocus(provider),
@@ -359,7 +358,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            AppStrings.of(context)?.goToHomeToAdd ?? 'Add a playlist to get started',
+            AppStrings.of(context)?.goToHomeToAdd ??
+                'Add a playlist to get started',
             style: TextStyle(
               color: AppTheme.getTextSecondary(context),
               fontSize: 14,
@@ -423,7 +423,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.getPrimaryColor(context),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -459,6 +460,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     final playlistKey = (playlist.id ?? index).toString();
     final cardFocusNode = isTv ? _getTvFocusNode('card_$playlistKey') : null;
     final copyFocusNode = isTv ? _getTvFocusNode('copy_$playlistKey') : null;
+    final editFocusNode = isTv ? _getTvFocusNode('edit_$playlistKey') : null;
     final refreshFocusNode =
         isTv ? _getTvFocusNode('refresh_$playlistKey') : null;
     final deleteFocusNode =
@@ -482,7 +484,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
               if (playlist.isRemote && playlist.url != null) {
                 copyFocusNode?.requestFocus();
               } else {
-                refreshFocusNode?.requestFocus();
+                editFocusNode?.requestFocus();
               }
             }
           : null,
@@ -618,7 +620,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                   TVFocusable(
                     focusNode: copyFocusNode,
                     onLeft: isTv ? () => cardFocusNode?.requestFocus() : null,
-                    onRight: isTv ? () => refreshFocusNode?.requestFocus() : null,
+                    onRight: isTv ? () => editFocusNode?.requestFocus() : null,
                     onSelect: () => _copyUrl(playlist.url!),
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -636,7 +638,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                   const SizedBox(width: 6),
                 ],
                 TVFocusable(
-                  focusNode: refreshFocusNode,
+                  focusNode: editFocusNode,
                   onLeft: isTv
                       ? () {
                           if (playlist.isRemote && playlist.url != null) {
@@ -644,6 +646,29 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                           } else {
                             cardFocusNode?.requestFocus();
                           }
+                        }
+                      : null,
+                  onRight: isTv ? () => refreshFocusNode?.requestFocus() : null,
+                  onSelect: () => _showEditPlaylistDialog(provider, playlist),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getCardColor(context),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.edit_rounded,
+                      color: AppTheme.getTextSecondary(context),
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                TVFocusable(
+                  focusNode: refreshFocusNode,
+                  onLeft: isTv
+                      ? () {
+                          editFocusNode?.requestFocus();
                         }
                       : null,
                   onRight: isTv ? () => deleteFocusNode?.requestFocus() : null,
@@ -732,7 +757,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
 
             // Background loading - don't block UI, don't await
             if (playlistEpgUrl != null && playlistEpgUrl.isNotEmpty) {
-              epgProvider.loadEpg(playlistEpgUrl, fallbackUrl: fallbackEpgUrl, silent: true);
+              epgProvider.loadEpg(playlistEpgUrl,
+                  fallbackUrl: fallbackEpgUrl, silent: true);
             } else if (fallbackEpgUrl != null && fallbackEpgUrl.isNotEmpty) {
               epgProvider.loadEpg(fallbackEpgUrl, silent: true);
             }
@@ -747,7 +773,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppStrings.of(context)?.urlCopied ?? 'URL copied to clipboard'),
+          content: Text(
+              AppStrings.of(context)?.urlCopied ?? 'URL copied to clipboard'),
           duration: const Duration(seconds: 2),
           backgroundColor: AppTheme.successColor,
         ),
@@ -799,8 +826,9 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
 
                   ScaffoldMessenger.of(pageContext).showSnackBar(
                     SnackBar(
-                      content: Text(AppStrings.of(pageContext)?.playlistDeleted ??
-                          'Playlist deleted'),
+                      content: Text(
+                          AppStrings.of(pageContext)?.playlistDeleted ??
+                              'Playlist deleted'),
                       backgroundColor: AppTheme.successColor,
                     ),
                   );
@@ -828,5 +856,103 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
       },
     );
   }
-}
 
+  void _showEditPlaylistDialog(PlaylistProvider provider, dynamic playlist) {
+    final nameController = TextEditingController(text: playlist.name);
+    final urlController = TextEditingController(text: playlist.url ?? '');
+    final isRemote = playlist.isRemote == true;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.getSurfaceColor(dialogContext),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Edit Playlist',
+            style: TextStyle(color: AppTheme.getTextPrimary(dialogContext)),
+          ),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                if (isRemote) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: urlController,
+                    decoration: const InputDecoration(
+                      labelText: 'URL',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(AppStrings.of(dialogContext)?.cancel ?? 'Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newName = nameController.text.trim();
+                final newUrl = urlController.text.trim();
+
+                if (newName.isEmpty || (isRemote && newUrl.isEmpty)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name and URL are required')),
+                  );
+                  return;
+                }
+
+                final updated = playlist.copyWith(
+                  name: newName,
+                  url: isRemote ? newUrl : playlist.url,
+                  lastUpdated: DateTime.now(),
+                );
+
+                final ok = await provider.updatePlaylist(updated);
+                if (!mounted) return;
+                Navigator.pop(dialogContext);
+
+                if (ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Playlist updated'),
+                      backgroundColor: AppTheme.successColor,
+                    ),
+                  );
+                  if (provider.activePlaylist?.id == updated.id) {
+                    await _refreshPlaylist(provider, updated);
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text(provider.error ?? 'Failed to update playlist'),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
+                }
+              },
+              child: Text(AppStrings.of(dialogContext)?.save ?? 'Save'),
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      nameController.dispose();
+      urlController.dispose();
+    });
+  }
+}

@@ -12,16 +12,16 @@ import '../../features/settings/providers/settings_provider.dart';
 import '../services/service_locator.dart';
 
 /// TV
-/// 
+///
 class TVSidebar extends StatefulWidget {
   final int selectedIndex;
   final Widget child;
-  final VoidCallback? onRight; // 
+  final VoidCallback? onRight; //
 
-  /// 
+  ///
   static List<FocusNode>? menuFocusNodes;
 
-  /// 
+  ///
   static int? selectedMenuIndex;
 
   const TVSidebar({
@@ -37,8 +37,8 @@ class TVSidebar extends StatefulWidget {
 
 class _TVSidebarState extends State<TVSidebar> {
   final List<FocusNode> _menuFocusNodes = [];
-  Timer? _navDelayTimer; // 
-  int? _pendingNavIndex; // 
+  Timer? _navDelayTimer; //
+  int? _pendingNavIndex; //
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _TVSidebarState extends State<TVSidebar> {
     for (int i = 0; i < 9; i++) {
       _menuFocusNodes.add(FocusNode());
     }
-    // 
+    //
     TVSidebar.menuFocusNodes = _menuFocusNodes;
     TVSidebar.selectedMenuIndex = widget.selectedIndex;
 
@@ -83,15 +83,42 @@ class _TVSidebarState extends State<TVSidebar> {
 
   List<_NavItem> _getNavItems(BuildContext context) {
     final items = [
-      _NavItem(icon: Icons.home_rounded, label: AppStrings.of(context)?.home ?? 'Home', route: null),
-      _NavItem(icon: Icons.live_tv_rounded, label: AppStrings.of(context)?.channels ?? 'Channels', route: AppRouter.channels),
-      _NavItem(icon: Icons.event_note_rounded, label: 'Program Guide', route: AppRouter.epg),
-      _NavItem(icon: Icons.movie_rounded, label: AppStrings.of(context)?.movies ?? 'Movies', route: AppRouter.movies),
-      _NavItem(icon: Icons.video_library_rounded, label: AppStrings.of(context)?.series ?? 'Series', route: AppRouter.series),
-      _NavItem(icon: Icons.playlist_play_rounded, label: AppStrings.of(context)?.playlistList ?? 'Playlist List', route: AppRouter.playlistList),
-      _NavItem(icon: Icons.favorite_rounded, label: AppStrings.of(context)?.favorites ?? 'Favorites', route: AppRouter.favorites),
-      _NavItem(icon: Icons.search_rounded, label: AppStrings.of(context)?.search ?? 'Search', route: AppRouter.search),
-      _NavItem(icon: Icons.settings_rounded, label: AppStrings.of(context)?.settings ?? 'Settings', route: AppRouter.settings),
+      _NavItem(
+          icon: Icons.home_rounded,
+          label: AppStrings.of(context)?.home ?? 'Home',
+          route: null),
+      _NavItem(
+          icon: Icons.live_tv_rounded,
+          label: AppStrings.of(context)?.channels ?? 'Channels',
+          route: AppRouter.channels),
+      _NavItem(
+          icon: Icons.event_note_rounded,
+          label: 'Program Guide',
+          route: AppRouter.epg),
+      _NavItem(
+          icon: Icons.movie_rounded,
+          label: AppStrings.of(context)?.movies ?? 'Movies',
+          route: AppRouter.movies),
+      _NavItem(
+          icon: Icons.video_library_rounded,
+          label: AppStrings.of(context)?.series ?? 'Series',
+          route: AppRouter.series),
+      _NavItem(
+          icon: Icons.playlist_play_rounded,
+          label: AppStrings.of(context)?.playlistList ?? 'Playlist List',
+          route: AppRouter.playlistList),
+      _NavItem(
+          icon: Icons.favorite_rounded,
+          label: AppStrings.of(context)?.favorites ?? 'Favorites',
+          route: AppRouter.favorites),
+      _NavItem(
+          icon: Icons.search_rounded,
+          label: AppStrings.of(context)?.search ?? 'Search',
+          route: AppRouter.search),
+      _NavItem(
+          icon: Icons.settings_rounded,
+          label: AppStrings.of(context)?.settings ?? 'Settings',
+          route: AppRouter.settings),
     ];
     // ServiceLocator.log.d('TVSidebar: _getNavItems returned ${items.length} items');
     return items;
@@ -100,18 +127,19 @@ class _TVSidebarState extends State<TVSidebar> {
   void _onNavItemTap(int index, String? route) {
     if (index == widget.selectedIndex) return;
 
-    // 
+    //
     clearLogoLoadingQueue();
 
     if (index == 0) {
-      //  pop 
-      Navigator.of(context).popUntil((r) => r.settings.name == AppRouter.home || r.isFirst);
+      //  pop
+      Navigator.of(context)
+          .popUntil((r) => r.settings.name == AppRouter.home || r.isFirst);
     } else if (route != null) {
       if (widget.selectedIndex == 0) {
         //  push
         Navigator.pushNamed(context, route);
       } else {
-        //  pushReplacementNamed 
+        //  pushReplacementNamed
         Navigator.pushReplacementNamed(context, route);
       }
     }
@@ -120,16 +148,16 @@ class _TVSidebarState extends State<TVSidebar> {
   @override
   Widget build(BuildContext context) {
     final navItems = _getNavItems(context);
-    // 
+    //
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
-    // 
-    // 
+    //
+    //
     final shouldExpand = !simpleMenu;
     final width = shouldExpand ? 130.0 : 52.0;
 
     return Row(
       children: [
-        // 
+        //
         Focus(
           onFocusChange: (hasFocus) {
             // ,
@@ -170,9 +198,11 @@ class _TVSidebarState extends State<TVSidebar> {
                 // Nav Items
                 Expanded(
                   child: ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 6 : 4),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: shouldExpand ? 6 : 4),
                     itemCount: navItems.length,
-                    itemBuilder: (context, index) => _buildNavItem(index, navItems[index]),
+                    itemBuilder: (context, index) =>
+                        _buildNavItem(index, navItems[index]),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -180,17 +210,17 @@ class _TVSidebarState extends State<TVSidebar> {
             ),
           ),
         ),
-        // 
+        //
         Expanded(child: widget.child),
       ],
     );
   }
 
   Widget _buildLogo() {
-    // 
+    //
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
     final shouldExpand = !simpleMenu;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 10 : 8),
       child: shouldExpand
@@ -198,13 +228,19 @@ class _TVSidebarState extends State<TVSidebar> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: Image.asset('assets/icons/app_icon.png', width: 24, height: 24),
+                  child: Image.asset('assets/icons/app_icon.png',
+                      width: 24, height: 24),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: ShaderMask(
-                    shaderCallback: (bounds) => AppTheme.getGradient(context).createShader(bounds),
-                    child: const Text('VoXtv', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    shaderCallback: (bounds) =>
+                        AppTheme.getGradient(context).createShader(bounds),
+                    child: const Text('VoXtv',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
                   ),
                 ),
               ],
@@ -212,7 +248,8 @@ class _TVSidebarState extends State<TVSidebar> {
           : Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: Image.asset('assets/icons/app_icon.png', width: 24, height: 24),
+                child: Image.asset('assets/icons/app_icon.png',
+                    width: 24, height: 24),
               ),
             ),
     );
@@ -220,8 +257,9 @@ class _TVSidebarState extends State<TVSidebar> {
 
   Widget _buildNavItem(int index, _NavItem item) {
     final isSelected = widget.selectedIndex == index;
-    final focusNode = index < _menuFocusNodes.length ? _menuFocusNodes[index] : null;
-    // 
+    final focusNode =
+        index < _menuFocusNodes.length ? _menuFocusNodes[index] : null;
+    //
     final simpleMenu = context.watch<SettingsProvider>().simpleMenu;
     final shouldExpand = !simpleMenu;
 
@@ -234,7 +272,7 @@ class _TVSidebarState extends State<TVSidebar> {
           // UI
           if (mounted) setState(() {});
 
-          // 
+          //
           if (hasFocus && index != widget.selectedIndex) {
             _navDelayTimer?.cancel();
             _pendingNavIndex = index;
@@ -244,7 +282,7 @@ class _TVSidebarState extends State<TVSidebar> {
               }
             });
           } else if (!hasFocus && _pendingNavIndex == index) {
-            // 
+            //
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
           }
@@ -258,7 +296,9 @@ class _TVSidebarState extends State<TVSidebar> {
           }
 
           // OK / Select / Enter → navigate immediately (no debounce)
-          if (key == LogicalKeyboardKey.select || key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space) {
+          if (key == LogicalKeyboardKey.select ||
+              key == LogicalKeyboardKey.enter ||
+              key == LogicalKeyboardKey.space) {
             _navDelayTimer?.cancel();
             _pendingNavIndex = null;
             _onNavItemTap(index, item.route);
@@ -289,19 +329,22 @@ class _TVSidebarState extends State<TVSidebar> {
             onTap: () => _onNavItemTap(index, item.route),
             child: Builder(
               builder: (context) {
-                //  FocusNode 
+                //  FocusNode
                 final isFocused = focusNode?.hasFocus ?? false;
-                // 
-                // 
+                //
+                //
                 final showSelectedHighlight = isSelected;
                 final showFocusHighlight = isFocused && !isSelected;
 
                 return Container(
-                  padding: EdgeInsets.symmetric(horizontal: shouldExpand ? 10 : 8, vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: shouldExpand ? 10 : 8, vertical: 10),
                   decoration: BoxDecoration(
-                    gradient: (showSelectedHighlight || showFocusHighlight) ? AppTheme.getGradient(context) : null,
+                    gradient: (showSelectedHighlight || showFocusHighlight)
+                        ? AppTheme.getGradient(context)
+                        : null,
                     borderRadius: BorderRadius.circular(8),
-                    // 
+                    //
                     border: isFocused
                         ? Border.all(
                             color: Colors.white.withOpacity(0.6),
@@ -312,19 +355,42 @@ class _TVSidebarState extends State<TVSidebar> {
                   child: shouldExpand
                       ? Row(
                           children: [
-                            Icon(item.icon, color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : AppTheme.getTextMuted(context), size: 18),
+                            Icon(item.icon,
+                                color: (showSelectedHighlight ||
+                                        showFocusHighlight)
+                                    ? Colors.white
+                                    : AppTheme.getTextMuted(context),
+                                size: 18),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(item.label,
-                                  style: TextStyle(
-                                    color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : AppTheme.getTextSecondary(context),
-                                    fontSize: 12,
-                                    fontWeight: (showSelectedHighlight || showFocusHighlight) ? FontWeight.w600 : FontWeight.normal,
-                                  )),
+                              child: Text(
+                                item.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: (showSelectedHighlight ||
+                                          showFocusHighlight)
+                                      ? Colors.white
+                                      : AppTheme.getTextSecondary(context),
+                                  fontSize: 12,
+                                  fontWeight: (showSelectedHighlight ||
+                                          showFocusHighlight)
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                ),
+                              ),
                             ),
                           ],
                         )
-                      : Center(child: Icon(item.icon, color: (showSelectedHighlight || showFocusHighlight) ? Colors.white : (isSelected ? AppTheme.getPrimaryColor(context) : AppTheme.getTextMuted(context)), size: 18)),
+                      : Center(
+                          child: Icon(item.icon,
+                              color:
+                                  (showSelectedHighlight || showFocusHighlight)
+                                      ? Colors.white
+                                      : (isSelected
+                                          ? AppTheme.getPrimaryColor(context)
+                                          : AppTheme.getTextMuted(context)),
+                              size: 18)),
                 );
               },
             ),
@@ -339,5 +405,6 @@ class _NavItem {
   final IconData icon;
   final String label;
   final String? route;
-  const _NavItem({required this.icon, required this.label, required this.route});
+  const _NavItem(
+      {required this.icon, required this.label, required this.route});
 }

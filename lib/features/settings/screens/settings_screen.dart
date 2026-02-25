@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +22,9 @@ import '../../epg/providers/epg_provider.dart';
 class SettingsScreen extends StatefulWidget {
   final bool embedded;
   final bool autoCheckUpdate;
-  
-  const SettingsScreen({super.key, this.embedded = false, this.autoCheckUpdate = false});
+
+  const SettingsScreen(
+      {super.key, this.embedded = false, this.autoCheckUpdate = false});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -33,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // 
+    //
     if (widget.autoCheckUpdate) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkForUpdates(context);
@@ -41,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 
+  //
   void _showSuccess(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -52,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 
+  //
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -63,12 +64,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 
+  //
   Map<String, dynamic> _getDialogStyle(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
-    
+    final isLandscape =
+        screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+
     return {
       'isLandscape': isLandscape,
       'shape': RoundedRectangleBorder(
@@ -135,7 +137,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSelectTile(
                 context,
                 title: AppStrings.of(context)?.fontFamily ?? '',
-                subtitle: _getFontFamilyLabel(context, settings.fontFamily, settings),
+                subtitle:
+                    _getFontFamilyLabel(context, settings.fontFamily, settings),
                 icon: Icons.text_fields_rounded,
                 onTap: () => _showFontFamilyDialog(context, settings),
               ),
@@ -143,39 +146,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.simpleMenu ?? 'Simple Menu',
-                subtitle: AppStrings.of(context)?.simpleMenuSubtitle ?? 'Keep menu collapsed (no auto-expand)',
+                subtitle: AppStrings.of(context)?.simpleMenuSubtitle ??
+                    'Keep menu collapsed (no auto-expand)',
                 icon: Icons.menu_rounded,
                 value: settings.simpleMenu,
                 onChanged: (value) {
                   settings.setSimpleMenu(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.simpleMenuEnabled ?? 'Simple menu enabled') : (strings?.simpleMenuDisabled ?? 'Simple menu disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.simpleMenuEnabled ??
+                              'Simple menu enabled')
+                          : (strings?.simpleMenuDisabled ??
+                              'Simple menu disabled'));
                 },
               ),
               _buildDivider(),
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.showWatchHistoryOnHome ?? 'Show Watch History on Home',
-                subtitle: AppStrings.of(context)?.showWatchHistoryOnHomeSubtitle ?? 'Display recently watched channels on home screen',
+                title: AppStrings.of(context)?.showWatchHistoryOnHome ??
+                    'Show Watch History on Home',
+                subtitle:
+                    AppStrings.of(context)?.showWatchHistoryOnHomeSubtitle ??
+                        'Display recently watched channels on home screen',
                 icon: Icons.history_rounded,
                 value: settings.showWatchHistoryOnHome,
                 onChanged: (value) {
                   settings.setShowWatchHistoryOnHome(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.watchHistoryOnHomeEnabled ?? 'Watch history on home enabled') : (strings?.watchHistoryOnHomeDisabled ?? 'Watch history on home disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.watchHistoryOnHomeEnabled ??
+                              'Watch history on home enabled')
+                          : (strings?.watchHistoryOnHomeDisabled ??
+                              'Watch history on home disabled'));
                 },
               ),
               _buildDivider(),
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.showFavoritesOnHome ?? 'Show Favorites on Home',
-                subtitle: AppStrings.of(context)?.showFavoritesOnHomeSubtitle ?? 'Display favorite channels on home screen',
+                title: AppStrings.of(context)?.showFavoritesOnHome ??
+                    'Show Favorites on Home',
+                subtitle: AppStrings.of(context)?.showFavoritesOnHomeSubtitle ??
+                    'Display favorite channels on home screen',
                 icon: Icons.favorite_rounded,
                 value: settings.showFavoritesOnHome,
                 onChanged: (value) {
                   settings.setShowFavoritesOnHome(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.favoritesOnHomeEnabled ?? 'Favorites on home enabled') : (strings?.favoritesOnHomeDisabled ?? 'Favorites on home disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.favoritesOnHomeEnabled ??
+                              'Favorites on home enabled')
+                          : (strings?.favoritesOnHomeDisabled ??
+                              'Favorites on home disabled'));
                 },
               ),
             ]),
@@ -188,21 +215,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.autoPlay ?? 'Auto-play',
-                subtitle: AppStrings.of(context)?.autoPlaySubtitle ?? 'Automatically start playback when selecting a channel',
+                subtitle: AppStrings.of(context)?.autoPlaySubtitle ??
+                    'Automatically start playback when selecting a channel',
                 icon: Icons.play_circle_outline_rounded,
                 value: settings.autoPlay,
                 onChanged: (value) {
                   settings.setAutoPlay(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.autoPlayEnabled ?? 'Auto-play enabled') : (strings?.autoPlayDisabled ?? 'Auto-play disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.autoPlayEnabled ?? 'Auto-play enabled')
+                          : (strings?.autoPlayDisabled ??
+                              'Auto-play disabled'));
                 },
               ),
               if (isWindows) ...[
                 _buildDivider(),
                 _buildSelectTile(
                   context,
-                  title: AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
-                  subtitle: _getDecodingModeLabel(context, settings.decodingMode),
+                  title:
+                      AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
+                  subtitle:
+                      _getDecodingModeLabel(context, settings.decodingMode),
                   icon: Icons.tune_rounded,
                   onTap: () => _showDecodingModeDialog(context, settings),
                 ),
@@ -251,8 +286,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildDivider(),
                 _buildSelectTile(
                   context,
-                  title: AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
-                  subtitle: _getDecodingModeLabel(context, settings.decodingMode),
+                  title:
+                      AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
+                  subtitle:
+                      _getDecodingModeLabel(context, settings.decodingMode),
                   icon: Icons.tune_rounded,
                   onTap: () => _showDecodingModeDialog(context, settings,
                       options: const ['auto', 'hardware', 'software']),
@@ -296,8 +333,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildDivider(),
                 _buildSelectTile(
                   context,
-                  title: AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
-                  subtitle: _getDecodingModeLabel(context, settings.decodingMode),
+                  title:
+                      AppStrings.of(context)?.decodingMode ?? 'Decoding Mode',
+                  subtitle:
+                      _getDecodingModeLabel(context, settings.decodingMode),
                   icon: Icons.tune_rounded,
                   onTap: () => _showDecodingModeDialog(
                     context,
@@ -361,15 +400,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showVideoOutputDialog(context, settings),
                 ),
               ],
-                _buildDivider(),
-                _buildSelectTile(
-                  context,
-                  title: AppStrings.of(context)?.channelMergeRule ?? 'Channel Merge Rule',
-                  subtitle: _getChannelMergeRuleLabel(context, settings.channelMergeRule),
-                  icon: Icons.merge_rounded,
-                  onTap: () => _showChannelMergeRuleDialog(context, settings),
-                ),
-              //  - 
+              _buildDivider(),
+              _buildSelectTile(
+                context,
+                title: AppStrings.of(context)?.channelMergeRule ??
+                    'Channel Merge Rule',
+                subtitle: _getChannelMergeRuleLabel(
+                    context, settings.channelMergeRule),
+                icon: Icons.merge_rounded,
+                onTap: () => _showChannelMergeRuleDialog(context, settings),
+              ),
+              //  -
               // _buildDivider(),
               // _buildSelectTile(
               //   context,
@@ -381,8 +422,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(),
               _buildSelectTile(
                 context,
-                title: AppStrings.of(context)?.bufferStrength ?? 'Buffer Strength',
-                subtitle: _getBufferStrengthLabel(context, settings.bufferStrength),
+                title:
+                    AppStrings.of(context)?.bufferStrength ?? 'Buffer Strength',
+                subtitle:
+                    _getBufferStrengthLabel(context, settings.bufferStrength),
                 icon: Icons.speed_rounded,
                 onTap: () => _showBufferStrengthDialog(context, settings),
               ),
@@ -390,59 +433,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.showFps ?? 'Show FPS',
-                subtitle: AppStrings.of(context)?.showFpsSubtitle ?? 'Show frame rate in top-right corner of player',
+                subtitle: AppStrings.of(context)?.showFpsSubtitle ??
+                    'Show frame rate in top-right corner of player',
                 icon: Icons.speed_rounded,
                 value: settings.showFps,
                 onChanged: (value) {
                   settings.setShowFps(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.fpsEnabled ?? 'FPS display enabled') : (strings?.fpsDisabled ?? 'FPS display disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.fpsEnabled ?? 'FPS display enabled')
+                          : (strings?.fpsDisabled ?? 'FPS display disabled'));
                 },
               ),
               _buildDivider(),
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.showClock ?? 'Show Clock',
-                subtitle: AppStrings.of(context)?.showClockSubtitle ?? 'Show current time in top-right corner of player',
+                subtitle: AppStrings.of(context)?.showClockSubtitle ??
+                    'Show current time in top-right corner of player',
                 icon: Icons.schedule_rounded,
                 value: settings.showClock,
                 onChanged: (value) {
                   settings.setShowClock(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.clockEnabled ?? 'Clock display enabled') : (strings?.clockDisabled ?? 'Clock display disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.clockEnabled ?? 'Clock display enabled')
+                          : (strings?.clockDisabled ??
+                              'Clock display disabled'));
                 },
               ),
               _buildDivider(),
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.showNetworkSpeed ?? 'Show Network Speed',
-                subtitle: AppStrings.of(context)?.showNetworkSpeedSubtitle ?? 'Show download speed in top-right corner of player',
+                title: AppStrings.of(context)?.showNetworkSpeed ??
+                    'Show Network Speed',
+                subtitle: AppStrings.of(context)?.showNetworkSpeedSubtitle ??
+                    'Show download speed in top-right corner of player',
                 icon: Icons.network_check_rounded,
                 value: settings.showNetworkSpeed,
                 onChanged: (value) {
                   settings.setShowNetworkSpeed(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.networkSpeedEnabled ?? 'Network speed display enabled') : (strings?.networkSpeedDisabled ?? 'Network speed display disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.networkSpeedEnabled ??
+                              'Network speed display enabled')
+                          : (strings?.networkSpeedDisabled ??
+                              'Network speed display disabled'));
                 },
               ),
               _buildDivider(),
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.showVideoInfo ?? 'Show Resolution',
-                subtitle: AppStrings.of(context)?.showVideoInfoSubtitle ?? 'Show video resolution and bitrate in top-right corner',
+                title:
+                    AppStrings.of(context)?.showVideoInfo ?? 'Show Resolution',
+                subtitle: AppStrings.of(context)?.showVideoInfoSubtitle ??
+                    'Show video resolution and bitrate in top-right corner',
                 icon: Icons.high_quality_rounded,
                 value: settings.showVideoInfo,
                 onChanged: (value) {
                   settings.setShowVideoInfo(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.videoInfoEnabled ?? 'Resolution display enabled') : (strings?.videoInfoDisabled ?? 'Resolution display disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.videoInfoEnabled ??
+                              'Resolution display enabled')
+                          : (strings?.videoInfoDisabled ??
+                              'Resolution display disabled'));
                 },
               ),
               _buildDivider(),
               _buildSelectTile(
                 context,
                 title: AppStrings.of(context)?.progressBarMode ?? '',
-                subtitle: _getProgressBarModeLabel(context, settings.progressBarMode),
+                subtitle:
+                    _getProgressBarModeLabel(context, settings.progressBarMode),
                 icon: Icons.linear_scale_rounded,
                 onTap: () => _showProgressBarModeDialog(context, settings),
               ),
@@ -450,22 +521,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildDivider(),
                 _buildSwitchTile(
                   context,
-                  title: AppStrings.of(context)?.enableMultiScreen ?? 'Multi-Screen Mode',
-                  subtitle: AppStrings.of(context)?.enableMultiScreenSubtitle ?? 'Enable 2x2 split screen for simultaneous viewing',
+                  title: AppStrings.of(context)?.enableMultiScreen ??
+                      'Multi-Screen Mode',
+                  subtitle: AppStrings.of(context)?.enableMultiScreenSubtitle ??
+                      'Enable 2x2 split screen for simultaneous viewing',
                   icon: Icons.view_quilt_rounded,
                   value: settings.enableMultiScreen,
                   onChanged: (value) {
                     settings.setEnableMultiScreen(value);
                     final strings = AppStrings.of(context);
-                    _showSuccess(context, value ? (strings?.multiScreenEnabled ?? 'Multi-screen mode enabled') : (strings?.multiScreenDisabled ?? 'Multi-screen mode disabled'));
+                    _showSuccess(
+                        context,
+                        value
+                            ? (strings?.multiScreenEnabled ??
+                                'Multi-screen mode enabled')
+                            : (strings?.multiScreenDisabled ??
+                                'Multi-screen mode disabled'));
                   },
                 ),
-                if (settings.enableMultiScreen && PlatformDetector.isDesktop) ...[
+                if (settings.enableMultiScreen &&
+                    PlatformDetector.isDesktop) ...[
                   _buildDivider(),
                   _buildSelectTile(
                     context,
-                    title: AppStrings.of(context)?.defaultScreenPosition ?? 'Default Screen Position',
-                    subtitle: _getScreenPositionLabel(context, settings.defaultScreenPosition),
+                    title: AppStrings.of(context)?.defaultScreenPosition ??
+                        'Default Screen Position',
+                    subtitle: _getScreenPositionLabel(
+                        context, settings.defaultScreenPosition),
                     icon: Icons.crop_free_rounded,
                     onTap: () => _showScreenPositionDialog(context, settings),
                   ),
@@ -473,29 +555,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildDivider(),
                 _buildSwitchTile(
                   context,
-                  title: AppStrings.of(context)?.showMultiScreenChannelName ?? 'Show Channel Names',
-                  subtitle: AppStrings.of(context)?.showMultiScreenChannelNameSubtitle ?? 'Display channel names in multi-screen playback',
+                  title: AppStrings.of(context)?.showMultiScreenChannelName ??
+                      'Show Channel Names',
+                  subtitle: AppStrings.of(context)
+                          ?.showMultiScreenChannelNameSubtitle ??
+                      'Display channel names in multi-screen playback',
                   icon: Icons.text_fields_rounded,
                   value: settings.showMultiScreenChannelName,
                   onChanged: (value) {
                     settings.setShowMultiScreenChannelName(value);
                     final strings = AppStrings.of(context);
-                    _showSuccess(context, value ? (strings?.multiScreenChannelNameEnabled ?? 'Multi-screen channel name display enabled') : (strings?.multiScreenChannelNameDisabled ?? 'Multi-screen channel name display disabled'));
+                    _showSuccess(
+                        context,
+                        value
+                            ? (strings?.multiScreenChannelNameEnabled ??
+                                'Multi-screen channel name display enabled')
+                            : (strings?.multiScreenChannelNameDisabled ??
+                                'Multi-screen channel name display disabled'));
                   },
                 ),
               ],
-              // 
+              //
               if (PlatformDetector.isMobile) ...[
                 _buildDivider(),
                 _buildSelectTile(
                   context,
                   title: '',
-                  subtitle: _getOrientationLabel(context, settings.mobileOrientation),
+                  subtitle:
+                      _getOrientationLabel(context, settings.mobileOrientation),
                   icon: Icons.screen_rotation_rounded,
                   onTap: () => _showOrientationDialog(context, settings),
                 ),
               ],
-              //  - 
+              //  -
               // _buildDivider(),
               // _buildSwitchTile(
               //   context,
@@ -509,12 +601,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               //     _showError(context, strings?.volumeNormalizationNotImplemented ?? 'Volume normalization not implemented, setting will not take effect');
               //   },
               // ),
-              //  - 
+              //  -
               _buildDivider(),
               _buildSelectTile(
                 context,
                 title: AppStrings.of(context)?.volumeBoost ?? 'Volume Boost',
-                subtitle: settings.volumeBoost == 0 ? (AppStrings.of(context)?.noBoost ?? 'No boost') : '${settings.volumeBoost > 0 ? '+' : ''}${settings.volumeBoost} dB',
+                subtitle: settings.volumeBoost == 0
+                    ? (AppStrings.of(context)?.noBoost ?? 'No boost')
+                    : '${settings.volumeBoost > 0 ? '+' : ''}${settings.volumeBoost} dB',
                 icon: Icons.equalizer_rounded,
                 onTap: () => _showVolumeBoostDialog(context, settings),
               ),
@@ -523,27 +617,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Playlist Settings
-            _buildSectionHeader(AppStrings.of(context)?.playlists ?? 'Playlists'),
+            _buildSectionHeader(
+                AppStrings.of(context)?.playlists ?? 'Playlists'),
             _buildSettingsCard([
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.autoRefresh ?? 'Auto-refresh',
-                subtitle: AppStrings.of(context)?.autoRefreshSubtitle ?? 'Automatically update playlists periodically',
+                subtitle: AppStrings.of(context)?.autoRefreshSubtitle ??
+                    'Automatically update playlists periodically',
                 icon: Icons.refresh_rounded,
                 value: settings.autoRefresh,
                 onChanged: (value) {
                   settings.setAutoRefresh(value);
-                  _showSuccess(context, value 
-                    ? 'Auto-refresh enabled' 
-                    : 'Auto-refresh disabled');
+                  _showSuccess(context,
+                      value ? 'Auto-refresh enabled' : 'Auto-refresh disabled');
                 },
               ),
               if (settings.autoRefresh) ...[
                 _buildDivider(),
                 _buildSelectTile(
                   context,
-                  title: AppStrings.of(context)?.refreshInterval ?? 'Refresh Interval',
-                  subtitle: 'Every ${settings.refreshInterval} ${AppStrings.of(context)?.hours ?? 'hours'}',
+                  title: AppStrings.of(context)?.refreshInterval ??
+                      'Refresh Interval',
+                  subtitle:
+                      'Every ${settings.refreshInterval} ${AppStrings.of(context)?.hours ?? 'hours'}',
                   icon: Icons.schedule_rounded,
                   onTap: () => _showRefreshIntervalDialog(context, settings),
                 ),
@@ -551,14 +648,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(),
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.rememberLastChannel ?? 'Remember Last Channel',
-                subtitle: AppStrings.of(context)?.rememberLastChannelSubtitle ?? 'Resume playback from last watched channel',
+                title: AppStrings.of(context)?.rememberLastChannel ??
+                    'Remember Last Channel',
+                subtitle: AppStrings.of(context)?.rememberLastChannelSubtitle ??
+                    'Resume playback from last watched channel',
                 icon: Icons.history_rounded,
                 value: settings.rememberLastChannel,
                 onChanged: (value) {
                   settings.setRememberLastChannel(value);
                   final strings = AppStrings.of(context);
-                  _showSuccess(context, value ? (strings?.rememberLastChannelEnabled ?? 'Remember last channel enabled') : (strings?.rememberLastChannelDisabled ?? 'Remember last channel disabled'));
+                  _showSuccess(
+                      context,
+                      value
+                          ? (strings?.rememberLastChannelEnabled ??
+                              'Remember last channel enabled')
+                          : (strings?.rememberLastChannelDisabled ??
+                              'Remember last channel disabled'));
                 },
               ),
             ]),
@@ -566,33 +671,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // EPG Settings
-            _buildSectionHeader(AppStrings.of(context)?.epg ?? 'EPG (Electronic Program Guide)'),
+            _buildSectionHeader(AppStrings.of(context)?.epg ??
+                'EPG (Electronic Program Guide)'),
             _buildSettingsCard([
               _buildSwitchTile(
                 context,
                 title: AppStrings.of(context)?.enableEpg ?? 'Enable EPG',
-                subtitle: AppStrings.of(context)?.enableEpgSubtitle ?? 'Show program information for channels',
+                subtitle: AppStrings.of(context)?.enableEpgSubtitle ??
+                    'Show program information for channels',
                 icon: Icons.event_note_rounded,
                 value: settings.enableEpg,
                 onChanged: (value) async {
                   await settings.setEnableEpg(value);
                   final strings = AppStrings.of(context);
                   if (value) {
-                    //  EPG  URL 
-                    if (settings.epgUrl != null && settings.epgUrl!.isNotEmpty) {
-                      final success = await context.read<EpgProvider>().loadEpg(settings.epgUrl!);
+                    //  EPG  URL
+                    if (settings.epgUrl != null &&
+                        settings.epgUrl!.isNotEmpty) {
+                      final success = await context
+                          .read<EpgProvider>()
+                          .loadEpg(settings.epgUrl!);
                       if (success) {
-                        _showSuccess(context, strings?.epgEnabledAndLoaded ?? 'EPG enabled and loaded successfully');
+                        _showSuccess(
+                            context,
+                            strings?.epgEnabledAndLoaded ??
+                                'EPG enabled and loaded successfully');
                       } else {
-                        _showError(context, strings?.epgEnabledButFailed ?? 'EPG enabled but failed to load');
+                        _showError(
+                            context,
+                            strings?.epgEnabledButFailed ??
+                                'EPG enabled but failed to load');
                       }
                     } else {
-                      _showSuccess(context, strings?.epgEnabledPleaseConfigure ?? 'EPG enabled, please configure EPG URL');
+                      _showSuccess(
+                          context,
+                          strings?.epgEnabledPleaseConfigure ??
+                              'EPG enabled, please configure EPG URL');
                     }
                   } else {
-                    //  EPG 
+                    //  EPG
                     context.read<EpgProvider>().clear();
-                    _showSuccess(context, strings?.epgDisabled ?? 'EPG disabled');
+                    _showSuccess(
+                        context, strings?.epgDisabled ?? 'EPG disabled');
                   }
                 },
               ),
@@ -601,7 +721,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildInputTile(
                   context,
                   title: AppStrings.of(context)?.epgUrl ?? 'EPG URL',
-                  subtitle: settings.epgUrl ?? (AppStrings.of(context)?.notConfigured ?? 'Not configured'),
+                  subtitle: settings.epgUrl ??
+                      (AppStrings.of(context)?.notConfigured ??
+                          'Not configured'),
                   icon: Icons.link_rounded,
                   onTap: () => _showEpgUrlDialog(context, settings),
                 ),
@@ -611,7 +733,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // DLNA Settings
-            _buildSectionHeader(AppStrings.of(context)?.dlnaCasting ?? 'DLNA Casting'),
+            _buildSectionHeader(
+                AppStrings.of(context)?.dlnaCasting ?? 'DLNA Casting'),
             Consumer<DlnaProvider>(
               builder: (context, dlnaProvider, _) {
                 final strings = AppStrings.of(context);
@@ -620,16 +743,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context,
                     title: strings?.enableDlnaService ?? 'Enable DLNA Service',
                     subtitle: dlnaProvider.isRunning
-                        ? (strings?.dlnaServiceStarted ?? 'Started: {deviceName}').replaceFirst('{deviceName}', dlnaProvider.deviceName)
-                        : strings?.allowOtherDevicesToCast ?? 'Allow other devices to cast to this device',
+                        ? (strings?.dlnaServiceStarted ??
+                                'Started: {deviceName}')
+                            .replaceFirst(
+                                '{deviceName}', dlnaProvider.deviceName)
+                        : strings?.allowOtherDevicesToCast ??
+                            'Allow other devices to cast to this device',
                     icon: Icons.cast_rounded,
                     value: dlnaProvider.isEnabled,
                     onChanged: (value) async {
                       final success = await dlnaProvider.setEnabled(value);
                       if (success) {
-                        _showSuccess(context, value ? (strings?.dlnaServiceStartedMsg ?? 'DLNA service started') : (strings?.dlnaServiceStoppedMsg ?? 'DLNA service stopped'));
+                        _showSuccess(
+                            context,
+                            value
+                                ? (strings?.dlnaServiceStartedMsg ??
+                                    'DLNA service started')
+                                : (strings?.dlnaServiceStoppedMsg ??
+                                    'DLNA service stopped'));
                       } else {
-                        _showError(context, strings?.dlnaServiceStartFailed ?? 'Failed to start DLNA service, please check network connection');
+                        _showError(
+                            context,
+                            strings?.dlnaServiceStartFailed ??
+                                'Failed to start DLNA service, please check network connection');
                       }
                     },
                   ),
@@ -639,16 +775,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 // Parental Control
             const SizedBox(height: 24),
-            _buildSectionHeader(AppStrings.of(context)?.parentalControl ?? 'Control parental'),
+            _buildSectionHeader(
+                AppStrings.of(context)?.parentalControl ?? 'Control parental'),
             _buildSettingsCard([
               _buildSwitchTile(
                 context,
-                title: AppStrings.of(context)?.enableParentalControl ?? 'Activar control parental',
-                subtitle: AppStrings.of(context)?.enableParentalControlSubtitle ?? 'Solicitar PIN para acceder a contenido adulto',
+                title: AppStrings.of(context)?.enableParentalControl ??
+                    'Activar control parental',
+                subtitle:
+                    AppStrings.of(context)?.enableParentalControlSubtitle ??
+                        'Solicitar PIN para acceder a contenido adulto',
                 icon: Icons.lock_outline_rounded,
                 value: settings.parentalControl,
                 onChanged: (value) {
-                  if (value && (settings.parentalPin == null || settings.parentalPin!.isEmpty)) {
+                  if (value &&
+                      (settings.parentalPin == null ||
+                          settings.parentalPin!.isEmpty)) {
                     _showChangePinDialog(context, settings, enableAfter: true);
                   } else {
                     settings.setParentalControl(value);
@@ -660,7 +802,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildActionTile(
                   context,
                   title: AppStrings.of(context)?.changePin ?? 'Cambiar PIN',
-                  subtitle: AppStrings.of(context)?.changePinSubtitle ?? 'Actualizar el PIN de control parental',
+                  subtitle: AppStrings.of(context)?.changePinSubtitle ??
+                      'Actualizar el PIN de control parental',
                   icon: Icons.pin_rounded,
                   onTap: () => _showChangePinDialog(context, settings),
                 ),
@@ -670,7 +813,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
 
             // Developer & Debug Settings
-            _buildSectionHeader(AppStrings.of(context)?.developerAndDebug ?? 'Developer & Debug'),
+            _buildSectionHeader(AppStrings.of(context)?.developerAndDebug ??
+                'Developer & Debug'),
             _buildSettingsCard([
               _buildSelectTile(
                 context,
@@ -683,7 +827,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildActionTile(
                 context,
                 title: AppStrings.of(context)?.exportLogs ?? 'Export Logs',
-                subtitle: AppStrings.of(context)?.exportLogsSubtitle ?? 'Export log files for diagnostics',
+                subtitle: AppStrings.of(context)?.exportLogsSubtitle ??
+                    'Export log files for diagnostics',
                 icon: Icons.file_download_rounded,
                 onTap: () => _exportLogs(context),
               ),
@@ -691,7 +836,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildActionTile(
                 context,
                 title: AppStrings.of(context)?.clearLogs ?? 'Clear Logs',
-                subtitle: AppStrings.of(context)?.clearLogsSubtitle ?? 'Delete all log files',
+                subtitle: AppStrings.of(context)?.clearLogsSubtitle ??
+                    'Delete all log files',
                 icon: Icons.delete_sweep_rounded,
                 onTap: () => _clearLogs(context),
               ),
@@ -699,7 +845,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildDivider(),
                 _buildActionTile(
                   context,
-                  title: AppStrings.of(context)?.logFileLocation ?? 'Log File Location',
+                  title: AppStrings.of(context)?.logFileLocation ??
+                      'Log File Location',
                   subtitle: ServiceLocator.log.logFilePath ?? 'Unknown',
                   icon: Icons.folder_rounded,
                   onTap: () => _openLogFolder(context),
@@ -726,8 +873,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildDivider(),
               _buildActionTile(
                 context,
-                title: AppStrings.of(context)?.checkUpdate ?? 'Check for Updates',
-                subtitle: AppStrings.of(context)?.checkUpdateSubtitle ?? 'Check if a new version is available',
+                title:
+                    AppStrings.of(context)?.checkUpdate ?? 'Check for Updates',
+                subtitle: AppStrings.of(context)?.checkUpdateSubtitle ??
+                    'Check if a new version is available',
                 icon: Icons.system_update_rounded,
                 onTap: () => _checkForUpdates(context),
               ),
@@ -746,8 +895,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsCard([
               _buildActionTile(
                 context,
-                title: AppStrings.of(context)?.resetAllSettings ?? 'Reset All Settings',
-                subtitle: AppStrings.of(context)?.resetSettingsSubtitle ?? 'Restore all settings to default values',
+                title: AppStrings.of(context)?.resetAllSettings ??
+                    'Reset All Settings',
+                subtitle: AppStrings.of(context)?.resetSettingsSubtitle ??
+                    'Restore all settings to default values',
                 icon: Icons.restore_rounded,
                 isDestructive: true,
                 onTap: () => _confirmResetSettings(context, settings),
@@ -764,24 +915,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return Scaffold(
         body: Container(
           decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: Theme.of(context).brightness == Brightness.dark
-                        ? [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.15),
-                            AppTheme.getBackgroundColor(context),
-                          ]
-                        : [
-                            AppTheme.getBackgroundColor(context),
-                            AppTheme.getBackgroundColor(context).withOpacity(0.9),
-                            AppTheme.getPrimaryColor(context).withOpacity(0.08),
-                          ],
-                  ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.15),
+                      AppTheme.getBackgroundColor(context),
+                    ]
+                  : [
+                      AppTheme.getBackgroundColor(context),
+                      AppTheme.getBackgroundColor(context).withOpacity(0.9),
+                      AppTheme.getPrimaryColor(context).withOpacity(0.08),
+                    ],
+            ),
           ),
           child: TVSidebar(
-            selectedIndex: 7, // 
+            selectedIndex: 8, //
             child: content,
           ),
         ),
@@ -792,16 +943,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (widget.embedded) {
       final isMobile = PlatformDetector.isMobile;
       final isLandscape = isMobile && MediaQuery.of(context).size.width > 700;
-      final statusBarHeight = isMobile ? MediaQuery.of(context).padding.top : 0.0;
-      final topPadding = isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
-      
+      final statusBarHeight =
+          isMobile ? MediaQuery.of(context).padding.top : 0.0;
+      final topPadding =
+          isMobile ? (statusBarHeight > 0 ? statusBarHeight - 15.0 : 0.0) : 0.0;
+
       return Column(
         children: [
-          // 
+          //
           Container(
             padding: EdgeInsets.fromLTRB(
               12,
-              topPadding + (isLandscape ? 4 : 8),  // topPadding
+              topPadding + (isLandscape ? 4 : 8), // topPadding
               12,
               isLandscape ? 4 : 8,
             ),
@@ -811,7 +964,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   AppStrings.of(context)?.settings ?? 'Settings',
                   style: TextStyle(
                     color: AppTheme.getTextPrimary(context),
-                    fontSize: isLandscape ? 14 : 18,  // 
+                    fontSize: isLandscape ? 14 : 18, //
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -838,21 +991,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Column(
           children: [
-            // 
+            //
             if (PlatformDetector.isMobile)
               SizedBox(height: MediaQuery.of(context).padding.top),
             AppBar(
               backgroundColor: Colors.transparent,
-              primary: false,  // SafeArea padding
-              toolbarHeight: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 24.0 : 56.0,  // 24px
-              automaticallyImplyLeading: false,  // 
+              primary: false, // SafeArea padding
+              toolbarHeight: PlatformDetector.isMobile &&
+                      MediaQuery.of(context).size.width > 600
+                  ? 24.0
+                  : 56.0, // 24px
+              automaticallyImplyLeading: false, //
               title: Text(
                 AppStrings.of(context)?.settings ?? 'Settings',
                 style: TextStyle(
-                  color: AppTheme.getTextPrimary(context), 
-                  fontSize: PlatformDetector.isMobile && MediaQuery.of(context).size.width > 600 ? 14 : 20,  // 14px
-                  fontWeight: FontWeight.bold
-                ),
+                    color: AppTheme.getTextPrimary(context),
+                    fontSize: PlatformDetector.isMobile &&
+                            MediaQuery.of(context).size.width > 600
+                        ? 14
+                        : 20, // 14px
+                    fontWeight: FontWeight.bold),
               ),
             ),
             Expanded(child: content),
@@ -862,13 +1020,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _getCurrentLanguageLabel(BuildContext context, SettingsProvider settings) {
+  String _getCurrentLanguageLabel(
+      BuildContext context, SettingsProvider settings) {
     final locale = settings.locale;
     final strings = AppStrings.of(context);
     if (locale == null) {
       // No explicit setting, show system language
       final systemLocale = Localizations.localeOf(context);
-      final systemLang = systemLocale.languageCode == 'es' ? 'Español' : 'English';
+      final systemLang =
+          systemLocale.languageCode == 'es' ? 'Español' : 'English';
       return '${strings?.followSystem ?? "Follow system"} ($systemLang)';
     }
     if (locale.languageCode == 'es') {
@@ -877,18 +1037,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return strings?.english ?? 'English';
   }
 
-  String _getCurrentColorSchemeName(BuildContext context, SettingsProvider settings) {
+  String _getCurrentColorSchemeName(
+      BuildContext context, SettingsProvider settings) {
     final strings = AppStrings.of(context);
     final manager = ColorSchemeManager.instance;
-    
-    // 
+
+    //
     final isDarkMode = _isDarkMode(context, settings);
-    final schemeId = isDarkMode ? settings.darkColorScheme : settings.lightColorScheme;
-    final scheme = isDarkMode 
-        ? manager.getDarkScheme(schemeId) 
+    final schemeId =
+        isDarkMode ? settings.darkColorScheme : settings.lightColorScheme;
+    final scheme = isDarkMode
+        ? manager.getDarkScheme(schemeId)
         : manager.getLightScheme(schemeId);
-    
-    // 
+
+    //
     switch (scheme.nameKey) {
       case 'colorSchemeLotus':
         return strings?.colorSchemeLotus ?? 'Lotus';
@@ -925,7 +1087,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } else if (settings.themeMode == 'light') {
       return false;
     } else {
-      // 
+      //
       final brightness = MediaQuery.of(context).platformBrightness;
       return brightness == Brightness.dark;
     }
@@ -981,7 +1143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+    final isLandscape =
+        screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
     final modeOptions = options ?? const ['auto', 'hardware', 'software'];
 
     showDialog(
@@ -1003,10 +1166,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: modeOptions.map((mode) {
-                  return RadioListTile<String>(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: modeOptions.map((mode) {
+                return RadioListTile<String>(
                   title: Text(
                     _getDecodingModeLabel(context, mode),
                     style: TextStyle(
@@ -1031,8 +1194,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       final strings = AppStrings.of(context);
                       _showSuccess(
                         context,
-                        (strings?.decodingModeSet ?? 'Decoding mode set to: {mode}')
-                            .replaceFirst('{mode}', _getDecodingModeLabel(context, value)),
+                        (strings?.decodingModeSet ??
+                                'Decoding mode set to: {mode}')
+                            .replaceFirst('{mode}',
+                                _getDecodingModeLabel(context, value)),
                       );
                     }
                   },
@@ -1086,7 +1251,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+    final isLandscape =
+        screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
     final outputOptions = options ?? const ['auto', 'libmpv', 'gpu'];
 
     showDialog(
@@ -1108,10 +1274,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: outputOptions.map((mode) {
-                  return RadioListTile<String>(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: outputOptions.map((mode) {
+                return RadioListTile<String>(
                   title: Text(
                     _getVideoOutputLabel(context, mode),
                     style: TextStyle(
@@ -1136,8 +1302,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       final strings = AppStrings.of(context);
                       _showSuccess(
                         context,
-                        (strings?.videoOutputSet ?? 'Video output set to: {mode}')
-                            .replaceFirst('{mode}', _getVideoOutputLabel(context, value)),
+                        (strings?.videoOutputSet ??
+                                'Video output set to: {mode}')
+                            .replaceFirst(
+                                '{mode}', _getVideoOutputLabel(context, value)),
                       );
                     }
                   },
@@ -1189,10 +1357,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showWindowsHwdecDialog(BuildContext context, SettingsProvider settings) {
+  void _showWindowsHwdecDialog(
+      BuildContext context, SettingsProvider settings) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+    final isLandscape =
+        screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
     final options = ['auto-safe', 'auto-copy', 'd3d11va', 'dxva2'];
 
     showDialog(
@@ -1244,7 +1414,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context,
                         (strings?.windowsHwdecModeSet ??
                                 'Windows HW decode set to: {mode}')
-                            .replaceFirst('{mode}', _getWindowsHwdecLabel(context, value)),
+                            .replaceFirst('{mode}',
+                                _getWindowsHwdecLabel(context, value)),
                       );
                     }
                   },
@@ -1262,22 +1433,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _reinitMediaKitPlayer(BuildContext context, SettingsProvider settings) async {
+  Future<void> _reinitMediaKitPlayer(
+      BuildContext context, SettingsProvider settings) async {
     // Settings screen may appear without PlayerProvider in the widget tree.
     try {
       await context.read<PlayerProvider>().reinitializePlayer(
-        bufferStrength: settings.bufferStrength,
-      );
+            bufferStrength: settings.bufferStrength,
+          );
     } catch (_) {}
     // Reinitialize multi-screen players if available.
     try {
       await context.read<MultiScreenProvider>().reinitializePlayers(
-        videoOutput: settings.videoOutput,
-        windowsHwdecMode: settings.windowsHwdecMode,
-        allowSoftwareFallback: settings.allowSoftwareFallback,
-        decodingMode: settings.decodingMode,
-        bufferStrength: settings.bufferStrength,
-      );
+            videoOutput: settings.videoOutput,
+            windowsHwdecMode: settings.windowsHwdecMode,
+            allowSoftwareFallback: settings.allowSoftwareFallback,
+            decodingMode: settings.decodingMode,
+            bufferStrength: settings.bufferStrength,
+          );
     } catch (_) {}
   }
 
@@ -1292,10 +1464,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showChannelMergeRuleDialog(BuildContext context, SettingsProvider settings) {
+  void _showChannelMergeRuleDialog(
+      BuildContext context, SettingsProvider settings) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isLandscape = screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
+    final isLandscape =
+        screenWidth > 600 && screenWidth < 900 && screenHeight < screenWidth;
     final options = ['name_group', 'name'];
 
     showDialog(
@@ -1346,7 +1520,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       settings.setChannelMergeRule(value);
                       Navigator.pop(dialogContext);
                       final strings = AppStrings.of(context);
-                      _showSuccess(context, (strings?.channelMergeRuleSet ?? 'Channel merge rule set to: {rule}').replaceFirst('{rule}', _getChannelMergeRuleLabel(context, value)));
+                      _showSuccess(
+                          context,
+                          (strings?.channelMergeRuleSet ??
+                                  'Channel merge rule set to: {rule}')
+                              .replaceFirst('{rule}',
+                                  _getChannelMergeRuleLabel(context, value)));
                     }
                   },
                   activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -1368,10 +1547,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final strings = AppStrings.of(context);
     switch (rule) {
       case 'name':
-        return strings?.mergeByNameDesc ?? 'Merge channels with same name across all groups';
+        return strings?.mergeByNameDesc ??
+            'Merge channels with same name across all groups';
       case 'name_group':
       default:
-        return strings?.mergeByNameGroupDesc ?? 'Only merge channels with same name AND group';
+        return strings?.mergeByNameGroupDesc ??
+            'Only merge channels with same name AND group';
     }
   }
 
@@ -1426,7 +1607,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isMobile = PlatformDetector.isMobile;
     final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
-    
+
     return TVFocusable(
       onSelect: () => onChanged(!value),
       focusScale: 1.0,
@@ -1434,7 +1615,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, isFocused, child) {
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? AppTheme.getFocusBackgroundColor(context) : Colors.transparent,
+            color: isFocused
+                ? AppTheme.getFocusBackgroundColor(context)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: child,
@@ -1468,7 +1651,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title,
                     style: TextStyle(
                       color: AppTheme.getTextPrimary(context),
-                      fontSize: isLandscape ? 13 : 15,  // 
+                      fontSize: isLandscape ? 13 : 15, //
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1477,14 +1660,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle,
                     style: TextStyle(
                       color: AppTheme.getTextMuted(context),
-                      fontSize: isLandscape ? 10 : 12,  // 
+                      fontSize: isLandscape ? 10 : 12, //
                     ),
                   ),
                 ],
               ),
             ),
             Transform.scale(
-              scale: isLandscape ? 0.8 : 1.0,  // 
+              scale: isLandscape ? 0.8 : 1.0, //
               child: Switch(
                 value: value,
                 onChanged: onChanged,
@@ -1506,7 +1689,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isMobile = PlatformDetector.isMobile;
     final isLandscape = isMobile && MediaQuery.of(context).size.width > 600;
-    
+
     return TVFocusable(
       onSelect: onTap,
       focusScale: 1.0,
@@ -1514,7 +1697,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, isFocused, child) {
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? AppTheme.getFocusBackgroundColor(context) : Colors.transparent,
+            color: isFocused
+                ? AppTheme.getFocusBackgroundColor(context)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: child,
@@ -1550,7 +1735,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title,
                       style: TextStyle(
                         color: AppTheme.getTextPrimary(context),
-                        fontSize: isLandscape ? 13 : 15,  // 
+                        fontSize: isLandscape ? 13 : 15, //
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1559,7 +1744,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle,
                       style: TextStyle(
                         color: AppTheme.getTextMuted(context),
-                        fontSize: isLandscape ? 10 : 12,  // 
+                        fontSize: isLandscape ? 10 : 12, //
                       ),
                     ),
                   ],
@@ -1568,7 +1753,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Icon(
                 Icons.chevron_right_rounded,
                 color: AppTheme.getTextMuted(context),
-                size: isLandscape ? 18 : 24,  // 
+                size: isLandscape ? 18 : 24, //
               ),
             ],
           ),
@@ -1608,7 +1793,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, isFocused, child) {
         return Container(
           decoration: BoxDecoration(
-            color: isFocused ? (isDestructive ? AppTheme.errorColor.withOpacity(0.1) : AppTheme.getFocusBackgroundColor(context)) : Colors.transparent,
+            color: isFocused
+                ? (isDestructive
+                    ? AppTheme.errorColor.withOpacity(0.1)
+                    : AppTheme.getFocusBackgroundColor(context))
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: child,
@@ -1623,12 +1812,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (isDestructive ? AppTheme.errorColor : AppTheme.getPrimaryColor(context)).withOpacity(0.15),
+                  color: (isDestructive
+                          ? AppTheme.errorColor
+                          : AppTheme.getPrimaryColor(context))
+                      .withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  color: isDestructive ? AppTheme.errorColor : AppTheme.getPrimaryColor(context),
+                  color: isDestructive
+                      ? AppTheme.errorColor
+                      : AppTheme.getPrimaryColor(context),
                   size: 20,
                 ),
               ),
@@ -1640,7 +1834,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        color: isDestructive ? AppTheme.errorColor : AppTheme.getTextPrimary(context),
+                        color: isDestructive
+                            ? AppTheme.errorColor
+                            : AppTheme.getTextPrimary(context),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1711,20 +1907,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'balanced':
         return strings?.balancedBuffer ?? 'Balanced';
       case 'stable':
-        return strings?.stableBuffer ?? 'Stable (Slow switching, less stuttering)';
+        return strings?.stableBuffer ??
+            'Stable (Slow switching, less stuttering)';
       default:
         return strength;
     }
   }
 
-  void _showBufferStrengthDialog(BuildContext context, SettingsProvider settings) {
+  void _showBufferStrengthDialog(
+      BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final options = ['fast', 'balanced', 'stable'];
     final strings = AppStrings.of(context);
     final labels = {
       'fast': strings?.fastBuffer ?? 'Fast (Quick switching, may stutter)',
       'balanced': strings?.balancedBuffer ?? 'Balanced',
-      'stable': strings?.stableBuffer ?? 'Stable (Slow switching, less stuttering)',
+      'stable':
+          strings?.stableBuffer ?? 'Stable (Slow switching, less stuttering)',
     };
 
     showDialog(
@@ -1756,13 +1955,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   value: strength,
                   groupValue: settings.bufferStrength,
-                    onChanged: (value) async {
-                      if (value != null) {
-                        await settings.setBufferStrength(value);
-                        await _reinitMediaKitPlayer(context, settings);
-                        Navigator.pop(dialogContext);
-                      }
-                    },
+                  onChanged: (value) async {
+                    if (value != null) {
+                      await settings.setBufferStrength(value);
+                      await _reinitMediaKitPlayer(context, settings);
+                      Navigator.pop(dialogContext);
+                    }
+                  },
                   activeColor: AppTheme.getPrimaryColor(dialogContext),
                   contentPadding: style['itemPadding'],
                   visualDensity: style['visualDensity'],
@@ -1775,7 +1974,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showProgressBarModeDialog(BuildContext context, SettingsProvider settings) {
+  void _showProgressBarModeDialog(
+      BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final options = ['auto', 'always', 'never'];
     final strings = AppStrings.of(context);
@@ -1888,7 +2088,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     settings.setBufferSize(value);
                     Navigator.pop(dialogContext);
                     final strings = AppStrings.of(context);
-                    _showError(context, strings?.bufferSizeNotImplemented ?? 'Buffer size setting not implemented, setting will not take effect');
+                    _showError(
+                        context,
+                        strings?.bufferSizeNotImplemented ??
+                            'Buffer size setting not implemented, setting will not take effect');
                   }
                 },
                 activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -1928,7 +2131,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: options.map((db) {
                   return RadioListTile<int>(
                     title: Text(
-                      db == 0 ? '${strings?.noBoost ?? "No boost"} (0 dB)' : '${db > 0 ? '+' : ''}$db dB',
+                      db == 0
+                          ? '${strings?.noBoost ?? "No boost"} (0 dB)'
+                          : '${db > 0 ? '+' : ''}$db dB',
                       style: TextStyle(
                         color: AppTheme.getTextPrimary(context),
                         fontSize: style['itemFontSize'],
@@ -1948,8 +2153,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         settings.setVolumeBoost(value);
                         Navigator.pop(dialogContext);
                         final strings = AppStrings.of(context);
-                        final boostValue = value == 0 ? (strings?.noBoostValue ?? 'No boost') : '${value > 0 ? '+' : ''}$value dB';
-                        _showSuccess(context, (strings?.volumeBoostSet ?? 'Volume boost set to {value}').replaceFirst('{value}', boostValue));
+                        final boostValue = value == 0
+                            ? (strings?.noBoostValue ?? 'No boost')
+                            : '${value > 0 ? '+' : ''}$value dB';
+                        _showSuccess(
+                            context,
+                            (strings?.volumeBoostSet ??
+                                    'Volume boost set to {value}')
+                                .replaceFirst('{value}', boostValue));
                       }
                     },
                     activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -1967,14 +2178,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _getVolumeBoostDescription(BuildContext context, int db) {
     final strings = AppStrings.of(context);
-    if (db <= -10) return strings?.volumeBoostLow ?? 'Significantly lower volume';
+    if (db <= -10)
+      return strings?.volumeBoostLow ?? 'Significantly lower volume';
     if (db < 0) return strings?.volumeBoostSlightLow ?? 'Slightly lower volume';
     if (db == 0) return strings?.volumeBoostNormal ?? 'Keep original volume';
-    if (db <= 10) return strings?.volumeBoostSlightHigh ?? 'Slightly higher volume';
+    if (db <= 10)
+      return strings?.volumeBoostSlightHigh ?? 'Slightly higher volume';
     return strings?.volumeBoostHigh ?? 'Significantly higher volume';
   }
 
-  void _showRefreshIntervalDialog(BuildContext context, SettingsProvider settings) {
+  void _showRefreshIntervalDialog(
+      BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final options = [6, 12, 24, 48, 72];
 
@@ -2014,7 +2228,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       settings.setRefreshInterval(value);
                       Navigator.pop(dialogContext);
                       final strings = AppStrings.of(context);
-                      _showSuccess(context, 'Refresh interval: $value ${strings?.hours ?? 'hours'}');
+                      _showSuccess(context,
+                          'Refresh interval: $value ${strings?.hours ?? 'hours'}');
                     }
                   },
                   activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -2045,7 +2260,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             controller: controller,
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
             decoration: InputDecoration(
-              hintText: AppStrings.of(context)?.enterEpgUrl ?? 'Enter EPG XMLTV URL',
+              hintText:
+                  AppStrings.of(context)?.enterEpgUrl ?? 'Enter EPG XMLTV URL',
               hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
             ),
           ),
@@ -2056,31 +2272,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final newUrl = controller.text.trim().isEmpty ? null : controller.text.trim();
+                final newUrl = controller.text.trim().isEmpty
+                    ? null
+                    : controller.text.trim();
                 final oldUrl = settings.epgUrl;
 
                 //  URL
                 await settings.setEpgUrl(newUrl);
                 Navigator.pop(dialogContext);
 
-                //  URL 
+                //  URL
                 if (newUrl != oldUrl) {
                   final epgProvider = context.read<EpgProvider>();
                   epgProvider.clear();
                   final strings = AppStrings.of(context);
 
-                  if (newUrl != null && newUrl.isNotEmpty && settings.enableEpg) {
+                  if (newUrl != null &&
+                      newUrl.isNotEmpty &&
+                      settings.enableEpg) {
                     // User-initiated action, show loading state
-                    final success = await epgProvider.loadEpg(newUrl, silent: false);
+                    final success =
+                        await epgProvider.loadEpg(newUrl, silent: false);
                     if (success) {
-                      _showSuccess(context, strings?.epgUrlSavedAndLoaded ?? 'EPG URL saved and loaded successfully');
+                      _showSuccess(
+                          context,
+                          strings?.epgUrlSavedAndLoaded ??
+                              'EPG URL saved and loaded successfully');
                     } else {
-                      _showError(context, strings?.epgUrlSavedButFailed ?? 'EPG URL saved but failed to load');
+                      _showError(
+                          context,
+                          strings?.epgUrlSavedButFailed ??
+                              'EPG URL saved but failed to load');
                     }
                   } else if (newUrl == null) {
-                    _showSuccess(context, strings?.epgUrlCleared ?? 'EPG URL cleared');
+                    _showSuccess(
+                        context, strings?.epgUrlCleared ?? 'EPG URL cleared');
                   } else {
-                    _showSuccess(context, strings?.epgUrlSaved ?? 'EPG URL saved');
+                    _showSuccess(
+                        context, strings?.epgUrlSaved ?? 'EPG URL saved');
                   }
                 }
               },
@@ -2092,7 +2321,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showChangePinDialog(BuildContext context, SettingsProvider settings, {bool enableAfter = false}) {
+  void _showChangePinDialog(BuildContext context, SettingsProvider settings,
+      {bool enableAfter = false}) {
     final controller = TextEditingController();
 
     showDialog(
@@ -2111,7 +2341,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             obscureText: true,
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
             decoration: InputDecoration(
-              hintText: AppStrings.of(context)?.enterPin ?? 'Introduce el PIN de 4 dígitos',
+              hintText: AppStrings.of(context)?.enterPin ??
+                  'Introduce el PIN de 4 dígitos',
               hintStyle: TextStyle(color: AppTheme.getTextMuted(context)),
             ),
           ),
@@ -2131,7 +2362,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _showSuccess(context, 'PIN guardado correctamente');
                   }
                 } else {
-                  _showError(context, strings?.enter4DigitPin ?? 'Introduce un PIN de 4 dígitos');
+                  _showError(
+                      context,
+                      strings?.enter4DigitPin ??
+                          'Introduce un PIN de 4 dígitos');
                 }
               },
               child: Text(AppStrings.of(context)?.save ?? 'Guardar'),
@@ -2153,7 +2387,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(color: AppTheme.getTextPrimary(context)),
           ),
           content: Text(
-            AppStrings.of(context)?.resetConfirm ?? 'Are you sure you want to reset all settings to their default values?',
+            AppStrings.of(context)?.resetConfirm ??
+                'Are you sure you want to reset all settings to their default values?',
             style: TextStyle(color: AppTheme.getTextSecondary(context)),
           ),
           actions: [
@@ -2167,7 +2402,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context.read<EpgProvider>().clear();
                 Navigator.pop(dialogContext);
                 final strings = AppStrings.of(context);
-                _showSuccess(context, strings?.allSettingsReset ?? 'All settings have been reset to default values');
+                _showSuccess(
+                    context,
+                    strings?.allSettingsReset ??
+                        'All settings have been reset to default values');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.errorColor,
@@ -2181,7 +2419,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
-    // null 
+    // null
     final currentLang = settings.locale?.languageCode;
 
     showDialog(
@@ -2206,7 +2444,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (value) {
                   settings.setLocale(null);
                   Navigator.pop(dialogContext);
-                  _showSuccess(context, AppStrings.of(context)?.languageFollowSystem ?? 'Language set to follow system');
+                  _showSuccess(
+                      context,
+                      AppStrings.of(context)?.languageFollowSystem ??
+                          'Language set to follow system');
                 },
                 activeColor: AppTheme.getPrimaryColor(dialogContext),
               ),
@@ -2296,7 +2537,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       settings.setThemeMode(value);
                       Navigator.pop(dialogContext);
                       final strings = AppStrings.of(context);
-                      _showSuccess(context, (strings?.themeChangedMessage ?? 'Theme changed: {theme}').replaceFirst('{theme}', _getThemeModeLabel(context, value)));
+                      _showSuccess(
+                          context,
+                          (strings?.themeChangedMessage ??
+                                  'Theme changed: {theme}')
+                              .replaceFirst('{theme}',
+                                  _getThemeModeLabel(context, value)));
                     }
                   },
                   activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -2333,7 +2579,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 subtitle: Text(
                   _getLogLevelDescription(context, level),
-                  style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
+                  style: TextStyle(
+                      color: AppTheme.getTextSecondary(context), fontSize: 12),
                 ),
                 value: level,
                 groupValue: settings.logLevel,
@@ -2342,7 +2589,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await settings.setLogLevel(value);
                     if (dialogContext.mounted) {
                       Navigator.pop(dialogContext);
-                      _showSuccess(context, '${AppStrings.of(context)?.logLevel ?? "Log level"}: ${_getLogLevelLabel(context, value)}');
+                      _showSuccess(context,
+                          '${AppStrings.of(context)?.logLevel ?? "Log level"}: ${_getLogLevelLabel(context, value)}');
                     }
                   }
                 },
@@ -2356,7 +2604,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportLogs(BuildContext context) async {
-    // 
+    //
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -2374,7 +2622,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(color: AppTheme.getTextPrimary(context)),
         ),
         content: Text(
-          AppStrings.of(context)?.clearLogsConfirmMessage ?? 'Are you sure you want to delete all log files? This action cannot be undone.',
+          AppStrings.of(context)?.clearLogsConfirmMessage ??
+              'Are you sure you want to delete all log files? This action cannot be undone.',
           style: TextStyle(color: AppTheme.getTextSecondary(context)),
         ),
         actions: [
@@ -2397,11 +2646,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         await ServiceLocator.log.clearLogs();
         if (context.mounted) {
-          _showSuccess(context, AppStrings.of(context)?.logsCleared ?? 'Logs cleared');
+          _showSuccess(
+              context, AppStrings.of(context)?.logsCleared ?? 'Logs cleared');
         }
       } catch (e) {
         if (context.mounted) {
-          _showError(context, '${AppStrings.of(context)?.error ?? "Error"}: $e');
+          _showError(
+              context, '${AppStrings.of(context)?.error ?? "Error"}: $e');
         }
       }
     }
@@ -2415,20 +2666,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
 
-      // 
-      final logDir = logPath.substring(0, logPath.lastIndexOf(Platform.pathSeparator));
-      
+      //
+      final logDir =
+          logPath.substring(0, logPath.lastIndexOf(Platform.pathSeparator));
+
       if (Platform.isWindows) {
-        // Windows:  explorer 
+        // Windows:  explorer
         await Process.run('explorer', [logDir]);
       } else if (Platform.isMacOS) {
-        // macOS:  open 
+        // macOS:  open
         await Process.run('open', [logDir]);
       } else if (Platform.isLinux) {
-        // Linux:  xdg-open 
+        // Linux:  xdg-open
         await Process.run('xdg-open', [logDir]);
       } else {
-        _showError(context, 'Opening folders is not supported on this platform');
+        _showError(
+            context, 'Opening folders is not supported on this platform');
       }
     } catch (e) {
       if (context.mounted) {
@@ -2455,9 +2708,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final strings = AppStrings.of(context);
     switch (level) {
       case 'debug':
-        return strings?.logLevelDebugDesc ?? 'Log everything for development and debugging';
+        return strings?.logLevelDebugDesc ??
+            'Log everything for development and debugging';
       case 'release':
-        return strings?.logLevelReleaseDesc ?? 'Only log warnings and errors (recommended)';
+        return strings?.logLevelReleaseDesc ??
+            'Only log warnings and errors (recommended)';
       case 'off':
         return strings?.logLevelOffDesc ?? 'Do not log anything';
       default:
@@ -2465,16 +2720,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 
+  //
   Future<String> _getCurrentVersion() async {
     try {
       return await ServiceLocator.updateService.getCurrentVersion();
     } catch (e) {
-      return '1.1.11'; // 
+      return '1.1.11'; //
     }
   }
 
-  // 
+  //
   void _checkForUpdates(BuildContext context) {
     ServiceLocator.updateManager.manualCheckForUpdate(context);
   }
@@ -2494,7 +2749,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showScreenPositionDialog(BuildContext context, SettingsProvider settings) {
+  void _showScreenPositionDialog(
+      BuildContext context, SettingsProvider settings) {
     final options = [1, 2, 3, 4];
     final strings = AppStrings.of(context);
 
@@ -2511,8 +2767,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                strings?.screenPositionDesc ?? 'Choose which screen position to use by default when clicking a channel:',
-                style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 12),
+                strings?.screenPositionDesc ??
+                    'Choose which screen position to use by default when clicking a channel:',
+                style: TextStyle(
+                    color: AppTheme.getTextSecondary(context), fontSize: 12),
               ),
               const SizedBox(height: 16),
               // 2x2
@@ -2531,19 +2789,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppTheme.getTextMuted(context).withOpacity(0.3)),
-                                color: settings.defaultScreenPosition == 1 ? AppTheme.getPrimaryColor(context).withOpacity(0.3) : null,
+                                border: Border.all(
+                                    color: AppTheme.getTextMuted(context)
+                                        .withOpacity(0.3)),
+                                color: settings.defaultScreenPosition == 1
+                                    ? AppTheme.getPrimaryColor(context)
+                                        .withOpacity(0.3)
+                                    : null,
                               ),
-                              child: Center(child: Text('1', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12))),
+                              child: Center(
+                                  child: Text('1',
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12))),
                             ),
                           ),
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppTheme.getTextMuted(context).withOpacity(0.3)),
-                                color: settings.defaultScreenPosition == 2 ? AppTheme.getPrimaryColor(context).withOpacity(0.3) : null,
+                                border: Border.all(
+                                    color: AppTheme.getTextMuted(context)
+                                        .withOpacity(0.3)),
+                                color: settings.defaultScreenPosition == 2
+                                    ? AppTheme.getPrimaryColor(context)
+                                        .withOpacity(0.3)
+                                    : null,
                               ),
-                              child: Center(child: Text('2', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12))),
+                              child: Center(
+                                  child: Text('2',
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12))),
                             ),
                           ),
                         ],
@@ -2555,19 +2833,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppTheme.getTextMuted(context).withOpacity(0.3)),
-                                color: settings.defaultScreenPosition == 3 ? AppTheme.getPrimaryColor(context).withOpacity(0.3) : null,
+                                border: Border.all(
+                                    color: AppTheme.getTextMuted(context)
+                                        .withOpacity(0.3)),
+                                color: settings.defaultScreenPosition == 3
+                                    ? AppTheme.getPrimaryColor(context)
+                                        .withOpacity(0.3)
+                                    : null,
                               ),
-                              child: Center(child: Text('3', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12))),
+                              child: Center(
+                                  child: Text('3',
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12))),
                             ),
                           ),
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppTheme.getTextMuted(context).withOpacity(0.3)),
-                                color: settings.defaultScreenPosition == 4 ? AppTheme.getPrimaryColor(context).withOpacity(0.3) : null,
+                                border: Border.all(
+                                    color: AppTheme.getTextMuted(context)
+                                        .withOpacity(0.3)),
+                                color: settings.defaultScreenPosition == 4
+                                    ? AppTheme.getPrimaryColor(context)
+                                        .withOpacity(0.3)
+                                    : null,
                               ),
-                              child: Center(child: Text('4', style: TextStyle(color: AppTheme.getTextPrimary(context), fontSize: 12))),
+                              child: Center(
+                                  child: Text('4',
+                                      style: TextStyle(
+                                          color:
+                                              AppTheme.getTextPrimary(context),
+                                          fontSize: 12))),
                             ),
                           ),
                         ],
@@ -2590,7 +2888,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       settings.setDefaultScreenPosition(value);
                       Navigator.pop(dialogContext);
                       final strings = AppStrings.of(context);
-                      _showSuccess(context, (strings?.screenPositionSet ?? 'Default screen position set to: {position}').replaceFirst('{position}', _getScreenPositionLabel(context, value)));
+                      _showSuccess(
+                          context,
+                          (strings?.screenPositionSet ??
+                                  'Default screen position set to: {position}')
+                              .replaceFirst('{position}',
+                                  _getScreenPositionLabel(context, value)));
                     }
                   },
                   activeColor: AppTheme.getPrimaryColor(dialogContext),
@@ -2603,11 +2906,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _getFontFamilyLabel(BuildContext context, String fontFamily, SettingsProvider settings) {
-    final languageCode = settings.locale?.languageCode ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    final normalizedCode = (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
+  String _getFontFamilyLabel(
+      BuildContext context, String fontFamily, SettingsProvider settings) {
+    final languageCode = settings.locale?.languageCode ??
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    final normalizedCode =
+        (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
     final isSpanish = normalizedCode == 'es';
-    
+
     switch (fontFamily) {
       case 'System':
         return isSpanish ? 'Fuente del sistema' : 'System Font';
@@ -2644,8 +2950,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showFontFamilyDialog(BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
-    final languageCode = settings.locale?.languageCode ?? WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    final normalizedCode = (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
+    final languageCode = settings.locale?.languageCode ??
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    final normalizedCode =
+        (languageCode == 'es' || languageCode == 'en') ? languageCode : 'en';
     final fonts = AppTheme.getAvailableFonts(normalizedCode);
     final strings = AppStrings.of(context);
 
@@ -2687,8 +2995,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (value != null) {
                       settings.setFontFamily(value);
                       Navigator.pop(dialogContext);
-                      final fontLabel = _getFontFamilyLabel(context, value, settings);
-                      final message = (strings?.fontChanged ?? ' {font}').replaceAll('{font}', fontLabel);
+                      final fontLabel =
+                          _getFontFamilyLabel(context, value, settings);
+                      final message = (strings?.fontChanged ?? ' {font}')
+                          .replaceAll('{font}', fontLabel);
                       _showSuccess(context, message);
                     }
                   },
@@ -2719,7 +3029,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// 
+  ///
   String _getOrientationLabel(BuildContext context, String orientation) {
     switch (orientation) {
       case 'portrait':
@@ -2732,7 +3042,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// 
+  ///
   void _showOrientationDialog(BuildContext context, SettingsProvider settings) {
     final style = _getDialogStyle(context);
     final options = ['portrait', 'landscape', 'auto'];
@@ -2769,7 +3079,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon = Icons.screen_rotation_alt_rounded;
                     break;
                 }
-                
+
                 return RadioListTile<String>(
                   title: Row(
                     children: [
@@ -2793,8 +3103,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onChanged: (value) async {
                     if (value != null) {
                       await settings.setMobileOrientation(value);
-                      
-                      // 
+
+                      //
                       List<DeviceOrientation> orientations;
                       switch (value) {
                         case 'landscape':
@@ -2807,30 +3117,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           orientations = [
                             DeviceOrientation.portraitUp,
                           ];
-                        break;
-                      case 'auto':
-                      default:
-                        orientations = [
-                          DeviceOrientation.portraitUp,
-                          DeviceOrientation.landscapeLeft,
-                          DeviceOrientation.landscapeRight,
-                        ];
-                        break;
+                          break;
+                        case 'auto':
+                        default:
+                          orientations = [
+                            DeviceOrientation.portraitUp,
+                            DeviceOrientation.landscapeLeft,
+                            DeviceOrientation.landscapeRight,
+                          ];
+                          break;
+                      }
+
+                      await SystemChrome.setPreferredOrientations(orientations);
+
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                        _showSuccess(context,
+                            ': ${_getOrientationLabel(context, value)}');
+                      }
                     }
-                    
-                    await SystemChrome.setPreferredOrientations(orientations);
-                    
-                    if (dialogContext.mounted) {
-                      Navigator.pop(dialogContext);
-                      _showSuccess(context, ': ${_getOrientationLabel(context, value)}');
-                    }
-                  }
-                },
-                activeColor: AppTheme.getPrimaryColor(dialogContext),
-                contentPadding: style['itemPadding'],
-                visualDensity: style['visualDensity'],
-              );
-            }).toList(),
+                  },
+                  activeColor: AppTheme.getPrimaryColor(dialogContext),
+                  contentPadding: style['itemPadding'],
+                  visualDensity: style['visualDensity'],
+                );
+              }).toList(),
             ),
           ),
           actions: [
@@ -2853,7 +3164,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
-
-
-
