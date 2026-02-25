@@ -63,7 +63,7 @@ git remote -v
 
 ---
 
-## PLATAFORMA: Android — ESTADO: ✅ Completo (base de referencia)
+## PLATAFORMA: Android — ESTADO: ✅ Producción (v1.5.34)
 
 ### Features implementados
 
@@ -104,7 +104,7 @@ git remote -v
 | Search | `search/` feature | ✅ |
 | DLNA cast | `dlna_service.dart` | ✅ Android + Windows |
 | In-app update (APK download) | `update_service.dart` | ✅ |
-| Update URL | `VOXTX-Android/releases/version.json` | ✅ |
+| Update URL | `TonyBlanco/VOXTX-Releases/releases` (público) | ✅ v1.5.34 |
 | Parental control PIN | `settings_provider.dart` | ✅ |
 | Watch history | `watch_history_service.dart` | ✅ |
 | Auto-refresh playlists | `auto_refresh_service.dart` | ✅ |
@@ -119,6 +119,12 @@ git remote -v
 | SQLite (sqflite) | `database_helper.dart` | ✅ |
 | Aviso legal (disclaimer) | `splash_screen.dart` + SharedPreferences | ✅ v1.5.30 |
 | Download canal offline | `offline_download_service.dart` + `offline_screen.dart` | ✅ v1.5.29 |
+| Android PiP (Picture-in-Picture) | `player_screen.dart` + `MainActivity.kt` | ✅ v1.5.29 |
+| PICO VR — reproductor externo 3D | `native_player_channel.dart` `getPicoPlayerPackage()` + `launchExternalPlayer()` | ✅ v1.5.29 |
+| 3D mode selector (SBS / Over-Under) | `settings_provider.dart` `external3dMode` + `settings_screen.dart` `_showExternal3dModeDialog()` | ✅ v1.5.29 |
+| Fix OTA install (`canRequestPackageInstalls`) | `MainActivity.kt` `installApk()` → abre Settings si falta permiso | ✅ v1.5.31 |
+| Fix imagen verde al inicio (first-frame overlay) | `player_provider.dart` `_firstFrameRendered` + `player_screen.dart` `AnimatedOpacity` | ✅ v1.5.32 |
+| Releases en repo público (`VOXTX-Releases`) | `update_service.dart` `_githubReleasesUrl` + `_versionJsonUrl` | ✅ v1.5.34 |
 
 ### Pendiente en Android
 
@@ -127,6 +133,39 @@ git remote -v
 | Chromecast | Baja | Solo DLNA. Requiere `flutter_cast_framework` + Activity nativa Kotlin + botón en `player_screen.dart` (esperar a que el otro agente termine su PR) |
 | Voice search (Android TV) | Baja | `SearchManager` en Activity nativa + canal Dart nuevo. Solo toca `android/` y un nuevo `voice_search_channel.dart` |
 | Channel zapping mando remoto (ch±) | Baja | `_handleRemoteCommand` ya tiene el TODO. Necesita index canal actual global en `ChannelProvider` |
+
+---
+
+### PICO VR 3D — Reproductor externo (v1.5.29)
+
+La app detecta si el dispositivo es un PICO VR y ofrece la opción de abrir canales en su reproductor nativo con soporte 3D.
+
+#### Flujo
+1. Al reproducir un canal, `NativePlayerChannel.getPicoPlayerPackage()` comprueba si hay un player PICO instalado (vía MethodChannel → `MainActivity.kt` → `PackageManager.getInstalledPackages()`).
+2. Si está instalado, `launchExternalPlayer(url, packageName, is3d: true, stereoMode: mode)` lanza un `Intent` con la URL y los metadatos 3D.
+3. El modo 3D es persistente (`SharedPreferences` key `external_3d_mode`), configurable en Ajustes.
+
+#### Archivos clave
+
+| Archivo | Responsabilidad |
+|---------|----------------|
+| `lib/core/platform/native_player_channel.dart` | `getPicoPlayerPackage()`, `isExternalPlayerInstalled(pkg)`, `launchExternalPlayer(url, pkg, is3d, stereoMode)` |
+| `android/app/src/main/kotlin/.../MainActivity.kt` | Canales MethodChannel: `isPackageInstalled`, `launchExternalPlayer` con Intent + extras 3D |
+| `lib/features/settings/providers/settings_provider.dart` | `_keyExternal3dMode = 'external_3d_mode'`, `external3dMode` getter (`'sbs'`\|`'ou'`), `setExternal3dMode()` |
+| `lib/features/settings/screens/settings_screen.dart` | `_showExternal3dModeDialog()` — radio dialog SBS / Over-Under |
+| `lib/features/player/screens/player_screen.dart` | Detecta PICO al iniciar reproducción, ofrece botón "Abrir en PICO" |
+
+#### Modos 3D soportados
+
+| Valor | Nombre | Descripción |
+|-------|--------|-------------|
+| `sbs` | Side by Side | Imagen dividida horizontalmente (más común) |
+| `ou` | Over / Under | Imagen dividida verticalmente |
+
+#### Notas
+- Si PICO player no está instalado, el botón no aparece — reproducción normal en media_kit.
+- El modo se recuerda entre sesiones (SharedPreferences).
+- El feature es agnóstico al contenido: funciona con streams IPTV normales vistos en modo 3D desde el headset.
 
 ### Dependencias Android relevantes (pubspec.yaml)
 
@@ -140,7 +179,18 @@ device_info_plus: ^12.3.0               # arch detection para update
 
 ---
 
-## PLATAFORMA: macOS — ESTADO: 🔴 No iniciado
+## PLATAFORMA: macOS — ESTADO: ⚠️ Parcialmente implementado (base funcional)
+
+### Ya implementado (agente macOS — commits 8ba83819 / 487154ca)
+
+| Feature | Archivo clave | Estado |
+|---------|--------------|--------|
+| window_manager + fullscreen | `main.dart` WindowOptions | ✅ |
+| Channels sidebar (overflow fix) | `channels_screen.dart` (466 líneas eliminadas) | ✅ |
+| Panel preview eliminado | `channels_screen.dart` `_buildMiniPreviewPanel()` removido | ✅ |
+| Android PiP (base compartida) | `player_screen.dart` + `MainActivity.kt` | ✅ v1.5.29 |
+| PICO VR 3D external player | `native_player_channel.dart` (ver sección Android) | ✅ v1.5.29 |
+| media_kit macOS libs | `media_kit_libs_macos_video` en pubspec | ✅ |
 
 ### Que ya funciona "gratis" (hereda de Android/Desktop)
 - `PlatformDetector.isDesktop` = true → layout desktop ya activado
@@ -525,10 +575,10 @@ ares-launch --device MyTV com.tonyblanco.voxtv
 ## Estado del app por plataforma — Resumen rápido
 
 ```
-Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.30)
-Android TV      ████████████████████   99%  ✅ Producción — nav remoto ✅, download offline ✅ (falta: voice search, ch±)
+Android Mobile  ████████████████████  100%  ✅ Producción (v1.5.34) — PICO 3D ✅, PiP ✅, OTA fix ✅
+Android TV      ████████████████████   99%  ✅ Producción — nav remoto ✅, download offline ✅, OTA fix ✅ (falta: voice search, ch±)
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
-macOS           █████░░░░░░░░░░░░░░░   25%  🔴 Solo detección de plataforma
+macOS           ██████████░░░░░░░░░░   45%  ⚠️ Funcional — sidebar ✅, PiP ✅, fullscreen ✅ (falta: update service, DLNA)
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
 WebOS           ██░░░░░░░░░░░░░░░░░░   10%  🔴 kIsWeb detectado, sin trabajo
 ```
