@@ -1,6 +1,9 @@
 package com.flutteriptv.flutter_iptv
 
+import android.app.PictureInPictureParams
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
@@ -51,6 +54,10 @@ class MainActivity: FlutterFragmentActivity() {
     private var lastVolumeBoostDb: Int = 0
     private var lastDefaultScreenPosition: Int = 1
     private var lastShowChannelName: Boolean = false
+    private var lastShowFps: Boolean = false
+    private var lastShowClock: Boolean = false
+    private var lastShowNetworkSpeed: Boolean = false
+    private var lastShowVideoInfo: Boolean = false
     
     // 标记是否是从分屏退出到单频道播放（这种情况下单频道退出时不应覆盖分屏状态）
     private var isFromMultiScreen: Boolean = false
@@ -74,6 +81,12 @@ class MainActivity: FlutterFragmentActivity() {
                 }
                 "getCpuAbi" -> {
                     result.success(Build.SUPPORTED_ABIS.firstOrNull() ?: "armeabi-v7a")
+                }
+                "isPipSupported" -> {
+                    result.success(isPipSupported())
+                }
+                "enterPipMode" -> {
+                    result.success(enterPipMode())
                 }
                 "setKeepScreenOn" -> {
                     val enable = call.argument<Boolean>("enable") ?: true
@@ -134,15 +147,19 @@ class MainActivity: FlutterFragmentActivity() {
                     val isSeekable = call.argument<List<Boolean>>("isSeekable") // 每个频道是否可拖动
                     val isDlnaMode = call.argument<Boolean>("isDlnaMode") ?: false
                     val bufferStrength = call.argument<String>("bufferStrength") ?: "fast"
-                    val showFps = call.argument<Boolean>("showFps") ?: true
-                    val showClock = call.argument<Boolean>("showClock") ?: true
-                    val showNetworkSpeed = call.argument<Boolean>("showNetworkSpeed") ?: true
-                    val showVideoInfo = call.argument<Boolean>("showVideoInfo") ?: true
+                    val showFps = call.argument<Boolean>("showFps") ?: lastShowFps
+                    val showClock = call.argument<Boolean>("showClock") ?: lastShowClock
+                    val showNetworkSpeed = call.argument<Boolean>("showNetworkSpeed") ?: lastShowNetworkSpeed
+                    val showVideoInfo = call.argument<Boolean>("showVideoInfo") ?: lastShowVideoInfo
                     val progressBarMode = call.argument<String>("progressBarMode") ?: "auto" // 进度条显示模式
                     val showChannelName = call.argument<Boolean>("showChannelName") ?: false // 多屏频道名称显示
                     
                     // 保存showChannelName设置，用于从单屏进入分屏时使用
                     lastShowChannelName = showChannelName
+                    lastShowFps = showFps
+                    lastShowClock = showClock
+                    lastShowNetworkSpeed = showNetworkSpeed
+                    lastShowVideoInfo = showVideoInfo
                     
                     if (url != null) {
                         Log.d(TAG, "Launching native player fragment: $name (index $index of ${urls?.size ?: 0}, isDlna=$isDlnaMode, logos=${logos?.size ?: 0}, isSeekable=${isSeekable?.getOrNull(index)}, progressBarMode=$progressBarMode, showChannelName=$showChannelName)")
@@ -227,6 +244,30 @@ class MainActivity: FlutterFragmentActivity() {
                 "closeMultiScreen" -> {
                     hideMultiScreenFragment()
                     result.success(true)
+                }
+                "isExternalPlayerInstalled" -> {
+                    val packageName = call.argument<String>("packageName")
+                    if (packageName.isNullOrBlank()) {
+                        result.success(false)
+                    } else {
+                        result.success(isPackageInstalled(packageName))
+                    }
+                }
+                "getPicoPlayerPackage" -> {
+                    result.success(findInstalledPicoPlayerPackage())
+                }
+                "openExternalPlayer" -> {
+                    val url = call.argument<String>("url")
+                    val title = call.argument<String>("title")
+                    val packageName = call.argument<String>("packageName")
+                    val is3d = call.argument<Boolean>("is3d") ?: false
+                    val stereoMode = call.argument<String>("stereoMode") ?: "sbs"
+                    val forceChooser = call.argument<Boolean>("forceChooser") ?: false
+                    if (url.isNullOrBlank()) {
+                        result.error("INVALID_URL", "Video URL is required", null)
+                    } else {
+                        result.success(openExternalPlayer(url, title, packageName, is3d, stereoMode, forceChooser))
+                    }
                 }
                 else -> {
                     result.notImplemented()
@@ -575,10 +616,10 @@ class MainActivity: FlutterFragmentActivity() {
                             isSeekable = null,  // 从分屏切换时没有 isSeekable 信息
                             isDlnaMode = false,
                             bufferStrength = "fast",
-                            showFps = true,
-                            showClock = true,
-                            showNetworkSpeed = true,
-                            showVideoInfo = true,
+                            showFps = lastShowFps,
+                            showClock = lastShowClock,
+                            showNetworkSpeed = lastShowNetworkSpeed,
+                            showVideoInfo = lastShowVideoInfo,
                             initialSourceIndex = sourceIndex  // 传递源索引
                         )
                     }
@@ -718,6 +759,26 @@ class MainActivity: FlutterFragmentActivity() {
         super.onPause()
         Log.d(TAG, "onPause called")
     }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        Log.d(TAG, "onPictureInPictureModeChanged: $isInPictureInPictureMode")
+
+        if (!isInPictureInPictureMode && playerContainer?.visibility == View.VISIBLE) {
+            // Restore immersive UI when exiting PiP while player overlay is active.
+            window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                )
+        }
+    }
     
     override fun onDestroy() {
         super.onDestroy()
@@ -741,6 +802,82 @@ class MainActivity: FlutterFragmentActivity() {
         val screenLayout = resources.configuration.screenLayout
         val screenSize = screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK
         return screenSize >= Configuration.SCREENLAYOUT_SIZE_LARGE
+    }
+
+    private fun isPipSupported(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        return packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
+    private fun enterPipMode(): Boolean {
+        if (!isPipSupported()) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        return try {
+            enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+        } catch (e: Exception) {
+            Log.e(TAG, "enterPipMode failed", e)
+            false
+        }
+    }
+
+    private fun isPackageInstalled(packageName: String): Boolean {
+        return try {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun findInstalledPicoPlayerPackage(): String? {
+        // PICO package names can vary by firmware/player app version.
+        val candidates = listOf(
+            "com.picovr.videoplayer",
+            "com.pico.videoplayer",
+            "com.picovr.gallery",
+            "com.pvr.player"
+        )
+        return candidates.firstOrNull { isPackageInstalled(it) }
+    }
+
+    private fun openExternalPlayer(
+        url: String,
+        title: String?,
+        packageName: String?,
+        is3d: Boolean,
+        stereoMode: String,
+        forceChooser: Boolean
+    ): Boolean {
+        val uri = Uri.parse(url)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "video/*")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            putExtra(Intent.EXTRA_TITLE, title ?: "")
+            putExtra("is3D", is3d)
+            putExtra("vr_mode", is3d)
+            putExtra("stereo_mode", stereoMode.lowercase())
+            putExtra("video_3d_format", stereoMode.lowercase())
+        }
+
+        return try {
+            if (!packageName.isNullOrBlank() && !forceChooser) {
+                intent.setPackage(packageName)
+                startActivity(intent)
+            } else {
+                val chooser = Intent.createChooser(intent, "Open with")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(chooser)
+            }
+            true
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "No compatible external player found", e)
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "openExternalPlayer failed", e)
+            false
+        }
     }
     
     /**

@@ -75,11 +75,11 @@ class NativePlayerFragment : Fragment() {
     
     // FPS display
     private lateinit var fpsText: TextView
-    private var showFps: Boolean = true
+    private var showFps: Boolean = false
     
     // Clock display
     private lateinit var clockText: TextView
-    private var showClock: Boolean = true
+    private var showClock: Boolean = false
     private var clockUpdateRunnable: Runnable? = null
     private val CLOCK_UPDATE_INTERVAL = 1000L
     
@@ -178,7 +178,7 @@ class NativePlayerFragment : Fragment() {
 
     // Network speed display
     private lateinit var speedText: TextView
-    private var showNetworkSpeed: Boolean = true
+    private var showNetworkSpeed: Boolean = false
     private var networkSpeedUpdateRunnable: Runnable? = null
     private val NETWORK_SPEED_UPDATE_INTERVAL = 1000L
     private var lastRxBytes = 0L
@@ -187,7 +187,7 @@ class NativePlayerFragment : Fragment() {
 
     // Video info display
     private lateinit var resolutionText: TextView
-    private var showVideoInfo: Boolean = true
+    private var showVideoInfo: Boolean = false
     
     // Favorite icon
     private lateinit var favoriteIcon: ImageView
@@ -292,10 +292,10 @@ class NativePlayerFragment : Fragment() {
             isDlnaMode = it.getBoolean(ARG_IS_DLNA_MODE, false)
             bufferStrength = it.getString(ARG_BUFFER_STRENGTH, "fast") ?: "fast"
             progressBarMode = it.getString(ARG_PROGRESS_BAR_MODE, "auto") ?: "auto" // 读取进度条显示模式
-            showFps = it.getBoolean(ARG_SHOW_FPS, true)
-            showClock = it.getBoolean(ARG_SHOW_CLOCK, true)
-            showNetworkSpeed = it.getBoolean(ARG_SHOW_NETWORK_SPEED, true)
-            showVideoInfo = it.getBoolean(ARG_SHOW_VIDEO_INFO, true)
+            showFps = it.getBoolean(ARG_SHOW_FPS, false)
+            showClock = it.getBoolean(ARG_SHOW_CLOCK, false)
+            showNetworkSpeed = it.getBoolean(ARG_SHOW_NETWORK_SPEED, false)
+            showVideoInfo = it.getBoolean(ARG_SHOW_VIDEO_INFO, false)
             currentSourceIndex = it.getInt(ARG_INITIAL_SOURCE_INDEX, 0) // 使用传入的初始源索引
         }
         

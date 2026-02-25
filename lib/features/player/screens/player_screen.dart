@@ -30,7 +30,7 @@ class PlayerScreen extends StatefulWidget {
   final String channelUrl;
   final String channelName;
   final String? channelLogo;
-  final bool isMultiScreen; // 
+  final bool isMultiScreen; //
 
   const PlayerScreen({
     super.key,
@@ -47,7 +47,7 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen>
     with WidgetsBindingObserver {
   Timer? _hideControlsTimer;
-  Timer? _dlnaSyncTimer; // DLNA Android TV 
+  Timer? _dlnaSyncTimer; // DLNA Android TV
   Timer? _wakelockTimer; // wakelock
   bool _showControls = true;
   final FocusNode _playerFocusNode = FocusNode();
@@ -57,44 +57,44 @@ class _PlayerScreenState extends State<PlayerScreen>
   final ScrollController _categoryScrollController = ScrollController();
   final ScrollController _channelScrollController = ScrollController();
 
-  //  provider  dispose 
+  //  provider  dispose
   PlayerProvider? _playerProvider;
   MultiScreenProvider? _multiScreenProvider;
   SettingsProvider? _settingsProvider;
 
-  // 
+  //
   bool _localMultiScreenMode = false;
 
-  //  dispose 
+  //  dispose
   bool _wasMultiScreenMode = false;
 
   // Resume position (seconds) to seek to after playback starts
   int _pendingResumeSeconds = 0;
   bool _resumeSnackbarShown = false;
 
-  // 
+  //
   bool _multiScreenStateSaved = false;
 
-  // 
+  //
   double _gestureStartY = 0;
   double _initialVolume = 0;
   double _initialBrightness = 0;
   bool _showGestureIndicator = false;
   double _gestureValue = 0;
 
-  //  loading 
+  //  loading
   bool _isLoading = true;
 
-  // 
+  //
   bool _errorShown = false;
-  Timer? _errorHideTimer; // 
+  Timer? _errorHideTimer; //
 
-  // Windows 
+  // Windows
   bool _isFullScreen = false;
-  DateTime? _lastFullScreenToggle; // 
+  DateTime? _lastFullScreenToggle; //
   bool _mouseOver = false;
 
-  // 
+  //
   bool _isMultiScreenMode() {
     return _localMultiScreenMode && PlatformDetector.isDesktop;
   }
@@ -103,14 +103,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // 
+    //
     _enableWakelock();
-    //  didChangeDependencies 
+    //  didChangeDependencies
     //  _localMultiScreenMode
   }
 
   Future<void> _enableWakelock() async {
-    // 
+    //
     if (PlatformDetector.isMobile) {
       try {
         await PlatformDetector.setKeepScreenOn(true);
@@ -120,7 +120,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     } else {
       // wakelock_plus
       try {
-      //  Flutter 
+        //  Flutter
         await Future.delayed(const Duration(milliseconds: 100));
         await WakelockPlus.enable();
         final enabled = await WakelockPlus.enabled;
@@ -134,41 +134,41 @@ class _PlayerScreenState extends State<PlayerScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    //  provider 
+    //  provider
     if (_playerProvider == null) {
       _playerProvider = context.read<PlayerProvider>();
       _playerProvider!.addListener(_onProviderUpdate);
       _isLoading = _playerProvider!.isLoading;
 
-      //  settings  multi-screen provider  dispose 
+      //  settings  multi-screen provider  dispose
       _settingsProvider = context.read<SettingsProvider>();
       _multiScreenProvider = context.read<MultiScreenProvider>();
 
-      //  DLNA 
+      //  DLNA
       bool isDlnaMode = false;
       try {
         final dlnaProvider = context.read<DlnaProvider>();
         isDlnaMode = dlnaProvider.isActiveSession;
       } catch (_) {}
 
-      // 
+      //
       //  isMultiScreen=true
-      // DLNA 
+      // DLNA
       _localMultiScreenMode = !isDlnaMode &&
           (widget.isMultiScreen || _settingsProvider!.enableMultiScreen) &&
           PlatformDetector.isDesktop;
 
       // provider
-      // 
+      //
       if (_localMultiScreenMode && !_multiScreenProvider!.hasAnyChannel) {
         _multiScreenProvider!.setVolumeSettings(
             _playerProvider!.volume, _settingsProvider!.volumeBoost);
       }
 
-      // 
+      //
       _checkAndLaunchPlayer();
     }
-    // 
+    //
     _wasMultiScreenMode = _isMultiScreenMode();
   }
 
@@ -184,7 +184,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     }
 
-    // 
+    //
     if (provider.hasError && !_errorShown) {
       _checkAndShowError();
     }
@@ -201,7 +201,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         try {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Reanudando desde ${_formatDuration(Duration(seconds: sec))}'),
+              content: Text(
+                  'Reanudando desde ${_formatDuration(Duration(seconds: sec))}'),
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
                 label: 'Desde el inicio',
@@ -213,7 +214,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     }
 
-    //  DLNA 
+    //  DLNA
     try {
       final dlnaProvider = context.read<DlnaProvider>();
       if (dlnaProvider.isActiveSession) {
@@ -225,7 +226,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         );
       }
     } catch (e) {
-      // DLNA provider 
+      // DLNA provider
     }
   }
 
@@ -251,7 +252,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (nativeAvailable && mounted) {
         _usingNativePlayer = true;
 
-        //  DLNA 
+        //  DLNA
         bool isDlnaMode = false;
         try {
           final dlnaProvider = context.read<DlnaProvider>();
@@ -262,12 +263,12 @@ class _PlayerScreenState extends State<PlayerScreen>
           ServiceLocator.log.d('PlayerScreen: Failed to get DlnaProvider: $e');
         }
 
-        // 
+        //
         final channelProvider = context.read<ChannelProvider>();
-        // 
+        //
         final channels = channelProvider.allChannels;
 
-        //  providers 
+        //  providers
         final favoritesProvider = context.read<FavoritesProvider>();
         final settingsProvider = context.read<SettingsProvider>();
         NativePlayerChannel.setProviders(
@@ -293,10 +294,10 @@ class _PlayerScreenState extends State<PlayerScreen>
           ];
           logos = [''];
           epgIds = [''];
-          isSeekableList = [true]; // DLNA 
+          isSeekableList = [true]; // DLNA
           currentIndex = 0;
         } else {
-          // 
+          //
           // Find current channel index
           for (int i = 0; i < channels.length; i++) {
             if (channels[i].url == widget.channelUrl) {
@@ -317,15 +318,19 @@ class _PlayerScreenState extends State<PlayerScreen>
             'PlayerScreen: Launching native player for ${widget.channelName} (isDlna=$isDlnaMode, index $currentIndex of ${urls.length})');
 
         // TV
-        if (!isDlnaMode && currentIndex >= 0 && currentIndex < channels.length) {
+        if (!isDlnaMode &&
+            currentIndex >= 0 &&
+            currentIndex < channels.length) {
           final channel = channels[currentIndex];
           if (channel.id != null) {
-            await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId);
-            ServiceLocator.log.d('PlayerScreen: Recorded watch history for channel ${channel.name}');
+            await ServiceLocator.watchHistory
+                .addWatchHistory(channel.id!, channel.playlistId);
+            ServiceLocator.log.d(
+                'PlayerScreen: Recorded watch history for channel ${channel.name}');
           }
         }
 
-        // 
+        //
         final bufferStrength = settingsProvider.bufferStrength;
         final showFps = settingsProvider.showFps;
         final showClock = settingsProvider.showClock;
@@ -351,26 +356,25 @@ class _PlayerScreenState extends State<PlayerScreen>
           showNetworkSpeed: showNetworkSpeed,
           showVideoInfo: showVideoInfo,
           progressBarMode: settingsProvider.progressBarMode, // €︽
-          showChannelName:
-              settingsProvider.showMultiScreenChannelName, // 
+          showChannelName: settingsProvider.showMultiScreenChannelName, //
           onClosed: () {
             ServiceLocator.log.d('PlayerScreen: Native player closed callback');
-            //  DLNA 
+            //  DLNA
             _dlnaSyncTimer?.cancel();
             _dlnaSyncTimer = null;
 
-            //  DLNA  DLNA 
+            //  DLNA  DLNA
             try {
               final dlnaProvider = context.read<DlnaProvider>();
               if (dlnaProvider.isActiveSession) {
                 dlnaProvider.notifyPlaybackStopped();
               }
             } catch (e) {
-              // 
+              //
             }
 
             if (mounted) {
-              // 
+              //
               Navigator.of(context).maybePop();
             }
           },
@@ -380,7 +384,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           // Don't pop - wait for native player to close via callback
           // The native player is now a Fragment overlay, not a separate Activity
 
-          //  DLNA 
+          //  DLNA
           _startDlnaSyncForNativePlayer();
           return;
         } else if (!launched && mounted) {
@@ -406,7 +410,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Hide system UI for immersive experience
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-    //  wakelock wakelock 
+    //  wakelock wakelock
     if (PlatformDetector.isMobile) {
       _wakelockTimer?.cancel();
       _wakelockTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
@@ -416,16 +420,16 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     }
 
-    // 
+    //
   }
 
-  ///  Android TV  DLNA 
+  ///  Android TV  DLNA
   void _startDlnaSyncForNativePlayer() {
     try {
       final dlnaProvider = context.read<DlnaProvider>();
-      //  isActiveSession TV  DLNA 
-      //  isActiveSession 
-      //  DLNA 
+      //  isActiveSession TV  DLNA
+      //  isActiveSession
+      //  DLNA
       if (!dlnaProvider.isRunning) {
         ServiceLocator.log
             .d('PlayerScreen: DLNA service not running, skip sync timer');
@@ -435,7 +439,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       ServiceLocator.log
           .d('PlayerScreen: Starting DLNA sync timer for native player');
 
-      // 
+      //
       _dlnaSyncTimer?.cancel();
       _dlnaSyncTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
         if (!mounted) {
@@ -493,7 +497,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _errorShown = true;
       provider.clearError();
 
-      // 
+      //
       _errorHideTimer?.cancel();
 
       //  SnackBar
@@ -510,7 +514,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         content: Text(
             '${AppStrings.of(context)?.playbackError ?? "Error"}: $errorMessage'),
         backgroundColor: AppTheme.errorColor,
-        duration: const Duration(days: 365), // 
+        duration: const Duration(days: 365), //
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: AppStrings.of(context)?.retry ?? 'Retry',
@@ -541,9 +545,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _startPlayback() {
-    _errorShown = false; // 
-    _errorHideTimer?.cancel(); // 
-    // 
+    _errorShown = false; //
+    _errorHideTimer?.cancel(); //
+    //
     if (mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
     }
@@ -553,7 +557,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     final settingsProvider = context.read<SettingsProvider>();
 
     try {
-      // ✅ 
+      // ✅
       final channel = channelProvider.allChannels.firstWhere(
         (c) => c.url == widget.channelUrl,
       );
@@ -589,13 +593,24 @@ class _PlayerScreenState extends State<PlayerScreen>
     final group = (channel.groupName ?? '').toLowerCase();
     final name = channel.name.toLowerCase();
     const adultKeywords = [
-      'adult', 'xxx', 'porno', 'porn', '18+', 'x18', 'explicit',
-      'adults only', 'erotic', 'erotica', 'red light', 'playboy',
+      'adult',
+      'xxx',
+      'porno',
+      'porn',
+      '18+',
+      'x18',
+      'explicit',
+      'adults only',
+      'erotic',
+      'erotica',
+      'red light',
+      'playboy',
     ];
     return adultKeywords.any((k) => group.contains(k) || name.contains(k));
   }
 
-  void _checkParentalGate(SettingsProvider settings, {required VoidCallback onUnlocked}) {
+  void _checkParentalGate(SettingsProvider settings,
+      {required VoidCallback onUnlocked}) {
     final pinController = TextEditingController();
     showDialog<void>(
       context: context,
@@ -605,7 +620,8 @@ class _PlayerScreenState extends State<PlayerScreen>
           backgroundColor: AppTheme.getSurfaceColor(context),
           title: Row(
             children: [
-              Icon(Icons.lock_rounded, color: AppTheme.getPrimaryColor(context)),
+              Icon(Icons.lock_rounded,
+                  color: AppTheme.getPrimaryColor(context)),
               const SizedBox(width: 8),
               Text('Control parental',
                   style: TextStyle(color: AppTheme.getTextPrimary(context))),
@@ -616,7 +632,8 @@ class _PlayerScreenState extends State<PlayerScreen>
             children: [
               Text(
                 'Introduce el PIN para acceder a este contenido',
-                style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13),
+                style: TextStyle(
+                    color: AppTheme.getTextSecondary(context), fontSize: 13),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -680,7 +697,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     final tracks = provider.availableVideoTracks;
     if (tracks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay pistas de calidad disponibles para este stream')),
+        const SnackBar(
+            content:
+                Text('No hay pistas de calidad disponibles para este stream')),
       );
       return;
     }
@@ -709,7 +728,9 @@ class _PlayerScreenState extends State<PlayerScreen>
             ...tracks.map((track) {
               final label = track.title?.isNotEmpty == true
                   ? track.title!
-                  : (track.id.isEmpty || track.id == 'auto' ? 'Auto' : 'Pista ${tracks.indexOf(track) + 1}');
+                  : (track.id.isEmpty || track.id == 'auto'
+                      ? 'Auto'
+                      : 'Pista ${tracks.indexOf(track) + 1}');
               return ListTile(
                 title: Text(
                   label,
@@ -739,7 +760,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     final tracks = provider.availableAudioTracks;
     if (tracks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.of(context)?.noAudioTracks ?? 'No hay pistas de audio disponibles')),
+        SnackBar(
+            content: Text(AppStrings.of(context)?.noAudioTracks ??
+                'No hay pistas de audio disponibles')),
       );
       return;
     }
@@ -800,7 +823,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     final tracks = provider.availableSubtitleTracks;
     if (tracks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.of(context)?.noSubtitleTracks ?? 'No hay subtítulos disponibles')),
+        SnackBar(
+            content: Text(AppStrings.of(context)?.noSubtitleTracks ??
+                'No hay subtítulos disponibles')),
       );
       return;
     }
@@ -829,7 +854,8 @@ class _PlayerScreenState extends State<PlayerScreen>
             // Option to disable subtitles
             ListTile(
               title: Text(
-                AppStrings.of(context)?.disableSubtitles ?? 'Desactivar subtítulos',
+                AppStrings.of(context)?.disableSubtitles ??
+                    'Desactivar subtítulos',
                 style: TextStyle(color: AppTheme.getTextPrimary(context)),
               ),
               leading: Icon(
@@ -840,7 +866,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                 provider.disableSubtitles();
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppStrings.of(context)?.subtitlesDisabled ?? 'Subtítulos desactivados')),
+                  SnackBar(
+                      content: Text(AppStrings.of(context)?.subtitlesDisabled ??
+                          'Subtítulos desactivados')),
                 );
               },
             ),
@@ -914,12 +942,12 @@ class _PlayerScreenState extends State<PlayerScreen>
     ServiceLocator.log.d(
         'PlayerScreen: dispose() called, _usingNativePlayer=$_usingNativePlayer, _wasMultiScreenMode=$_wasMultiScreenMode');
 
-    //  provider 
+    //  provider
     if (_playerProvider != null) {
       _playerProvider!.removeListener(_onProviderUpdate);
     }
 
-    // 
+    //
     _errorHideTimer?.cancel();
     _errorShown = false;
 
@@ -940,7 +968,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _categoryScrollController.dispose();
     _channelScrollController.dispose();
 
-    //  Windows mini  mini 
+    //  Windows mini  mini
     if (WindowsPipChannel.isInPipMode) {
       WindowsPipChannel.exitPipMode();
     }
@@ -955,29 +983,29 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
     }
 
-    // Windows 
+    // Windows
     if (_wasMultiScreenMode && PlatformDetector.isDesktop) {
       _saveMultiScreenState();
     }
 
-    // 
+    //
     if (!_usingNativePlayer && _playerProvider != null) {
       ServiceLocator.log
           .d('PlayerScreen: calling _playerProvider.stop() in silent mode');
       unawaited(_playerProvider!.stop(silent: true));
     }
     if (PlatformDetector.isDesktop && _multiScreenProvider != null) {
-      ServiceLocator.log
-          .d('PlayerScreen: calling _multiScreenProvider.clearAllScreens() in dispose');
+      ServiceLocator.log.d(
+          'PlayerScreen: calling _multiScreenProvider.clearAllScreens() in dispose');
       unawaited(_multiScreenProvider!.clearAllScreens());
     }
 
-    // 
+    //
     try {
       ScreenBrightness.instance.resetApplicationScreenBrightness();
     } catch (_) {}
 
-    // 
+    //
     if (PlatformDetector.isMobile) {
       PlatformDetector.setKeepScreenOn(false);
     } else {
@@ -994,9 +1022,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.dispose();
   }
 
-  /// Windows 
+  /// Windows
   void _saveMultiScreenState() {
-    // 
+    //
     if (_multiScreenStateSaved) {
       ServiceLocator.log
           .d('PlayerScreen: Multi-screen state already saved, skipping');
@@ -1024,7 +1052,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       ServiceLocator.log.d(
           'PlayerScreen: Saving multi-screen state - channelIds: $channelIds, sourceIndexes: $sourceIndexes, activeIndex: $activeIndex');
 
-      // 
+      //
       _settingsProvider!.saveLastMultiScreen(
         channelIds,
         activeIndex,
@@ -1044,14 +1072,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   void _saveLastChannelId(Channel? channel) {
     if (channel == null || channel.id == null) return;
     if (_settingsProvider != null && _settingsProvider!.rememberLastChannel) {
-      // 
+      //
       _settingsProvider!.saveLastSingleChannel(channel.id);
     }
   }
 
   // ============ ============
 
-  // 
+  //
   Offset? _panStartPosition;
   String?
       _currentGestureType; // 'volume', 'brightness', 'channel', 'horizontal'
@@ -1064,7 +1092,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _initialVolume = playerProvider.volume;
     _gestureStartY = details.globalPosition.dy;
 
-    // 
+    //
     _loadCurrentBrightness();
   }
 
@@ -1082,15 +1110,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     final dx = details.globalPosition.dx - _panStartPosition!.dx;
     final dy = details.globalPosition.dy - _panStartPosition!.dy;
 
-    // 
+    //
     if (_currentGestureType == null) {
-      const threshold = 10.0; // 
+      const threshold = 10.0; //
       if (dx.abs() > threshold || dy.abs() > threshold) {
         final screenWidth = MediaQuery.of(context).size.width;
         final x = _panStartPosition!.dx;
 
         if (dy.abs() > dx.abs()) {
-          // 
+          //
           if (x < screenWidth * 0.35) {
             _currentGestureType = 'volume';
             _gestureValue = _initialVolume;
@@ -1101,20 +1129,19 @@ class _PlayerScreenState extends State<PlayerScreen>
             _currentGestureType = 'channel';
           }
         } else {
-          // 
+          //
           _currentGestureType = 'horizontal';
         }
       }
       return;
     }
 
-    // 
+    //
     final screenHeight = MediaQuery.of(context).size.height;
     final deltaY = _gestureStartY - details.globalPosition.dy;
 
     if (_currentGestureType == 'volume') {
-      final volumeChange =
-          (deltaY / (screenHeight * 0.5)) * 1.0; // 100%
+      final volumeChange = (deltaY / (screenHeight * 0.5)) * 1.0; // 100%
       final newVolume = (_initialVolume + volumeChange).clamp(0.0, 1.0);
       (_playerProvider ?? context.read<PlayerProvider>()).setVolume(newVolume);
       setState(() {
@@ -1136,7 +1163,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // ず
       setState(() {
         _showGestureIndicator = true;
-        _gestureValue = dy.clamp(-100.0, 100.0) / 100.0; // 
+        _gestureValue = dy.clamp(-100.0, 100.0) / 100.0; //
       });
     }
   }
@@ -1152,24 +1179,24 @@ class _PlayerScreenState extends State<PlayerScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // 
+    //
     if (_currentGestureType == 'channel') {
       final threshold = screenHeight * 0.08; // 8%
       if (dy.abs() > threshold) {
         _errorShown = false; // ?
-        _errorHideTimer?.cancel(); // 
-        // 
+        _errorHideTimer?.cancel(); //
+        //
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
         final playerProvider =
             _playerProvider ?? context.read<PlayerProvider>();
         final channelProvider = context.read<ChannelProvider>();
         if (dy > 0) {
-          //  -> 
+          //  ->
           playerProvider.playPrevious(channelProvider.allChannels);
           _saveLastChannelId(playerProvider.currentChannel);
         } else {
-          //  -> 
+          //  ->
           playerProvider.playNext(channelProvider.allChannels);
           _saveLastChannelId(playerProvider.currentChannel);
         }
@@ -1188,7 +1215,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           _showControls = false;
         });
       } else if (dx > threshold && _showCategoryPanel) {
-        // 
+        //
         setState(() {
           _showCategoryPanel = false;
           _selectedCategory = null;
@@ -1258,8 +1285,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   DateTime? _lastSelectKeyDownTime;
-  DateTime? _lastLeftKeyDownTime; // 
-  Timer? _longPressTimer; // 
+  DateTime? _lastLeftKeyDownTime; //
+  Timer? _longPressTimer; //
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     _showControlsTemporarily();
@@ -1325,7 +1352,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (event is KeyDownEvent) {
         if (event is KeyRepeatEvent) return KeyEventResult.handled;
         _lastLeftKeyDownTime = DateTime.now();
-        // 
+        //
         _longPressTimer?.cancel();
         _longPressTimer = Timer(const Duration(milliseconds: 500), () {
           if (mounted && _lastLeftKeyDownTime != null) {
@@ -1333,24 +1360,27 @@ class _PlayerScreenState extends State<PlayerScreen>
             final playerProvider = context.read<PlayerProvider>();
             final channelProvider = context.read<ChannelProvider>();
             final currentChannel = playerProvider.currentChannel;
-            
+
             setState(() {
               _showCategoryPanel = true;
-              // 
+              //
               if (currentChannel != null && currentChannel.groupName != null) {
                 _selectedCategory = currentChannel.groupName;
-                
-                // 
+
+                //
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (_selectedCategory != null) {
-                    final channels = channelProvider.getChannelsByGroup(_selectedCategory!);
-                    final currentIndex = channels.indexWhere((ch) => ch.id == currentChannel.id);
-                    
-                    if (currentIndex >= 0 && _channelScrollController.hasClients) {
-                      //  44 
+                    final channels =
+                        channelProvider.getChannelsByGroup(_selectedCategory!);
+                    final currentIndex =
+                        channels.indexWhere((ch) => ch.id == currentChannel.id);
+
+                    if (currentIndex >= 0 &&
+                        _channelScrollController.hasClients) {
+                      //  44
                       final itemHeight = 44.0;
                       final scrollOffset = currentIndex * itemHeight;
-                      
+
                       _channelScrollController.animateTo(
                         scrollOffset,
                         duration: const Duration(milliseconds: 300),
@@ -1363,7 +1393,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 _selectedCategory = null;
               }
             });
-            _lastLeftKeyDownTime = null; // 
+            _lastLeftKeyDownTime = null; //
           }
         });
         return KeyEventResult.handled;
@@ -1372,16 +1402,16 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (event is KeyUpEvent) {
         _longPressTimer?.cancel();
         if (_lastLeftKeyDownTime != null) {
-          // 
+          //
           _lastLeftKeyDownTime = null;
 
           if (_showCategoryPanel) {
-            // 
+            //
             if (_selectedCategory != null) {
               setState(() => _selectedCategory = null);
               return KeyEventResult.handled;
             }
-            // 
+            //
             setState(() {
               _showCategoryPanel = false;
               _selectedCategory = null;
@@ -1404,7 +1434,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Right key - 
     if (key == LogicalKeyboardKey.arrowRight) {
       if (_showCategoryPanel) {
-        // 
+        //
         return KeyEventResult.handled;
       }
 
@@ -1428,8 +1458,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.channelUp) {
       _errorShown = false; // ?
-      _errorHideTimer?.cancel(); // 
-      // 
+      _errorHideTimer?.cancel(); //
+      //
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       final channelProvider = context.read<ChannelProvider>();
@@ -1443,8 +1473,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.channelDown) {
       _errorShown = false; // ?
-      _errorHideTimer?.cancel(); // 
-      // 
+      _errorHideTimer?.cancel(); //
+      //
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       final channelProvider = context.read<ChannelProvider>();
@@ -1456,22 +1486,22 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // Back/Exit
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
-      // 
+      //
       if (WindowsPipChannel.isInPipMode) {
         WindowsPipChannel.exitPipMode();
         setState(() {});
-        // 
+        //
         _playerFocusNode.requestFocus();
         return KeyEventResult.handled;
       }
 
-      // 
+      //
       _errorHideTimer?.cancel();
       _errorShown = false;
       ScaffoldMessenger.of(context).clearSnackBars();
 
-      //  stop()dispose 
-      // dispose 
+      //  stop()dispose
+      // dispose
 
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
@@ -1479,7 +1509,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       return KeyEventResult.handled;
     }
 
-    // Mute -  TV 
+    // Mute -  TV
     if (key == LogicalKeyboardKey.keyM ||
         (key == LogicalKeyboardKey.audioVolumeMute &&
             !PlatformDetector.isMobile)) {
@@ -1488,7 +1518,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     // Explicit Volume Keys (for TV remotes with dedicated buttons)
-    // 
+    //
     if (!PlatformDetector.isMobile) {
       if (key == LogicalKeyboardKey.audioVolumeUp) {
         playerProvider.setVolume(playerProvider.volume + 0.1);
@@ -1513,14 +1543,14 @@ class _PlayerScreenState extends State<PlayerScreen>
       ServiceLocator.log.d('========================================');
       ServiceLocator.log.d('PlayerScreen: Back key pressed (backspace)');
 
-      // 
+      //
       ServiceLocator.log.d('PlayerScreen: Clearing error state');
       _errorHideTimer?.cancel();
       _errorShown = false;
       ScaffoldMessenger.of(context).clearSnackBars();
       ServiceLocator.log.d('PlayerScreen: SnackBars cleared');
 
-      //  stop()dispose 
+      //  stop()dispose
       ServiceLocator.log
           .d('PlayerScreen: Navigating back (stop will be called in dispose)');
 
@@ -1582,7 +1612,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             },
             child: GestureDetector(
-              //  translucent 
+              //  translucent
               behavior: HitTestBehavior.translucent,
               onTap: () {
                 if (_showCategoryPanel) {
@@ -1597,13 +1627,13 @@ class _PlayerScreenState extends State<PlayerScreen>
               onDoubleTap: () {
                 context.read<PlayerProvider>().togglePlayPause();
               },
-              //  -  Pan 
+              //  -  Pan
               onPanStart: PlatformDetector.isMobile ? _onPanStart : null,
               onPanUpdate: PlatformDetector.isMobile ? _onPanUpdate : null,
               onPanEnd: PlatformDetector.isMobile ? _onPanEnd : null,
               child: Stack(
                 children: [
-                  // 
+                  //
                   const Positioned.fill(
                     child: ColoredBox(color: Colors.transparent),
                   ),
@@ -1611,7 +1641,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   // Video Player
                   _buildVideoPlayer(),
 
-                  // Controls Overlay - 
+                  // Controls Overlay -
                   if (!_isMultiScreenMode())
                     AnimatedOpacity(
                       opacity: _showControls ? 1.0 : 0.0,
@@ -1624,7 +1654,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ),
                     ),
 
-                  // Category Panel (Left side) - 
+                  // Category Panel (Left side) -
                   if (_showCategoryPanel &&
                       !WindowsPipChannel.isInPipMode &&
                       !_isMultiScreenMode())
@@ -1650,7 +1680,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       final settings = context.watch<SettingsProvider>();
                       final player = context.watch<PlayerProvider>();
 
-                      // 
+                      //
                       if (!WindowsPipChannel.isInPipMode) {
                         return const SizedBox.shrink();
                       }
@@ -1687,21 +1717,21 @@ class _PlayerScreenState extends State<PlayerScreen>
                     },
                   ),
 
-                      // Windows  - FPS
-                  // 
+                  // Windows  - FPS
+                  //
                   Builder(
                     builder: (context) {
                       final settings = context.watch<SettingsProvider>();
                       final player = context.watch<PlayerProvider>();
 
-                      // 
+                      //
                       if (_isMultiScreenMode() ||
                           WindowsPipChannel.isInPipMode ||
                           player.state != PlayerState.playing) {
                         return const SizedBox.shrink();
                       }
 
-                      // 
+                      //
                       final showAny = settings.showNetworkSpeed ||
                           settings.showClock ||
                           settings.showFps ||
@@ -1738,7 +1768,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     ),
                                   ),
                                 ),
-                              //  - 
+                              //  -
                               if (settings.showClock)
                                 Container(
                                   margin: const EdgeInsets.only(left: 6),
@@ -1783,7 +1813,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                     ),
                                   ),
                                 ),
-                              //  - 
+                              //  -
                               if (settings.showVideoInfo &&
                                   player.videoWidth > 0 &&
                                   player.videoHeight > 0)
@@ -1824,7 +1854,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildVideoPlayer() {
-    // 
+    //
     if (_isMultiScreenMode()) {
       return _buildMultiScreenPlayer();
     }
@@ -1848,31 +1878,31 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 
+  //
   Widget _buildMultiScreenPlayer() {
     return MultiScreenPlayer(
       onExitMultiScreen: () {
-        // 
+        //
         final multiScreenProvider = context.read<MultiScreenProvider>();
         final activeChannel = multiScreenProvider.activeChannel;
 
-        // 
+        //
         multiScreenProvider.pauseAllScreens();
 
-        // 
+        //
         setState(() {
           _localMultiScreenMode = false;
         });
 
         if (activeChannel != null) {
-          // 
+          //
           unawaited(_resumeSingleFromMultiScreen(activeChannel));
         }
       },
       onBack: () async {
-        // 
+        //
         _saveMultiScreenState();
-        // 
+        //
         final multiScreenProvider = context.read<MultiScreenProvider>();
         await multiScreenProvider.clearAllScreens();
         if (mounted) {
@@ -1882,20 +1912,21 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 
+  //
 
   Future<void> _resumeSingleFromMultiScreen(Channel activeChannel) async {
     final playerProvider = context.read<PlayerProvider>();
     final channelProvider = context.read<ChannelProvider>();
 
     // Prefer channel object from ChannelProvider to keep original source list/count.
-    final matchedChannel = channelProvider.allChannels.cast<Channel?>().firstWhere(
-          (c) =>
-              c != null &&
-              ((activeChannel.id != null && c.id == activeChannel.id) ||
-                  c.name == activeChannel.name),
-          orElse: () => null,
-        );
+    final matchedChannel =
+        channelProvider.allChannels.cast<Channel?>().firstWhere(
+              (c) =>
+                  c != null &&
+                  ((activeChannel.id != null && c.id == activeChannel.id) ||
+                      c.name == activeChannel.name),
+              orElse: () => null,
+            );
 
     final baseChannel = matchedChannel ?? activeChannel;
     final targetSourceIndex = activeChannel.currentSourceIndex.clamp(
@@ -1923,28 +1954,28 @@ class _PlayerScreenState extends State<PlayerScreen>
     final settingsProvider = context.read<SettingsProvider>();
     final currentChannel = playerProvider.currentChannel;
 
-    // 
+    //
     unawaited(playerProvider.stop(silent: true));
 
     // rovider
     multiScreenProvider.setVolumeSettings(
         playerProvider.volume, settingsProvider.volumeBoost);
 
-    // 
+    //
     setState(() {
       _localMultiScreenMode = true;
     });
 
-    // 
+    //
     if (multiScreenProvider.hasAnyChannel) {
       multiScreenProvider.resumeAllScreens();
-      // 
+      //
       if (currentChannel != null) {
         final activeIndex = multiScreenProvider.activeScreenIndex;
         multiScreenProvider.playChannelOnScreen(activeIndex, currentChannel);
       }
     } else if (currentChannel != null) {
-      // 
+      //
       final defaultPosition = settingsProvider.defaultScreenPosition;
       multiScreenProvider.playChannelAtDefaultPosition(
           currentChannel, defaultPosition);
@@ -1954,7 +1985,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   // €?
   Widget _buildMiniControlsOverlay() {
     return GestureDetector(
-      // 
+      //
       onPanStart: (_) => windowManager.startDragging(),
       child: Container(
         decoration: BoxDecoration(
@@ -1971,23 +2002,23 @@ class _PlayerScreenState extends State<PlayerScreen>
         ),
         child: Column(
           children: [
-            // 
+            //
             Padding(
               padding: const EdgeInsets.all(6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // 
+                  //
                   GestureDetector(
                     onTap: () async {
                       await WindowsPipChannel.exitPipMode();
-                      // 
+                      //
                       if (PlatformDetector.isWindows) {
                         await Future.delayed(const Duration(milliseconds: 300));
                         _isFullScreen = await windowManager.isFullScreen();
                       }
                       setState(() {});
-                      // 
+                      //
                       _playerFocusNode.requestFocus();
                     },
                     child: Container(
@@ -2001,7 +2032,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     ),
                   ),
                   const SizedBox(width: 4),
-                  // 
+                  //
                   GestureDetector(
                     onTap: () {
                       WindowsPipChannel.exitPipMode();
@@ -2030,7 +2061,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 
+                      //
                       GestureDetector(
                         onTap: provider.toggleMute,
                         child: Container(
@@ -2145,7 +2176,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           // Semi-transparent channel logo/back button
           TVFocusable(
             onSelect: () async {
-              // 
+              //
               _errorHideTimer?.cancel();
               _errorShown = false;
               ScaffoldMessenger.of(context).clearSnackBars();
@@ -2160,9 +2191,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                 }
               }
 
-              //  stop()dispose 
+              //  stop()dispose
 
-              // 
+              //
               if (mounted) {
                 Navigator.of(context).pop();
               }
@@ -2306,7 +2337,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            newIsFav ? 'Added to favorites' : 'Removed from favorites',
+                            newIsFav
+                                ? 'Added to favorites'
+                                : 'Removed from favorites',
                           ),
                           duration: const Duration(seconds: 1),
                         ),
@@ -2354,6 +2387,18 @@ class _PlayerScreenState extends State<PlayerScreen>
             _buildPipButton(),
           ],
 
+          // Android PiP
+          if (PlatformDetector.isAndroid && !PlatformDetector.isTV) ...[
+            const SizedBox(width: 8),
+            _buildAndroidPipButton(),
+          ],
+
+          // Android external player (PICO/other)
+          if (PlatformDetector.isAndroid && !PlatformDetector.isTV) ...[
+            const SizedBox(width: 8),
+            _buildExternalPlayerButton(),
+          ],
+
           //  - ㈠?
           if (PlatformDetector.isDesktop) ...[
             const SizedBox(width: 8),
@@ -2364,7 +2409,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // 
+  //
   Widget _buildMultiScreenButton() {
     return TVFocusable(
       onSelect: _switchToMultiScreenMode,
@@ -2396,7 +2441,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  // PiP 
+  // PiP
   Widget _buildPipButton() {
     return StatefulBuilder(
       builder: (context, setState) {
@@ -2406,11 +2451,11 @@ class _PlayerScreenState extends State<PlayerScreen>
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // PiP 
+            // PiP
             TVFocusable(
               onSelect: () async {
                 await WindowsPipChannel.togglePipMode();
-                // 
+                //
                 if (PlatformDetector.isWindows) {
                   await Future.delayed(const Duration(milliseconds: 300));
                   _isFullScreen = await windowManager.isFullScreen();
@@ -2490,6 +2535,173 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
+  Widget _buildAndroidPipButton() {
+    return TVFocusable(
+      onSelect: () async {
+        final supported = await NativePlayerChannel.isAndroidPipSupported();
+        if (!mounted) return;
+        if (!supported) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('PiP no está disponible en este dispositivo')),
+          );
+          return;
+        }
+
+        final entered = await NativePlayerChannel.enterAndroidPipMode();
+        if (!mounted) return;
+        if (!entered) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se pudo activar PiP')),
+          );
+        }
+      },
+      focusScale: 1.0,
+      showFocusBorder: false,
+      builder: (context, isFocused, child) {
+        return Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isFocused
+                ? AppTheme.getPrimaryColor(context)
+                : const Color(0x33FFFFFF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x1AFFFFFF),
+              width: isFocused ? 2 : 1,
+            ),
+          ),
+          child: child,
+        );
+      },
+      child: const Icon(Icons.picture_in_picture_alt_rounded,
+          color: Colors.white, size: 18),
+    );
+  }
+
+  Widget _buildExternalPlayerButton() {
+    return TVFocusable(
+      onSelect: _showExternalPlayerSheet,
+      focusScale: 1.0,
+      showFocusBorder: false,
+      builder: (context, isFocused, child) {
+        return Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isFocused
+                ? AppTheme.getPrimaryColor(context)
+                : const Color(0x33FFFFFF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x1AFFFFFF),
+              width: isFocused ? 2 : 1,
+            ),
+          ),
+          child: child,
+        );
+      },
+      child:
+          const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 18),
+    );
+  }
+
+  Future<void> _showExternalPlayerSheet() async {
+    final provider = context.read<PlayerProvider>();
+    final settings = context.read<SettingsProvider>();
+    final currentChannel = provider.currentChannel;
+    final playUrl = currentChannel?.currentUrl ?? widget.channelUrl;
+    final playTitle = currentChannel?.name ?? widget.channelName;
+    final is3dCandidate = currentChannel?.isSeekable ?? false;
+    final stereoMode = settings.external3dMode;
+
+    final picoPackage =
+        await NativePlayerChannel.getInstalledPicoPlayerPackage();
+    if (!mounted) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppTheme.getSurfaceColor(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading:
+                    const Icon(Icons.open_in_new_rounded, color: Colors.white),
+                title: Text(
+                  'Abrir con reproductor externo',
+                  style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                ),
+                subtitle: Text(
+                  'Selector de apps (VLC, MX, etc.)',
+                  style: TextStyle(color: AppTheme.getTextMuted(context)),
+                ),
+                onTap: () async {
+                  Navigator.of(ctx).pop();
+                  final opened = await NativePlayerChannel.openInExternalPlayer(
+                    url: playUrl,
+                    title: playTitle,
+                    forceChooser: true,
+                  );
+                  if (!mounted) return;
+                  if (!opened) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content:
+                              Text('No se pudo abrir reproductor externo')),
+                    );
+                  }
+                },
+              ),
+              if (picoPackage != null)
+                ListTile(
+                  leading:
+                      const Icon(Icons.view_in_ar_rounded, color: Colors.white),
+                  title: Text(
+                    'Abrir en PICO Player (3D)',
+                    style: TextStyle(color: AppTheme.getTextPrimary(context)),
+                  ),
+                  subtitle: Text(
+                    is3dCandidate
+                        ? 'Envia flags 3D (${stereoMode.toUpperCase()}) al player PICO'
+                        : 'Disponible; recomendado para contenido 3D/VOD',
+                    style: TextStyle(color: AppTheme.getTextMuted(context)),
+                  ),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    final opened =
+                        await NativePlayerChannel.openInExternalPlayer(
+                      url: playUrl,
+                      title: playTitle,
+                      packageName: picoPackage,
+                      is3d: true,
+                      stereoMode: stereoMode,
+                    );
+                    if (!mounted) return;
+                    if (!opened) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('No se pudo abrir PICO Player')),
+                      );
+                    }
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildBottomControls() {
     return Consumer<PlayerProvider>(
       builder: (context, provider, _) {
@@ -2498,7 +2710,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // EPG 
+              // EPG
               Consumer<EpgProvider>(
                 builder: (context, epgProvider, _) {
                   final channel = provider.currentChannel;
@@ -2620,12 +2832,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Column(
                       children: [
-                        // 
+                        //
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2, // 
+                            trackHeight: 2, //
                             thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 5), // 
+                                enabledThumbRadius: 5), //
                             overlayShape: const RoundSliderOverlayShape(
                                 overlayRadius: 10), // ︽
                             activeTrackColor: AppTheme.getPrimaryColor(context),
@@ -2645,7 +2857,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                             },
                           ),
                         ),
-                        // 
+                        //
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Row(
@@ -2957,31 +3169,37 @@ class _PlayerScreenState extends State<PlayerScreen>
                     onSelect: () {
                       setState(() {
                         if (_showCategoryPanel) {
-                          // 
+                          //
                           _showCategoryPanel = false;
                           _selectedCategory = null;
                         } else {
-                          // 
+                          //
                           final playerProvider = context.read<PlayerProvider>();
-                          final channelProvider = context.read<ChannelProvider>();
+                          final channelProvider =
+                              context.read<ChannelProvider>();
                           final currentChannel = playerProvider.currentChannel;
-                          
+
                           _showCategoryPanel = true;
-                          // 
-                          if (currentChannel != null && currentChannel.groupName != null) {
+                          //
+                          if (currentChannel != null &&
+                              currentChannel.groupName != null) {
                             _selectedCategory = currentChannel.groupName;
-                            
-                            // 
+
+                            //
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (_selectedCategory != null) {
-                                final channels = channelProvider.getChannelsByGroup(_selectedCategory!);
-                                final currentIndex = channels.indexWhere((ch) => ch.id == currentChannel.id);
-                                
-                                if (currentIndex >= 0 && _channelScrollController.hasClients) {
-                                  //  44 
+                                final channels = channelProvider
+                                    .getChannelsByGroup(_selectedCategory!);
+                                final currentIndex = channels.indexWhere(
+                                    (ch) => ch.id == currentChannel.id);
+
+                                if (currentIndex >= 0 &&
+                                    _channelScrollController.hasClients) {
+                                  //  44
                                   final itemHeight = 44.0;
-                                  final scrollOffset = currentIndex * itemHeight;
-                                  
+                                  final scrollOffset =
+                                      currentIndex * itemHeight;
+
                                   _channelScrollController.animateTo(
                                     scrollOffset,
                                     duration: const Duration(milliseconds: 300),
@@ -3079,7 +3297,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  List<Channel> _getUpNextChannels(ChannelProvider channelProvider, PlayerProvider playerProvider) {
+  List<Channel> _getUpNextChannels(
+      ChannelProvider channelProvider, PlayerProvider playerProvider) {
     final current = playerProvider.currentChannel;
     if (current == null) return const [];
 
@@ -3092,15 +3311,17 @@ class _PlayerScreenState extends State<PlayerScreen>
       source = channelProvider.allChannels;
     }
 
-    final sameGroup = source.where((c) =>
-        c.id != current.id &&
-        c.url != current.url &&
-        c.groupName != null &&
-        c.groupName == current.groupName).toList();
+    final sameGroup = source
+        .where((c) =>
+            c.id != current.id &&
+            c.url != current.url &&
+            c.groupName != null &&
+            c.groupName == current.groupName)
+        .toList();
 
-    final fallback = source.where((c) =>
-        c.id != current.id &&
-        c.url != current.url).toList();
+    final fallback = source
+        .where((c) => c.id != current.id && c.url != current.url)
+        .toList();
 
     final candidates = sameGroup.isNotEmpty ? sameGroup : fallback;
     return candidates.take(12).toList();
@@ -3146,7 +3367,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                         builder: (context, isFocused, child) {
                           return Container(
                             decoration: BoxDecoration(
-                              color: AppTheme.getCardColor(context).withOpacity(0.9),
+                              color: AppTheme.getCardColor(context)
+                                  .withOpacity(0.9),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isFocused
@@ -3168,28 +3390,42 @@ class _PlayerScreenState extends State<PlayerScreen>
                               child: SizedBox(
                                 width: 74,
                                 height: 104,
-                                child: (channel.logoUrl != null && channel.logoUrl!.isNotEmpty)
+                                child: (channel.logoUrl != null &&
+                                        channel.logoUrl!.isNotEmpty)
                                     ? CachedNetworkImage(
                                         imageUrl: channel.logoUrl!,
                                         fit: BoxFit.cover,
                                         placeholder: (_, __) => Container(
-                                          color: AppTheme.getSurfaceColor(context),
-                                          child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                          color:
+                                              AppTheme.getSurfaceColor(context),
+                                          child: Icon(Icons.movie_rounded,
+                                              color: AppTheme.getTextMuted(
+                                                  context),
+                                              size: 20),
                                         ),
                                         errorWidget: (_, __, ___) => Container(
-                                          color: AppTheme.getSurfaceColor(context),
-                                          child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                          color:
+                                              AppTheme.getSurfaceColor(context),
+                                          child: Icon(Icons.movie_rounded,
+                                              color: AppTheme.getTextMuted(
+                                                  context),
+                                              size: 20),
                                         ),
                                       )
                                     : Container(
-                                        color: AppTheme.getSurfaceColor(context),
-                                        child: Icon(Icons.movie_rounded, color: AppTheme.getTextMuted(context), size: 20),
+                                        color:
+                                            AppTheme.getSurfaceColor(context),
+                                        child: Icon(Icons.movie_rounded,
+                                            color:
+                                                AppTheme.getTextMuted(context),
+                                            size: 20),
                                       ),
                               ),
                             ),
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 6),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -3233,7 +3469,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildVolumeControl(PlayerProvider provider) {
-    //  0-1 
+    //  0-1
     final volume = provider.volume.clamp(0.0, 1.0);
 
     return Row(
@@ -3283,7 +3519,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             child: Slider(
               value: provider.isMuted ? 0 : volume,
               onChanged: (value) {
-                // 
+                //
                 if (provider.isMuted && value > 0) {
                   provider.toggleMute();
                 }
@@ -3420,7 +3656,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       bottom: 0,
       child: Row(
         children: [
-          // 
+          //
           Container(
             width: 180,
             decoration: const BoxDecoration(
@@ -3511,7 +3747,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               ),
             ),
           ),
-          // 
+          //
           if (_selectedCategory != null) _buildChannelList(),
         ],
       ),
@@ -3576,7 +3812,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   final channel = channels[index];
                   final isPlaying = currentChannel?.id == channel.id;
                   return TVFocusable(
-                    autofocus: isPlaying, // 
+                    autofocus: isPlaying, //
                     onSelect: () {
                       //  ID
                       final settingsProvider = context.read<SettingsProvider>();
@@ -3649,4 +3885,3 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 }
-

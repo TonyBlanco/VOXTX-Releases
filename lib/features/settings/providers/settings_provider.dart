@@ -10,11 +10,14 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyRefreshInterval = 'refresh_interval';
   static const String _keyDefaultQuality = 'default_quality';
   static const String _keyHardwareDecoding = 'hardware_decoding';
-  static const String _keyDecodingMode = 'decoding_mode'; // New: auto, hardware, software
-  static const String _keyWindowsHwdecMode = 'windows_hwdec_mode'; // auto-safe, auto-copy, d3d11va, dxva2
+  static const String _keyDecodingMode =
+      'decoding_mode'; // New: auto, hardware, software
+  static const String _keyWindowsHwdecMode =
+      'windows_hwdec_mode'; // auto-safe, auto-copy, d3d11va, dxva2
   static const String _keyAllowSoftwareFallback = 'allow_software_fallback';
   static const String _keyVideoOutput = 'video_output'; // auto, libmpv, gpu
-  static const String _keyChannelMergeRule = 'channel_merge_rule'; // New: name, name_group
+  static const String _keyChannelMergeRule =
+      'channel_merge_rule'; // New: name, name_group
   static const String _keyBufferSize = 'buffer_size';
   static const String _keyLastPlaylistId = 'last_playlist_id';
   static const String _keyEnableEpg = 'enable_epg';
@@ -27,29 +30,39 @@ class SettingsProvider extends ChangeNotifier {
   static const String _keyLocale = 'locale';
   static const String _keyVolumeNormalization = 'volume_normalization';
   static const String _keyVolumeBoost = 'volume_boost';
-  static const String _keyBufferStrength = 'buffer_strength'; // fast, balanced, stable
+  static const String _keyBufferStrength =
+      'buffer_strength'; // fast, balanced, stable
   static const String _keyShowFps = 'show_fps';
   static const String _keyShowClock = 'show_clock';
   static const String _keyShowNetworkSpeed = 'show_network_speed';
   static const String _keyShowVideoInfo = 'show_video_info';
-  static const String _keyProgressBarMode = 'progress_bar_mode'; // auto, always, never
+  static const String _keyProgressBarMode =
+      'progress_bar_mode'; // auto, always, never
+  static const String _keyExternal3dMode = 'external_3d_mode'; // sbs, ou
   static const String _keyEnableMultiScreen = 'enable_multi_screen';
   static const String _keyDefaultScreenPosition = 'default_screen_position';
   static const String _keyActiveScreenIndex = 'active_screen_index';
-  static const String _keyLastPlayMode = 'last_play_mode'; // 'single' or 'multi'
-  static const String _keyLastMultiScreenChannels = 'last_multi_screen_channels'; // JSON string of channel IDs
+  static const String _keyLastPlayMode =
+      'last_play_mode'; // 'single' or 'multi'
+  static const String _keyLastMultiScreenChannels =
+      'last_multi_screen_channels'; // JSON string of channel IDs
   static const String _keyLastMultiScreenSourceIndexes =
       'last_multi_screen_source_indexes'; // comma-separated source indexes
-  static const String _keyShowMultiScreenChannelName = 'show_multi_screen_channel_name'; // Mostrar nombre del canal en multi-pantalla
+  static const String _keyShowMultiScreenChannelName =
+      'show_multi_screen_channel_name'; // Mostrar nombre del canal en multi-pantalla
   static const String _keyDarkColorScheme = 'dark_color_scheme';
   static const String _keyLightColorScheme = 'light_color_scheme';
   static const String _keyFontFamily = 'font_family';
   static const String _keySimpleMenu = 'simple_menu';
   static const String _keyLogLevel = 'log_level'; // debug, release, off
-  static const String _keyMobileOrientation = 'mobile_orientation'; // portrait, landscape, auto
-  static const String _keyLastAppVersion = 'last_app_version'; // Para detectar actualizaciones de versión
-  static const String _keyShowWatchHistoryOnHome = 'show_watch_history_on_home'; // Mostrar historial en la pantalla principal
-  static const String _keyShowFavoritesOnHome = 'show_favorites_on_home'; // Mostrar favoritos en la pantalla principal
+  static const String _keyMobileOrientation =
+      'mobile_orientation'; // portrait, landscape, auto
+  static const String _keyLastAppVersion =
+      'last_app_version'; // Para detectar actualizaciones de versión
+  static const String _keyShowWatchHistoryOnHome =
+      'show_watch_history_on_home'; // Mostrar historial en la pantalla principal
+  static const String _keyShowFavoritesOnHome =
+      'show_favorites_on_home'; // Mostrar favoritos en la pantalla principal
 
   // Settings values
   String _themeMode = 'dark';
@@ -79,22 +92,42 @@ class SettingsProvider extends ChangeNotifier {
   bool _showClock = true; // Mostrar reloj por defecto
   bool _showNetworkSpeed = true; // Mostrar velocidad de red por defecto
   bool _showVideoInfo = true; // Mostrar resolución/bitrate por defecto
-  String _progressBarMode = 'auto'; // Modo de barra de progreso: auto, always, never
+  String _progressBarMode =
+      'auto'; // Modo de barra de progreso: auto, always, never
+  String _external3dMode = 'sbs'; // Modo 3D para reproductor externo: sbs | ou
   bool _enableMultiScreen = true; // Multi-pantalla activada por defecto
-  int _defaultScreenPosition = 1; // Posición por defecto de reproducción (arriba-izquierda)
+  int _defaultScreenPosition =
+      1; // Posición por defecto de reproducción (arriba-izquierda)
   int _activeScreenIndex = 0; // Índice de ventana activa
-  String _lastPlayMode = 'single'; // Último modo de reproducción: 'single' o 'multi'
-  List<int?> _lastMultiScreenChannels = [null, null, null, null]; // IDs de canales en multi-pantalla
-  List<int> _lastMultiScreenSourceIndexes = [0, 0, 0, 0]; // Índices de fuente en multi-pantalla
-  bool _showMultiScreenChannelName = false; // Mostrar nombre del canal en multi-pantalla (por defecto false)
-  String _darkColorScheme = 'ocean'; // Esquema de color para modo oscuro (por defecto 'ocean')
-  String _lightColorScheme = 'sky'; // Esquema de color para modo claro (por defecto 'sky')
+  String _lastPlayMode =
+      'single'; // Último modo de reproducción: 'single' o 'multi'
+  List<int?> _lastMultiScreenChannels = [
+    null,
+    null,
+    null,
+    null
+  ]; // IDs de canales en multi-pantalla
+  List<int> _lastMultiScreenSourceIndexes = [
+    0,
+    0,
+    0,
+    0
+  ]; // Índices de fuente en multi-pantalla
+  bool _showMultiScreenChannelName =
+      false; // Mostrar nombre del canal en multi-pantalla (por defecto false)
+  String _darkColorScheme =
+      'ocean'; // Esquema de color para modo oscuro (por defecto 'ocean')
+  String _lightColorScheme =
+      'sky'; // Esquema de color para modo claro (por defecto 'sky')
   String _fontFamily = 'System'; // Fuente del sistema (Roboto en Android/TV)
   bool _simpleMenu = true; // Usar menú simple (no expandido) por defecto
-  String _logLevel = 'off'; // Nivel de logs: debug, release, off (por defecto off)
-  String _mobileOrientation = 'portrait'; // Orientación en móvil: portrait, landscape, auto (por defecto portrait)
+  String _logLevel =
+      'off'; // Nivel de logs: debug, release, off (por defecto off)
+  String _mobileOrientation =
+      'portrait'; // Orientación en móvil: portrait, landscape, auto (por defecto portrait)
   bool _showWatchHistoryOnHome = true; // Mostrar historial en Home por defecto
-  bool _showFavoritesOnHome = false; // Mostrar favoritos en Home (por defecto false)
+  bool _showFavoritesOnHome =
+      false; // Mostrar favoritos en Home (por defecto false)
 
   // Getters
   String get themeMode => _themeMode;
@@ -125,6 +158,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get showNetworkSpeed => _showNetworkSpeed;
   bool get showVideoInfo => _showVideoInfo;
   String get progressBarMode => _progressBarMode;
+  String get external3dMode => _external3dMode;
   bool get enableMultiScreen => _enableMultiScreen;
   int get defaultScreenPosition => _defaultScreenPosition;
   int get activeScreenIndex => _activeScreenIndex;
@@ -140,7 +174,7 @@ class SettingsProvider extends ChangeNotifier {
   String get mobileOrientation => _mobileOrientation;
   bool get showWatchHistoryOnHome => _showWatchHistoryOnHome;
   bool get showFavoritesOnHome => _showFavoritesOnHome;
-  
+
   /// Obtener el esquema de color actual que debe usarse
   String get currentColorScheme {
     if (_themeMode == 'dark') return _darkColorScheme;
@@ -193,20 +227,24 @@ class SettingsProvider extends ChangeNotifier {
     _showNetworkSpeed = prefs.getBool(_keyShowNetworkSpeed) ?? true;
     _showVideoInfo = prefs.getBool(_keyShowVideoInfo) ?? true;
     _progressBarMode = prefs.getString(_keyProgressBarMode) ?? 'auto';
+    _external3dMode = prefs.getString(_keyExternal3dMode) ?? 'sbs';
     _enableMultiScreen = prefs.getBool(_keyEnableMultiScreen) ?? true;
     _defaultScreenPosition = prefs.getInt(_keyDefaultScreenPosition) ?? 1;
     _activeScreenIndex = prefs.getInt(_keyActiveScreenIndex) ?? 0;
     _lastPlayMode = prefs.getString(_keyLastPlayMode) ?? 'single';
-    _showMultiScreenChannelName = prefs.getBool(_keyShowMultiScreenChannelName) ?? false;
-    ServiceLocator.log.d('SettingsProvider: loaded showMultiScreenChannelName=$_showMultiScreenChannelName');
-    
+    _showMultiScreenChannelName =
+        prefs.getBool(_keyShowMultiScreenChannelName) ?? false;
+    ServiceLocator.log.d(
+        'SettingsProvider: loaded showMultiScreenChannelName=$_showMultiScreenChannelName');
+
     // Cargar la lista de IDs de canales en multi-pantalla
-    final multiScreenChannelsJson = prefs.getString(_keyLastMultiScreenChannels);
+    final multiScreenChannelsJson =
+        prefs.getString(_keyLastMultiScreenChannels);
     if (multiScreenChannelsJson != null) {
       try {
-        final List<dynamic> decoded = List<dynamic>.from(
-          multiScreenChannelsJson.split(',').map((s) => s.isEmpty ? null : int.tryParse(s))
-        );
+        final List<dynamic> decoded = List<dynamic>.from(multiScreenChannelsJson
+            .split(',')
+            .map((s) => s.isEmpty ? null : int.tryParse(s)));
         _lastMultiScreenChannels = decoded.map((e) => e as int?).toList();
         while (_lastMultiScreenChannels.length < 4) {
           _lastMultiScreenChannels.add(null);
@@ -216,7 +254,8 @@ class SettingsProvider extends ChangeNotifier {
       }
     }
 
-    final multiScreenSourceIndexesStr = prefs.getString(_keyLastMultiScreenSourceIndexes);
+    final multiScreenSourceIndexesStr =
+        prefs.getString(_keyLastMultiScreenSourceIndexes);
     if (multiScreenSourceIndexesStr != null) {
       try {
         final parsed = multiScreenSourceIndexesStr
@@ -231,7 +270,7 @@ class SettingsProvider extends ChangeNotifier {
         _lastMultiScreenSourceIndexes = [0, 0, 0, 0];
       }
     }
-    
+
     // Cargar configuración de esquemas de color
     _darkColorScheme = prefs.getString(_keyDarkColorScheme) ?? 'ocean';
     _lightColorScheme = prefs.getString(_keyLightColorScheme) ?? 'sky';
@@ -251,7 +290,7 @@ class SettingsProvider extends ChangeNotifier {
     // Cargar ajustes de visualización en la pantalla principal
     _showWatchHistoryOnHome = prefs.getBool(_keyShowWatchHistoryOnHome) ?? true;
     _showFavoritesOnHome = prefs.getBool(_keyShowFavoritesOnHome) ?? false;
-    
+
     // No llamar a notifyListeners() en el constructor para evitar reconstrucciones durante build
   }
 
@@ -266,11 +305,13 @@ class SettingsProvider extends ChangeNotifier {
 
       // Si la versión es diferente, la app se ha actualizado
       if (lastVersion != null && lastVersion != currentVersion) {
-        ServiceLocator.log.d('Detectada actualización de versión: $lastVersion → $currentVersion');
+        ServiceLocator.log.d(
+            'Detectada actualización de versión: $lastVersion → $currentVersion');
 
         // Desactivar automáticamente los logs de desarrollo
         if (_logLevel != 'off') {
-          ServiceLocator.log.d('Desactivando logs de desarrollo automáticamente');
+          ServiceLocator.log
+              .d('Desactivando logs de desarrollo automáticamente');
           await setLogLevel('off');
         }
       }
@@ -325,14 +366,17 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setBool(_keyShowNetworkSpeed, _showNetworkSpeed);
     await prefs.setBool(_keyShowVideoInfo, _showVideoInfo);
     await prefs.setString(_keyProgressBarMode, _progressBarMode);
+    await prefs.setString(_keyExternal3dMode, _external3dMode);
     await prefs.setBool(_keyEnableMultiScreen, _enableMultiScreen);
     await prefs.setInt(_keyDefaultScreenPosition, _defaultScreenPosition);
     await prefs.setInt(_keyActiveScreenIndex, _activeScreenIndex);
     await prefs.setString(_keyLastPlayMode, _lastPlayMode);
-    await prefs.setString(_keyLastMultiScreenChannels, _lastMultiScreenChannels.map((e) => e?.toString() ?? '').join(','));
+    await prefs.setString(_keyLastMultiScreenChannels,
+        _lastMultiScreenChannels.map((e) => e?.toString() ?? '').join(','));
     await prefs.setString(_keyLastMultiScreenSourceIndexes,
         _lastMultiScreenSourceIndexes.map((e) => e.toString()).join(','));
-    await prefs.setBool(_keyShowMultiScreenChannelName, _showMultiScreenChannelName);
+    await prefs.setBool(
+        _keyShowMultiScreenChannelName, _showMultiScreenChannelName);
     await prefs.setString(_keyDarkColorScheme, _darkColorScheme);
     await prefs.setString(_keyLightColorScheme, _lightColorScheme);
     await prefs.setString(_keyFontFamily, _fontFamily);
@@ -520,6 +564,14 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> setExternal3dMode(String mode) async {
+    if (mode == 'sbs' || mode == 'ou') {
+      _external3dMode = mode;
+      await _saveSettings();
+      notifyListeners();
+    }
+  }
+
   Future<void> setEnableMultiScreen(bool enabled) async {
     _enableMultiScreen = enabled;
     await _saveSettings();
@@ -540,7 +592,8 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Establecer si en multi-pantalla se muestra el nombre del canal
   Future<void> setShowMultiScreenChannelName(bool show) async {
-    ServiceLocator.log.d('SettingsProvider: setShowMultiScreenChannelName($show)');
+    ServiceLocator.log
+        .d('SettingsProvider: setShowMultiScreenChannelName($show)');
     _showMultiScreenChannelName = show;
     await _saveSettings();
     notifyListeners();
@@ -586,8 +639,10 @@ class SettingsProvider extends ChangeNotifier {
     while (_lastMultiScreenSourceIndexes.length < 4) {
       _lastMultiScreenSourceIndexes.add(0);
     }
-    _lastMultiScreenSourceIndexes =
-        _lastMultiScreenSourceIndexes.take(4).map((e) => e < 0 ? 0 : e).toList();
+    _lastMultiScreenSourceIndexes = _lastMultiScreenSourceIndexes
+        .take(4)
+        .map((e) => e < 0 ? 0 : e)
+        .toList();
     _activeScreenIndex = activeIndex.clamp(0, 3);
     await _saveSettings();
     notifyListeners();
@@ -595,24 +650,29 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Comprobar si existe estado de multi-pantalla para restaurar
   bool get hasMultiScreenState {
-    return _lastPlayMode == 'multi' && _lastMultiScreenChannels.any((id) => id != null);
+    return _lastPlayMode == 'multi' &&
+        _lastMultiScreenChannels.any((id) => id != null);
   }
-  
+
   /// Establecer esquema de color para modo oscuro
   Future<void> setDarkColorScheme(String scheme) async {
-    ServiceLocator.log.d('SettingsProvider: establecer esquema oscuro - $scheme');
+    ServiceLocator.log
+        .d('SettingsProvider: establecer esquema oscuro - $scheme');
     _darkColorScheme = scheme;
     await _saveSettings();
-    ServiceLocator.log.d('SettingsProvider: esquema guardado, notificando listeners');
+    ServiceLocator.log
+        .d('SettingsProvider: esquema guardado, notificando listeners');
     notifyListeners();
   }
-  
+
   /// Establecer esquema de color para modo claro
   Future<void> setLightColorScheme(String scheme) async {
-    ServiceLocator.log.d('SettingsProvider: establecer esquema claro - $scheme');
+    ServiceLocator.log
+        .d('SettingsProvider: establecer esquema claro - $scheme');
     _lightColorScheme = scheme;
     await _saveSettings();
-    ServiceLocator.log.d('SettingsProvider: esquema guardado, notificando listeners');
+    ServiceLocator.log
+        .d('SettingsProvider: esquema guardado, notificando listeners');
     notifyListeners();
   }
 
@@ -637,7 +697,7 @@ class SettingsProvider extends ChangeNotifier {
     debugPrint('SettingsProvider: iniciando ajuste de nivel de logs - $level');
     _logLevel = level;
     await _saveSettings();
-    
+
     // Actualizar servicio de logs
     final logLevel = switch (level) {
       'debug' => LogLevel.debug,
@@ -645,26 +705,28 @@ class SettingsProvider extends ChangeNotifier {
       'off' => LogLevel.off,
       _ => LogLevel.release,
     };
-    
-    debugPrint('SettingsProvider: llamando a ServiceLocator.log.setLogLevel($logLevel)');
+
+    debugPrint(
+        'SettingsProvider: llamando a ServiceLocator.log.setLogLevel($logLevel)');
     await ServiceLocator.log.setLogLevel(logLevel);
-    
+
     // Escribir logs de prueba
     debugPrint('SettingsProvider: escribiendo logs de prueba...');
     ServiceLocator.log.d('Registro de prueba: nivel de logs cambiado a $level');
     ServiceLocator.log.i('Registro de prueba: nivel Info');
     ServiceLocator.log.w('Registro de prueba: nivel Warning');
-    
+
     // Forzar vaciado del buffer de logs
     await ServiceLocator.log.flush();
     debugPrint('SettingsProvider: buffer de logs vaciado');
-    
+
     notifyListeners();
   }
 
   /// Establecer orientación de pantalla para móviles
   Future<void> setMobileOrientation(String orientation) async {
-    ServiceLocator.log.d('SettingsProvider: establecer orientación móvil - $orientation');
+    ServiceLocator.log
+        .d('SettingsProvider: establecer orientación móvil - $orientation');
     _mobileOrientation = orientation;
     await _saveSettings();
     notifyListeners();
@@ -713,6 +775,7 @@ class SettingsProvider extends ChangeNotifier {
     _showNetworkSpeed = true;
     _showVideoInfo = true;
     _progressBarMode = 'auto';
+    _external3dMode = 'sbs';
     _enableMultiScreen = true;
     _defaultScreenPosition = 1;
     _activeScreenIndex = 0;
@@ -722,11 +785,11 @@ class SettingsProvider extends ChangeNotifier {
     _fontFamily = 'Arial';
 
     await _saveSettings();
-    
+
     // Restablecer el nivel de logs a 'off' (optimización de rendimiento)
     await ServiceLocator.prefs.setString('log_level', 'off');
     await ServiceLocator.log.setLogLevel(LogLevel.off);
-    
+
     notifyListeners();
   }
 }

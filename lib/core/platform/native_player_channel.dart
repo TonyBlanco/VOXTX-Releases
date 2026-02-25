@@ -34,13 +34,14 @@ class NativePlayerChannel {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'onPlayerClosed') {
         ServiceLocator.log.d('NativePlayerChannel: Player closed from native');
-        // 
+        //
         _saveSingleChannelState(call.arguments);
         _onPlayerClosedCallback?.call();
         _onPlayerClosedCallback = null;
       } else if (call.method == 'onMultiScreenClosed') {
-        ServiceLocator.log.d('NativePlayerChannel: Multi-screen closed from native');
-        // 
+        ServiceLocator.log
+            .d('NativePlayerChannel: Multi-screen closed from native');
+        //
         _saveMultiScreenState(call.arguments);
         _onMultiScreenClosedCallback?.call();
         _onMultiScreenClosedCallback = null;
@@ -100,18 +101,20 @@ class NativePlayerChannel {
         'NativePlayerChannel: toggleFavorite - channel: ${channel.name}, id: ${channel.id}');
 
     if (channel.id == null) {
-      ServiceLocator.log.d('NativePlayerChannel: toggleFavorite - channel has no id');
+      ServiceLocator.log
+          .d('NativePlayerChannel: toggleFavorite - channel has no id');
       return null;
     }
 
     // Check current favorite status before toggle
     final wasFavorite = _favoritesProvider!.isFavorite(channel.id!);
-    ServiceLocator.log.d(
-        'NativePlayerChannel: toggleFavorite - wasFavorite: $wasFavorite');
+    ServiceLocator.log
+        .d('NativePlayerChannel: toggleFavorite - wasFavorite: $wasFavorite');
 
     // Toggle favorite
     final success = await _favoritesProvider!.toggleFavorite(channel);
-    ServiceLocator.log.d('NativePlayerChannel: toggleFavorite - success: $success');
+    ServiceLocator.log
+        .d('NativePlayerChannel: toggleFavorite - success: $success');
 
     if (!success) {
       return null;
@@ -142,7 +145,8 @@ class NativePlayerChannel {
 
     final channel = channels[channelIndex];
     if (channel.id == null) {
-      ServiceLocator.log.d('NativePlayerChannel: isFavorite - channel has no id');
+      ServiceLocator.log
+          .d('NativePlayerChannel: isFavorite - channel has no id');
       return false;
     }
 
@@ -168,34 +172,35 @@ class NativePlayerChannel {
     }
 
     final channel = channels[channelIndex];
-    if (channel.id == null || channel.playlistId == null) {
+    if (channel.id == null) {
       ServiceLocator.log.d(
           'NativePlayerChannel: addWatchHistory - channel has no id or playlistId: ${channel.name}');
       return false;
     }
 
     try {
-      await ServiceLocator.watchHistory.addWatchHistory(channel.id!, channel.playlistId!);
+      await ServiceLocator.watchHistory
+          .addWatchHistory(channel.id!, channel.playlistId);
       ServiceLocator.log.d(
           'NativePlayerChannel: addWatchHistory - success for channel: ${channel.name}');
       return true;
     } catch (e) {
-      ServiceLocator.log.e(
-          'NativePlayerChannel: addWatchHistory - error: $e');
+      ServiceLocator.log.e('NativePlayerChannel: addWatchHistory - error: $e');
       return false;
     }
   }
 
-  /// 
+  ///
   static void _saveMultiScreenState(dynamic arguments) {
     if (_settingsProvider == null || _channelProvider == null) {
-      ServiceLocator.log.d(
-          'NativePlayerChannel: _saveMultiScreenState - providers not set');
+      ServiceLocator.log
+          .d('NativePlayerChannel: _saveMultiScreenState - providers not set');
       return;
     }
 
     if (arguments == null) {
-      ServiceLocator.log.d('NativePlayerChannel: _saveMultiScreenState - no arguments');
+      ServiceLocator.log
+          .d('NativePlayerChannel: _saveMultiScreenState - no arguments');
       return;
     }
 
@@ -206,8 +211,8 @@ class NativePlayerChannel {
       final int activeIndex = args['activeIndex'] as int? ?? 0;
 
       if (screenStates == null) {
-        ServiceLocator.log.d(
-            'NativePlayerChannel: _saveMultiScreenState - no screenStates');
+        ServiceLocator.log
+            .d('NativePlayerChannel: _saveMultiScreenState - no screenStates');
         return;
       }
 
@@ -231,14 +236,15 @@ class NativePlayerChannel {
       ServiceLocator.log.d(
           'NativePlayerChannel: _saveMultiScreenState - channelIds: $channelIds, activeIndex: $activeIndex');
 
-      // 
+      //
       _settingsProvider!.saveLastMultiScreen(channelIds, activeIndex);
     } catch (e) {
-      ServiceLocator.log.d('NativePlayerChannel: _saveMultiScreenState error: $e');
+      ServiceLocator.log
+          .d('NativePlayerChannel: _saveMultiScreenState error: $e');
     }
   }
 
-  /// 
+  ///
   static void _saveSingleChannelState(dynamic arguments) {
     if (_settingsProvider == null || _channelProvider == null) {
       ServiceLocator.log.d(
@@ -255,7 +261,7 @@ class NativePlayerChannel {
         skipSave = arguments['skipSave'] as bool? ?? false;
       }
 
-      // 
+      //
       if (skipSave) {
         ServiceLocator.log.d(
             'NativePlayerChannel: _saveSingleChannelState - skipSave=true, keeping multi-screen state');
@@ -280,11 +286,12 @@ class NativePlayerChannel {
           'NativePlayerChannel: _saveSingleChannelState - channelIndex: $channelIndex, channelId: $channelId');
 
       if (channelId != null) {
-        // 
+        //
         _settingsProvider!.saveLastSingleChannel(channelId);
       }
     } catch (e) {
-      ServiceLocator.log.d('NativePlayerChannel: _saveSingleChannelState error: $e');
+      ServiceLocator.log
+          .d('NativePlayerChannel: _saveSingleChannelState error: $e');
     }
   }
 
@@ -311,7 +318,7 @@ class NativePlayerChannel {
     List<String>? urls,
     List<String>? names,
     List<String>? groups,
-    List<List<String>>? sources, // 
+    List<List<String>>? sources, //
     List<String>? logos, // URL
     List<String>? epgIds, // EPG ID
     List<bool>? isSeekable, // /
@@ -322,7 +329,7 @@ class NativePlayerChannel {
     bool showNetworkSpeed = true,
     bool showVideoInfo = true,
     String progressBarMode = 'auto', // auto, always, never
-    bool showChannelName = false, // 
+    bool showChannelName = false, //
     Function? onClosed,
   }) async {
     try {
@@ -338,18 +345,18 @@ class NativePlayerChannel {
         'urls': urls,
         'names': names,
         'groups': groups,
-        'sources': sources, // 
+        'sources': sources, //
         'logos': logos, // URL
         'epgIds': epgIds, // EPG ID
-        'isSeekable': isSeekable, // 
+        'isSeekable': isSeekable, //
         'isDlnaMode': isDlnaMode,
         'bufferStrength': bufferStrength,
         'showFps': showFps,
         'showClock': showClock,
         'showNetworkSpeed': showNetworkSpeed,
         'showVideoInfo': showVideoInfo,
-        'progressBarMode': progressBarMode, // 
-        'showChannelName': showChannelName, // 
+        'progressBarMode': progressBarMode, //
+        'showChannelName': showChannelName, //
       });
       ServiceLocator.log.d('NativePlayerChannel: launch result=$result');
       return result ?? false;
@@ -428,10 +435,10 @@ class NativePlayerChannel {
     List<String>? logos,
     int initialChannelIndex = 0,
     int volumeBoostDb = 0,
-    int defaultScreenPosition = 1, // 1-4 
-    int restoreActiveIndex = -1, // 
-    List<int?>? restoreScreenChannels, // 
-    bool showChannelName = false, // 
+    int defaultScreenPosition = 1, // 1-4
+    int restoreActiveIndex = -1, //
+    List<int?>? restoreScreenChannels, //
+    bool showChannelName = false, //
     Function? onClosed,
   }) async {
     try {
@@ -453,7 +460,8 @@ class NativePlayerChannel {
         'restoreScreenChannels': restoreScreenChannels,
         'showChannelName': showChannelName,
       });
-      ServiceLocator.log.d('NativePlayerChannel: multi-screen launch result=$result');
+      ServiceLocator.log
+          .d('NativePlayerChannel: multi-screen launch result=$result');
       return result ?? false;
     } catch (e) {
       ServiceLocator.log.d('NativePlayerChannel: launchMultiScreen error: $e');
@@ -468,6 +476,89 @@ class NativePlayerChannel {
       await _channel.invokeMethod('closeMultiScreen');
     } catch (e) {
       ServiceLocator.log.d('NativePlayerChannel: closeMultiScreen error: $e');
+    }
+  }
+
+  /// Returns true when Android PiP is supported on the current device.
+  static Future<bool> isAndroidPipSupported() async {
+    if (!PlatformDetector.isAndroid) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>('isPipSupported');
+      return result ?? false;
+    } catch (e) {
+      ServiceLocator.log
+          .d('NativePlayerChannel: isAndroidPipSupported error: $e');
+      return false;
+    }
+  }
+
+  /// Enter Android PiP mode for the main activity.
+  static Future<bool> enterAndroidPipMode() async {
+    if (!PlatformDetector.isAndroid) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>('enterPipMode');
+      return result ?? false;
+    } catch (e) {
+      ServiceLocator.log
+          .d('NativePlayerChannel: enterAndroidPipMode error: $e');
+      return false;
+    }
+  }
+
+  /// Detect whether an external player app package is installed.
+  static Future<bool> isExternalPlayerInstalled(String packageName) async {
+    if (!PlatformDetector.isAndroid) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'isExternalPlayerInstalled',
+        {'packageName': packageName},
+      );
+      return result ?? false;
+    } catch (e) {
+      ServiceLocator.log
+          .d('NativePlayerChannel: isExternalPlayerInstalled error: $e');
+      return false;
+    }
+  }
+
+  /// Returns installed PICO player package name or null when unavailable.
+  static Future<String?> getInstalledPicoPlayerPackage() async {
+    if (!PlatformDetector.isAndroid) return null;
+    try {
+      final result =
+          await _channel.invokeMethod<String>('getPicoPlayerPackage');
+      return result;
+    } catch (e) {
+      ServiceLocator.log
+          .d('NativePlayerChannel: getInstalledPicoPlayerPackage error: $e');
+      return null;
+    }
+  }
+
+  /// Open URL in an external Android player.
+  static Future<bool> openInExternalPlayer({
+    required String url,
+    String? title,
+    String? packageName,
+    bool is3d = false,
+    String stereoMode = 'sbs',
+    bool forceChooser = false,
+  }) async {
+    if (!PlatformDetector.isAndroid) return false;
+    try {
+      final result = await _channel.invokeMethod<bool>('openExternalPlayer', {
+        'url': url,
+        'title': title ?? '',
+        'packageName': packageName ?? '',
+        'is3d': is3d,
+        'stereoMode': stereoMode,
+        'forceChooser': forceChooser,
+      });
+      return result ?? false;
+    } catch (e) {
+      ServiceLocator.log
+          .d('NativePlayerChannel: openInExternalPlayer error: $e');
+      return false;
     }
   }
 }

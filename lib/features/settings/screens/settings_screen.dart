@@ -517,6 +517,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.linear_scale_rounded,
                 onTap: () => _showProgressBarModeDialog(context, settings),
               ),
+              if (PlatformDetector.isAndroid) ...[
+                _buildDivider(),
+                _buildSelectTile(
+                  context,
+                  title: '3D Mode (External Player)',
+                  subtitle:
+                      _getExternal3dModeLabel(context, settings.external3dMode),
+                  icon: Icons.view_in_ar_rounded,
+                  onTap: () => _showExternal3dModeDialog(context, settings),
+                ),
+              ],
               if (PlatformDetector.isDesktop || PlatformDetector.isTV) ...[
                 _buildDivider(),
                 _buildSwitchTile(
@@ -2059,6 +2070,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
       default:
         return strings?.progressBarModeAuto ?? '';
     }
+  }
+
+  String _getExternal3dModeLabel(BuildContext context, String mode) {
+    switch (mode) {
+      case 'ou':
+        return 'Over-Under (OU/TAB)';
+      case 'sbs':
+      default:
+        return 'Side-by-Side (SBS)';
+    }
+  }
+
+  void _showExternal3dModeDialog(
+      BuildContext context, SettingsProvider settings) {
+    final style = _getDialogStyle(context);
+    final options = ['sbs', 'ou'];
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.getSurfaceColor(context),
+          shape: style['shape'],
+          contentPadding: style['contentPadding'],
+          titlePadding: style['titlePadding'],
+          title: Text(
+            '3D Mode (External Player)',
+            style: TextStyle(
+              color: AppTheme.getTextPrimary(context),
+              fontSize: style['titleFontSize'],
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options.map((mode) {
+                return RadioListTile<String>(
+                  title: Text(
+                    _getExternal3dModeLabel(context, mode),
+                    style: TextStyle(
+                      color: AppTheme.getTextPrimary(context),
+                      fontSize: style['itemFontSize'],
+                    ),
+                  ),
+                  subtitle: Text(
+                    mode == 'sbs'
+                        ? 'Left/Right split frame'
+                        : 'Top/Bottom split frame',
+                    style: TextStyle(
+                      color: AppTheme.getTextMuted(context),
+                      fontSize: style['subtitleFontSize'],
+                    ),
+                  ),
+                  value: mode,
+                  groupValue: settings.external3dMode,
+                  onChanged: (value) async {
+                    if (value != null) {
+                      await settings.setExternal3dMode(value);
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
+                      _showSuccess(
+                        context,
+                        '3D mode set: ${_getExternal3dModeLabel(context, value)}',
+                      );
+                    }
+                  },
+                  activeColor: AppTheme.getPrimaryColor(dialogContext),
+                  contentPadding: style['itemPadding'],
+                  visualDensity: style['visualDensity'],
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showBufferSizeDialog(BuildContext context, SettingsProvider settings) {
