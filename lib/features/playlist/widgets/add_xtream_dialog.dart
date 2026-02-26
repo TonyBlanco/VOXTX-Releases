@@ -130,11 +130,29 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
       final protocol = (serverInfo['server_protocol']?.toString().isNotEmpty ?? false)
           ? serverInfo['server_protocol'].toString()
           : Uri.parse(baseServer).scheme;
-      final host = serverInfo['url']?.toString();
+      var host = serverInfo['url']?.toString();
       final port = serverInfo['port']?.toString();
 
+      // Sanitize: some Xtream panels return garbage in 'url' (e.g. "http",
+      // "https", empty string, or a full URL with protocol).  Only use
+      // the server_info value when it looks like a real hostname/IP.
       if (host != null && host.isNotEmpty) {
-        if (port != null && port.isNotEmpty) {
+        // Strip protocol prefix if the panel stuffed it in the host field
+        host = host.replaceFirst(RegExp(r'^https?://'), '');
+        // Remove trailing slashes / whitespace
+        host = host.replaceAll(RegExp(r'/+$'), '').trim();
+      }
+
+      // Only trust the host if it still looks valid (contains a dot or colon
+      // for IPv6, and is not a bare protocol keyword like "http"/"https").
+      final hostLooksValid = host != null &&
+          host.isNotEmpty &&
+          host != 'http' &&
+          host != 'https' &&
+          (host.contains('.') || host.contains(':'));
+
+      if (hostLooksValid) {
+        if (port != null && port.isNotEmpty && port != '0') {
           return '$protocol://$host:$port';
         }
         return '$protocol://$host';
