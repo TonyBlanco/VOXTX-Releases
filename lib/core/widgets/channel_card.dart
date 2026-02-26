@@ -301,10 +301,11 @@ class _ChannelCardState extends State<ChannelCard> {
     final hasGroup = widget.groupName != null && widget.groupName!.isNotEmpty;
     final hasEpg = hasCurrentProgram || hasNextProgram;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
+    return ClipRect(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
         // EPGEPG
         if (hasEpg) ...[
           if (hasCurrentProgram) ...[
@@ -377,6 +378,7 @@ class _ChannelCardState extends State<ChannelCard> {
           ),
         ],
       ],
+      ),
     );
   }
 

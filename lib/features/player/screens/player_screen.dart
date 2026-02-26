@@ -2363,10 +2363,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ],
                         // Video info
                         if (provider.videoInfo.isNotEmpty)
-                          Text(
-                            provider.videoInfo,
-                            style: const TextStyle(
-                                color: Color(0x99FFFFFF), fontSize: 11),
+                          Flexible(
+                            child: Text(
+                              provider.videoInfo,
+                              style: const TextStyle(
+                                  color: Color(0x99FFFFFF), fontSize: 11),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                       ],
                     ),
@@ -2947,430 +2951,19 @@ class _PlayerScreenState extends State<PlayerScreen>
               _buildUpNextRow(provider),
 
               // Control buttons row (moved above progress bar)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Volume control
-                  _buildVolumeControl(provider),
-
-                  const SizedBox(width: 16),
-
-                  //  - 
-                  if (PlatformDetector.isMobile &&
-                      provider.currentChannel != null &&
-                      provider.currentChannel!.hasMultipleSources)
-                    TVFocusable(
-                      onSelect: () {
-                        provider.switchToPreviousSource();
-                        _showSourceSwitchIndicator(provider);
-                      },
-                      focusScale: 1.0,
-                      showFocusBorder: false,
-                      builder: (context, isFocused, child) {
-                        return Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x33FFFFFF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused
-                                  ? AppTheme.getPrimaryColor(context)
-                                  : const Color(0x1AFFFFFF),
-                              width: isFocused ? 2 : 1,
-                            ),
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: const Icon(Icons.skip_previous_rounded,
-                          color: Colors.white, size: 18),
+              PlatformDetector.isMobile
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _buildControlButtons(provider),
                     ),
-
-                  if (PlatformDetector.isMobile &&
-                      provider.currentChannel != null &&
-                      provider.currentChannel!.hasMultipleSources)
-                    const SizedBox(width: 8),
-
-                  // Play/Pause - Lotus gradient button (smaller)
-                  TVFocusable(
-                    autofocus: true,
-                    onSelect: provider.togglePlayPause,
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.getGradient(context),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color:
-                                isFocused ? Colors.white : Colors.transparent,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.getPrimaryColor(context)
-                                  .withAlpha(isFocused ? 100 : 50),
-                              blurRadius: isFocused ? 16 : 8,
-                              spreadRadius: isFocused ? 2 : 1,
-                            ),
-                          ],
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: Icon(
-                      provider.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: _buildControlButtons(provider),
                   ),
-
-                  //  - 
-                  if (PlatformDetector.isMobile &&
-                      provider.currentChannel != null &&
-                      provider.currentChannel!.hasMultipleSources)
-                    const SizedBox(width: 8),
-
-                  if (PlatformDetector.isMobile &&
-                      provider.currentChannel != null &&
-                      provider.currentChannel!.hasMultipleSources)
-                    TVFocusable(
-                      onSelect: () {
-                        provider.switchToNextSource();
-                        _showSourceSwitchIndicator(provider);
-                      },
-                      focusScale: 1.0,
-                      showFocusBorder: false,
-                      builder: (context, isFocused, child) {
-                        return Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x33FFFFFF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused
-                                  ? AppTheme.getPrimaryColor(context)
-                                  : const Color(0x1AFFFFFF),
-                              width: isFocused ? 2 : 1,
-                            ),
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: const Icon(Icons.skip_next_rounded,
-                          color: Colors.white, size: 18),
-                    ),
-
-                  if (!PlatformDetector.isMobile &&
-                      provider.currentChannel != null &&
-                      provider.currentChannel!.hasMultipleSources) ...[
-                    const SizedBox(width: 8),
-                    TVFocusable(
-                      onSelect: () {
-                        provider.switchToNextSource();
-                        _showSourceSwitchIndicator(provider);
-                      },
-                      focusScale: 1.0,
-                      showFocusBorder: false,
-                      builder: (context, isFocused, child) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x33FFFFFF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused
-                                  ? AppTheme.getPrimaryColor(context)
-                                  : const Color(0x1AFFFFFF),
-                              width: isFocused ? 2 : 1,
-                            ),
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: Text(
-                        '${AppStrings.of(context)?.source ?? 'Source'} ${provider.currentSourceIndex}/${provider.sourceCount}',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(width: 16),
-
-                  // Settings button (smaller)
-                  TVFocusable(
-                    onSelect: () => _showSettingsSheet(context),
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isFocused
-                              ? AppTheme.getPrimaryColor(context)
-                              : const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x1AFFFFFF),
-                            width: isFocused ? 2 : 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: const Icon(Icons.settings_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Quality track button
-                  TVFocusable(
-                    onSelect: () => _showQualityDialog(provider),
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isFocused
-                              ? AppTheme.getPrimaryColor(context)
-                              : const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x1AFFFFFF),
-                            width: isFocused ? 2 : 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: const Icon(Icons.high_quality_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Audio track button
-                  TVFocusable(
-                    onSelect: () => _showAudioTrackDialog(provider),
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isFocused
-                              ? AppTheme.getPrimaryColor(context)
-                              : const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x1AFFFFFF),
-                            width: isFocused ? 2 : 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: const Icon(Icons.audiotrack_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Subtitle track button
-                  TVFocusable(
-                    onSelect: () => _showSubtitleTrackDialog(provider),
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isFocused
-                              ? AppTheme.getPrimaryColor(context)
-                              : const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x1AFFFFFF),
-                            width: isFocused ? 2 : 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: const Icon(Icons.subtitles_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  if (PlatformDetector.isAndroid && !PlatformDetector.isTV) ...[
-                    TVFocusable(
-                      onSelect: () => _handleChromecastAction(provider),
-                      focusScale: 1.0,
-                      showFocusBorder: false,
-                      builder: (context, isFocused, child) {
-                        return Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x33FFFFFF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused
-                                  ? AppTheme.getPrimaryColor(context)
-                                  : const Color(0x1AFFFFFF),
-                              width: isFocused ? 2 : 1,
-                            ),
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: const Icon(Icons.cast_rounded,
-                          color: Colors.white, size: 18),
-                    ),
-                    const SizedBox(width: 16),
-                  ],
-
-                  // Category menu button
-                  TVFocusable(
-                    onSelect: () {
-                      setState(() {
-                        if (_showCategoryPanel) {
-                          //
-                          _showCategoryPanel = false;
-                          _selectedCategory = null;
-                        } else {
-                          //
-                          final playerProvider = context.read<PlayerProvider>();
-                          final channelProvider =
-                              context.read<ChannelProvider>();
-                          final currentChannel = playerProvider.currentChannel;
-
-                          _showCategoryPanel = true;
-                          //
-                          if (currentChannel != null &&
-                              currentChannel.groupName != null) {
-                            _selectedCategory = currentChannel.groupName;
-
-                            //
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (_selectedCategory != null) {
-                                final channels = channelProvider
-                                    .getChannelsByGroup(_selectedCategory!);
-                                final currentIndex = channels.indexWhere(
-                                    (ch) => ch.id == currentChannel.id);
-
-                                if (currentIndex >= 0 &&
-                                    _channelScrollController.hasClients) {
-                                  //  44
-                                  const itemHeight = 44.0;
-                                  final scrollOffset =
-                                      currentIndex * itemHeight;
-
-                                  _channelScrollController.animateTo(
-                                    scrollOffset,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOut,
-                                  );
-                                }
-                              }
-                            });
-                          } else {
-                            _selectedCategory = null;
-                          }
-                        }
-                      });
-                    },
-                    focusScale: 1.0,
-                    showFocusBorder: false,
-                    builder: (context, isFocused, child) {
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isFocused
-                              ? AppTheme.getPrimaryColor(context)
-                              : const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x1AFFFFFF),
-                            width: isFocused ? 2 : 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: const Icon(Icons.menu_rounded,
-                        color: Colors.white, size: 18),
-                  ),
-
-                  // Windows / macOS fullscreen
-                  if (PlatformDetector.isWindows ||
-                      PlatformDetector.isMacOS) ...[
-                    const SizedBox(width: 16),
-                    TVFocusable(
-                      onSelect: () {
-                        _toggleFullScreen();
-                        Future.delayed(const Duration(milliseconds: 120), () {
-                          if (mounted) _playerFocusNode.requestFocus();
-                        });
-                      },
-                      focusScale: 1.0,
-                      showFocusBorder: false,
-                      builder: (context, isFocused, child) {
-                        return Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: isFocused
-                                ? AppTheme.getPrimaryColor(context)
-                                : const Color(0x33FFFFFF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused
-                                  ? AppTheme.getPrimaryColor(context)
-                                  : const Color(0x1AFFFFFF),
-                              width: isFocused ? 2 : 1,
-                            ),
-                          ),
-                          child: child,
-                        );
-                      },
-                      child: Icon(
-                          _isFullScreen
-                              ? Icons.fullscreen_exit_rounded
-                              : Icons.fullscreen_rounded,
-                          color: Colors.white,
-                          size: 18),
-                    ),
-                  ],
-                ],
-              ),
-
               // Keyboard hints
               if (PlatformDetector.useDPadNavigation)
                 Padding(
@@ -3558,6 +3151,424 @@ class _PlayerScreenState extends State<PlayerScreen>
         );
       },
     );
+  }
+
+  /// Builds the list of control buttons for the player bottom bar.
+  /// Used by both mobile (wrapped in SingleChildScrollView) and desktop (plain Row).
+  List<Widget> _buildControlButtons(PlayerProvider provider) {
+    return [
+      // Volume control
+      _buildVolumeControl(provider),
+
+      const SizedBox(width: 16),
+
+      // Previous source button (mobile only)
+      if (PlatformDetector.isMobile &&
+          provider.currentChannel != null &&
+          provider.currentChannel!.hasMultipleSources)
+        TVFocusable(
+          onSelect: () {
+            provider.switchToPreviousSource();
+            _showSourceSwitchIndicator(provider);
+          },
+          focusScale: 1.0,
+          showFocusBorder: false,
+          builder: (context, isFocused, child) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x33FFFFFF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFocused
+                      ? AppTheme.getPrimaryColor(context)
+                      : const Color(0x1AFFFFFF),
+                  width: isFocused ? 2 : 1,
+                ),
+              ),
+              child: child,
+            );
+          },
+          child: const Icon(Icons.skip_previous_rounded,
+              color: Colors.white, size: 18),
+        ),
+
+      if (PlatformDetector.isMobile &&
+          provider.currentChannel != null &&
+          provider.currentChannel!.hasMultipleSources)
+        const SizedBox(width: 8),
+
+      // Play/Pause - Lotus gradient button (smaller)
+      TVFocusable(
+        autofocus: true,
+        onSelect: provider.togglePlayPause,
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: AppTheme.getGradient(context),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isFocused ? Colors.white : Colors.transparent,
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.getPrimaryColor(context)
+                      .withAlpha(isFocused ? 100 : 50),
+                  blurRadius: isFocused ? 16 : 8,
+                  spreadRadius: isFocused ? 2 : 1,
+                ),
+              ],
+            ),
+            child: child,
+          );
+        },
+        child: Icon(
+          provider.isPlaying
+              ? Icons.pause_rounded
+              : Icons.play_arrow_rounded,
+          color: Colors.white,
+          size: 22,
+        ),
+      ),
+
+      // Next source button (mobile only)
+      if (PlatformDetector.isMobile &&
+          provider.currentChannel != null &&
+          provider.currentChannel!.hasMultipleSources)
+        const SizedBox(width: 8),
+
+      if (PlatformDetector.isMobile &&
+          provider.currentChannel != null &&
+          provider.currentChannel!.hasMultipleSources)
+        TVFocusable(
+          onSelect: () {
+            provider.switchToNextSource();
+            _showSourceSwitchIndicator(provider);
+          },
+          focusScale: 1.0,
+          showFocusBorder: false,
+          builder: (context, isFocused, child) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x33FFFFFF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFocused
+                      ? AppTheme.getPrimaryColor(context)
+                      : const Color(0x1AFFFFFF),
+                  width: isFocused ? 2 : 1,
+                ),
+              ),
+              child: child,
+            );
+          },
+          child: const Icon(Icons.skip_next_rounded,
+              color: Colors.white, size: 18),
+        ),
+
+      // Source selector (desktop/TV only)
+      if (!PlatformDetector.isMobile &&
+          provider.currentChannel != null &&
+          provider.currentChannel!.hasMultipleSources) ...[
+        const SizedBox(width: 8),
+        TVFocusable(
+          onSelect: () {
+            provider.switchToNextSource();
+            _showSourceSwitchIndicator(provider);
+          },
+          focusScale: 1.0,
+          showFocusBorder: false,
+          builder: (context, isFocused, child) {
+            return Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x33FFFFFF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFocused
+                      ? AppTheme.getPrimaryColor(context)
+                      : const Color(0x1AFFFFFF),
+                  width: isFocused ? 2 : 1,
+                ),
+              ),
+              child: child,
+            );
+          },
+          child: Text(
+            '${AppStrings.of(context)?.source ?? 'Source'} ${provider.currentSourceIndex}/${provider.sourceCount}',
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ),
+      ],
+
+      const SizedBox(width: 16),
+
+      // Settings button (smaller)
+      TVFocusable(
+        onSelect: () => _showSettingsSheet(context),
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x1AFFFFFF),
+                width: isFocused ? 2 : 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: const Icon(Icons.settings_rounded,
+            color: Colors.white, size: 18),
+      ),
+
+      const SizedBox(width: 8),
+
+      // Quality track button
+      TVFocusable(
+        onSelect: () => _showQualityDialog(provider),
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x1AFFFFFF),
+                width: isFocused ? 2 : 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: const Icon(Icons.high_quality_rounded,
+            color: Colors.white, size: 18),
+      ),
+
+      const SizedBox(width: 8),
+
+      // Audio track button
+      TVFocusable(
+        onSelect: () => _showAudioTrackDialog(provider),
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x1AFFFFFF),
+                width: isFocused ? 2 : 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: const Icon(Icons.audiotrack_rounded,
+            color: Colors.white, size: 18),
+      ),
+
+      const SizedBox(width: 8),
+
+      // Subtitle track button
+      TVFocusable(
+        onSelect: () => _showSubtitleTrackDialog(provider),
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x1AFFFFFF),
+                width: isFocused ? 2 : 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: const Icon(Icons.subtitles_rounded,
+            color: Colors.white, size: 18),
+      ),
+
+      const SizedBox(width: 16),
+
+      // Chromecast (Android phone only)
+      if (PlatformDetector.isAndroid && !PlatformDetector.isTV) ...[
+        TVFocusable(
+          onSelect: () => _handleChromecastAction(provider),
+          focusScale: 1.0,
+          showFocusBorder: false,
+          builder: (context, isFocused, child) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x33FFFFFF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFocused
+                      ? AppTheme.getPrimaryColor(context)
+                      : const Color(0x1AFFFFFF),
+                  width: isFocused ? 2 : 1,
+                ),
+              ),
+              child: child,
+            );
+          },
+          child: const Icon(Icons.cast_rounded,
+              color: Colors.white, size: 18),
+        ),
+        const SizedBox(width: 16),
+      ],
+
+      // Category menu button
+      TVFocusable(
+        onSelect: () {
+          setState(() {
+            if (_showCategoryPanel) {
+              _showCategoryPanel = false;
+              _selectedCategory = null;
+            } else {
+              final playerProvider = context.read<PlayerProvider>();
+              final channelProvider = context.read<ChannelProvider>();
+              final currentChannel = playerProvider.currentChannel;
+
+              _showCategoryPanel = true;
+              if (currentChannel != null &&
+                  currentChannel.groupName != null) {
+                _selectedCategory = currentChannel.groupName;
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_selectedCategory != null) {
+                    final channels = channelProvider
+                        .getChannelsByGroup(_selectedCategory!);
+                    final currentIndex = channels.indexWhere(
+                        (ch) => ch.id == currentChannel.id);
+
+                    if (currentIndex >= 0 &&
+                        _channelScrollController.hasClients) {
+                      const itemHeight = 44.0;
+                      final scrollOffset = currentIndex * itemHeight;
+
+                      _channelScrollController.animateTo(
+                        scrollOffset,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  }
+                });
+              } else {
+                _selectedCategory = null;
+              }
+            }
+          });
+        },
+        focusScale: 1.0,
+        showFocusBorder: false,
+        builder: (context, isFocused, child) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isFocused
+                  ? AppTheme.getPrimaryColor(context)
+                  : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x1AFFFFFF),
+                width: isFocused ? 2 : 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: const Icon(Icons.menu_rounded,
+            color: Colors.white, size: 18),
+      ),
+
+      // Windows / macOS fullscreen
+      if (PlatformDetector.isWindows ||
+          PlatformDetector.isMacOS) ...[
+        const SizedBox(width: 16),
+        TVFocusable(
+          onSelect: () {
+            _toggleFullScreen();
+            Future.delayed(const Duration(milliseconds: 120), () {
+              if (mounted) _playerFocusNode.requestFocus();
+            });
+          },
+          focusScale: 1.0,
+          showFocusBorder: false,
+          builder: (context, isFocused, child) {
+            return Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppTheme.getPrimaryColor(context)
+                    : const Color(0x33FFFFFF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFocused
+                      ? AppTheme.getPrimaryColor(context)
+                      : const Color(0x1AFFFFFF),
+                  width: isFocused ? 2 : 1,
+                ),
+              ),
+              child: child,
+            );
+          },
+          child: Icon(
+              _isFullScreen
+                  ? Icons.fullscreen_exit_rounded
+                  : Icons.fullscreen_rounded,
+              color: Colors.white,
+              size: 18),
+        ),
+      ],
+    ];
   }
 
   Widget _buildVolumeControl(PlayerProvider provider) {
