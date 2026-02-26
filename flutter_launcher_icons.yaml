@@ -1,7 +1,9 @@
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: "assets/icons/app_icon.png"
+  image_path_ios: "assets/icons/app_icon_ios.png"
+  remove_alpha_ios: true
   min_sdk_android: 21
   web:
     generate: false
