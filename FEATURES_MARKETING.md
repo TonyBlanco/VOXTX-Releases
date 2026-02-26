@@ -14,19 +14,19 @@
 
 ## Lo que nos hace únicos (vs competencia)
 
-| Característica | VOXTV | IPTV Smarters | TiviMate | OTT Navigator |
-|---------------|-------|--------------|----------|--------------|
+| Característica | VOXTV | TiviMate | Infuse | OTT Navigator |
+|---------------|-------|----------|--------|---------------|
 | PICO VR — 3D nativo SBS / Over-Under | ✅ | ❌ | ❌ | ❌ |
 | Mando remoto vía QR + móvil (HTTP) | ✅ | ❌ | ❌ | ❌ |
 | Multi-pantalla (2–4 canales simultáneos) | ✅ | ❌ | ❌ | ❌ |
-| Sin cuenta obligatoria | ✅ | ❌ | ✅ | ✅ |
-| Sin anuncios | ✅ | ❌ | Pago | Pago |
-| Primera imagen sin frame verde (TV Box) | ✅ | Variable | Variable | Variable |
-| OTA Update integrado (APK directo) | ✅ | ❌ | Limitado | ❌ |
-| D-Pad completo (Android TV) | ✅ | Parcial | ✅ | ✅ |
-| macOS nativo (Apple Silicon) | ✅ | ❌ | ❌ | ❌ |
-| DLNA cast | ✅ | ❌ | ❌ | ❌ |
-| Descarga canales offline | ✅ | ❌ | ❌ | ❌ |
+| Sin cuenta obligatoria | ✅ | ✅ | ✅ | ✅ |
+| Sin anuncios | ✅ | Pago | ✅ | Pago |
+| Primera imagen sin frame verde (TV Box) | ✅ | Variable | N/A | Variable |
+| OTA Update integrado (APK directo) | ✅ | ❌ | ❌ | ❌ |
+| D-Pad completo (Android TV) | ✅ | ✅ | N/A | ✅ |
+| macOS nativo (Apple Silicon) | ✅ | ❌ | ✅ | ❌ |
+| DLNA cast | ✅ | ❌ | ✅ | ❌ |
+| Descarga canales offline | ✅ | ❌ | ✅ | ❌ |
 
 ---
 
@@ -128,20 +128,21 @@
 
 ---
 
-## Comparativa técnica vs IPTV Smarters
+## Comparativa técnica vs competencia premium
 
-IPTV Smarters usa una arquitectura basada en ExoPlayer únicamente con una capa WebView para la UI (código obfuscado con Proguard). VOXTV usa media_kit (libmpv) que soporta más codecs, más protocolos (HLS, DASH, TS, RTP, RTSP, RTMP) sin depender de la API de ExoPlayer de Android, lo que le da mayor compatibilidad cross-platform y control sobre el renderizado.
+TiviMate es el líder en Android TV con EPG excelente pero exclusivo de Android. Infuse (Firecore) es el referente en Apple con motor propio y UX premium pero sin soporte IPTV/Xtream nativo. VOXTV usa media_kit (libmpv) que soporta más codecs y protocolos (HLS, DASH, TS, RTP, RTSP, RTMP) con verdadera cobertura cross-platform.
 
-| Aspecto | VOXTV | IPTV Smarters |
-|---------|-------|--------------|
-| Engine | media_kit (libmpv) + ExoPlayer nativo Android | ExoPlayer / ijkplayer |
-| UI | Flutter nativo 60/120fps | WebView hybrid |
-| Codecs | Todos (según libmpv) | H.264, H.265 (ExoPlayer limits) |
-| Protocolos | HLS, DASH, TS, RTSP, RTMP, RTP, HTTP | HLS, DASH (limitado) |
-| Plataformas | Android, macOS, Windows, iOS (próx.) | Android, iOS |
-| Offline | ✅ | ❌ |
-| 3D/VR | ✅ PICO nativo | ❌ |
-| Sin ads | ✅ | ❌ (versión gratuita con anuncios) |
+| Aspecto | VOXTV | TiviMate | Infuse |
+|---------|-------|----------|--------|
+| Engine | media_kit (libmpv) + ExoPlayer nativo Android | ExoPlayer | Motor propietario Firecore |
+| UI | Flutter nativo 60/120fps | Android nativo | SwiftUI nativo |
+| Codecs | Todos (según libmpv) | H.264, H.265 (ExoPlayer) | H.264, H.265, AV1, VP9 |
+| Protocolos | HLS, DASH, TS, RTSP, RTMP, RTP, HTTP | HLS, DASH | HLS, DASH, SMB, NFS |
+| IPTV/Xtream nativo | ✅ | ✅ | ❌ (solo archivos/SMB) |
+| Plataformas | Android, macOS, Windows, iOS | Android solo | iOS, macOS, Apple TV |
+| Offline | ✅ | ❌ | ✅ |
+| 3D/VR | ✅ PICO nativo | ❌ | ❌ |
+| Precio | Gratuito | $4.99/año | $6.49 único / $9.99/año |
 
 ---
 
