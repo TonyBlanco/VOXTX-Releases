@@ -2,6 +2,7 @@
 #   flutter build web --release && cp -r build/web/* webos/
 *.js
 *.js.map
+.last_build_id
 assets/
 canvaskit/
 icons/

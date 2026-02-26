@@ -25,9 +25,48 @@
       background-color: #000000;
       overflow: hidden;
     }
+    #debug-overlay {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(200,0,0,0.9);
+      color: #fff;
+      font: 14px monospace;
+      padding: 12px;
+      z-index: 99999;
+      max-height: 40vh;
+      overflow-y: auto;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
+  <div id="debug-overlay"></div>
+  <script>
+    // Debug overlay — catches uncaught errors visible on TV
+    (function(){
+      var el = document.getElementById('debug-overlay');
+      function show(msg) {
+        el.style.display = 'block';
+        el.innerHTML += msg + '<br>';
+      }
+      window.addEventListener('error', function(e) {
+        show('ERR: ' + (e.message || e) + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''));
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        show('PROMISE: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+      });
+      // Show basic env info for debugging
+      var ua = navigator.userAgent;
+      var wasm = typeof WebAssembly !== 'undefined';
+      show('UA: ' + ua.substring(0, 120));
+      show('WASM: ' + wasm + ' | WebGL: ' + (function(){
+        try { var c=document.createElement('canvas'); return c.getContext('webgl2')?'2':c.getContext('webgl')?'1':'none'; } catch(e) { return 'err'; }
+      })());
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
