@@ -12,12 +12,14 @@ class PlatformDetector {
   static PlatformType get currentPlatform => _currentPlatform;
   static bool get isTV => _isTV;
   static bool get isMobile =>
-      _currentPlatform == PlatformType.android && !_isTV;
+      (_currentPlatform == PlatformType.android && !_isTV) ||
+      _currentPlatform == PlatformType.ios;
   static bool get isDesktop =>
       _currentPlatform == PlatformType.windows ||
       _currentPlatform == PlatformType.macos ||
       _currentPlatform == PlatformType.linux;
   static bool get isAndroid => _currentPlatform == PlatformType.android;
+  static bool get isIOS => _currentPlatform == PlatformType.ios;
   static bool get isWindows => _currentPlatform == PlatformType.windows;
   static bool get isMacOS => _currentPlatform == PlatformType.macos;
 

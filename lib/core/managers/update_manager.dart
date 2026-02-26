@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/app_update.dart';
 import '../services/update_service.dart';
 import '../widgets/update_dialog.dart';
@@ -122,7 +123,10 @@ class UpdateManager {
         Navigator.of(context).pop();
       }
 
-      if (Platform.isAndroid) {
+      if (Platform.isIOS) {
+        // iOS: open App Store page — no direct binary install allowed
+        await _openAppStoreForUpdate();
+      } else if (Platform.isAndroid) {
         await _downloadAndInstallAndroid(context, update);
       } else if (Platform.isWindows) {
         await _downloadAndInstallWindows(context, update);
@@ -386,6 +390,21 @@ class UpdateManager {
           ),
         );
       }
+    }
+  }
+
+  /// iOS: open App Store page for updates (no direct binary install)
+  Future<void> _openAppStoreForUpdate() async {
+    // TODO: Replace with real App Store ID once published
+    const appStoreUrl = 'https://apps.apple.com/app/voxtv/id6739878530';
+    try {
+      final uri = Uri.parse(appStoreUrl);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      ServiceLocator.log.d('UPDATE_MANAGER: Opened App Store for iOS update');
+    } catch (e) {
+      ServiceLocator.log.d('UPDATE_MANAGER: Failed to open App Store: $e');
+      // Fallback: open GitHub releases page
+      await _updateService.openDownloadPage();
     }
   }
 

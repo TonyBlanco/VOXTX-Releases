@@ -131,6 +131,11 @@ class UpdateService {
   ///
   Future<File?> downloadUpdate(AppUpdate update,
       {Function(double)? onProgress}) async {
+    // iOS: never download binaries — updates go through the App Store
+    if (Platform.isIOS) {
+      ServiceLocator.log.d('UPDATE: iOS does not support direct download, use App Store');
+      return null;
+    }
     try {
       final downloadUrl = update.downloadUrl;
       if (downloadUrl.isEmpty) {
