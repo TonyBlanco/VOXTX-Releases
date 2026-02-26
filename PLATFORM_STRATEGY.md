@@ -370,15 +370,82 @@ flutter pub run msix:create
 
 ---
 
-## PLATAFORMA: iOS — ESTADO: 🔴 No iniciado
+## PLATAFORMA: iOS — ESTADO: ⚠️ MVP funcional (compilable, sin TestFlight)
 
-### Que ya funciona "gratis"
-- `media_kit` soporta iOS (usa AVFoundation internamente)
-- `screen_brightness` funciona en iOS
-- `wakelock_plus` funciona en iOS
-- `file_picker` funciona en iOS
-- `shared_preferences` funciona
-- `sqflite` funciona
+### Ya implementado (agente iOS — platform/ios branch)
+
+| Feature | Archivo clave | Estado |
+|---------|--------------|--------|
+| iOS platform scaffold (Runner, Xcode project) | `ios/` directory | ✅ |
+| Info.plist — ATS (NSAllowsArbitraryLoads) | `ios/Runner/Info.plist` | ✅ |
+| Info.plist — Background audio (UIBackgroundModes) | `ios/Runner/Info.plist` | ✅ |
+| Info.plist — App display name VOXTV | `ios/Runner/Info.plist` | ✅ |
+| PlatformDetector.isIOS getter | `platform_detector.dart` | ✅ |
+| PlatformDetector.isMobile includes iOS | `platform_detector.dart` | ✅ |
+| PlatformDetector.useTouchInput includes iOS | `platform_detector.dart` (via isMobile) | ✅ |
+| Update flow: App Store URL (no APK download) | `update_manager.dart` | ✅ |
+| Update service: skip downloadUpdate on iOS | `update_service.dart` | ✅ |
+| SafeArea — player controls overlay | `player_screen.dart` (4 locations) | ✅ (inherited) |
+| SafeArea — home bottom nav | `home_screen.dart` | ✅ (inherited) |
+| Home screen — mobile layout on iOS | `home_screen.dart` (via isMobile fix) | ✅ |
+| Player — touch gestures on iOS | `player_screen.dart` (via isMobile fix) | ✅ |
+| media_kit iOS (AVFoundation) | `media_kit_libs_video` in pubspec | ✅ |
+| sqflite native iOS | pubspec (no FFI, uses native) | ✅ |
+| screen_brightness iOS | pubspec dependency | ✅ |
+| wakelock_plus iOS | pubspec dependency | ✅ |
+| shared_preferences iOS | pubspec dependency | ✅ |
+| file_picker iOS | pubspec dependency | ✅ |
+| url_launcher iOS | pubspec dependency | ✅ |
+| Build: `flutter build ios --no-codesign` | 51.5 MB Runner.app | ✅ |
+| Analyze: 0 errors | 124 pre-existing warnings/infos | ✅ |
+
+### Que ya funciona "gratis" (hereda de Android/codebase compartido)
+- Reproductor media_kit con AVFoundation
+- Playlist CRUD (M3U/URL)
+- VOD Movies + Series
+- Favorites / Search / EPG
+- Watch history
+- Color themes
+- i18n ES/EN
+- Parental control PIN
+- Channel logo cache
+- QR search / remote control (HTTP server)
+- Offline download service (usa `path_provider`)
+- Auto-refresh playlists
+
+### Lo que NO aplica en iOS (excluido correctamente)
+- No hay in-app APK/EXE/DMG install → redirige a App Store ✅
+- No hay `sqfliteFfiInit` → usa sqflite nativo ✅
+- No hay `windowManager` → solo desktop ✅
+- No hay `NativeLogChannel` → solo Android ✅
+- No hay PiP nativo → requiere implementación AVKit futura
+- No hay DLNA → solo Android/Windows por ahora
+- No hay PICO VR / external player → solo Android
+
+### Pendiente iOS (no bloqueante para TestFlight)
+
+| Feature | Prioridad | Notas |
+|---------|-----------|-------|
+| Code signing (Apple Developer) | **Alta** | Necesario para TestFlight/App Store. Requiere certificado Apple Distribution + provisioning profile |
+| App Store ID real en update URL | Media | Actualmente placeholder `id6739878530` — actualizar cuando se publique |
+| App icon iOS (Assets.xcassets) | Alta | Necesita set completo de iconos iOS (20pt a 1024pt) |
+| PiP nativo iOS (AVKit) | Media | `AVPictureInPictureController` en Swift + MethodChannel a Dart |
+| AirPlay enrutamiento explícito | Baja | media_kit ya enruta por AirPlay automáticamente, pero un botón explícito mejoraría UX |
+| iPad layout optimizado | Baja | Actualmente usa layout mobile — iPad podría usar layout con sidebar |
+| DLNA en iOS | Baja | Requiere librería de terceros |
+| Orientaciones iPad | Baja | Todas soportadas en Info.plist, pero UX podría optimizarse |
+| Privacy Nutrition Label | Alta | Completar en App Store Connect antes de envío |
+| Capturas de pantalla iOS | Alta | Necesarias para submission |
+| Política de privacidad URL | Alta | Necesaria para App Store |
+
+### Riesgos conocidos
+
+| Riesgo | Impacto | Mitigación |
+|--------|---------|------------|
+| Rechazo por contenido IPTV | Alto | Apple puede rechazar apps que faciliten streaming de contenido sin licencia. Preparar notas para reviewer explicando que la app es un reproductor genérico (como VLC) |
+| `screen_brightness` en iOS | Bajo | Puede requerir entitlement adicional en versiones futuras de iOS |
+| `file_picker` en iOS sandboxed | Bajo | Funciona para URL import, importar archivos M3U desde Files.app requiere pruebas |
+| Bundle ID cambio | Medio | Actualmente `com.flutteriptv.flutterIptv` — considerar cambiar a `com.tonyblanco.voxtv` antes de primera publicación |
 
 ### Pasos de implementación para el agente
 
@@ -579,7 +646,7 @@ Android Mobile  ████████████████████  10
 Android TV      ████████████████████   99%  ✅ Producción — nav remoto ✅, download offline ✅, OTA fix ✅ (falta: voice search, ch±)
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           ██████████░░░░░░░░░░   45%  ⚠️ Funcional — sidebar ✅, PiP ✅, fullscreen ✅ (falta: update service, DLNA)
-iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
+iOS             ██████████████░░░░░░   70%  ⚠️ MVP funcional — build OK, platform guards ✅, update flow ✅ (falta: signing, icons, TestFlight)
 WebOS           ██░░░░░░░░░░░░░░░░░░   10%  🔴 kIsWeb detectado, sin trabajo
 ```
 
