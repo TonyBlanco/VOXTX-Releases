@@ -125,7 +125,7 @@ class UpdateManager {
 
       if (Platform.isIOS) {
         // iOS: open App Store page — no direct binary install allowed
-        await _openAppStoreForUpdate();
+        await _openAppStoreForUpdate(update);
       } else if (Platform.isAndroid) {
         await _downloadAndInstallAndroid(context, update);
       } else if (Platform.isWindows) {
@@ -393,17 +393,22 @@ class UpdateManager {
     }
   }
 
-  /// iOS: open App Store page for updates (no direct binary install)
-  Future<void> _openAppStoreForUpdate() async {
-    // TODO: Replace with real App Store ID once published
-    const appStoreUrl = 'https://apps.apple.com/app/voxtv/id6739878530';
+  /// iOS: open App Store page for updates (no direct binary install).
+  /// Reads the URL from version.json `assets.ios`; if absent or empty,
+  /// falls back to the GitHub Releases page so nothing 404s.
+  Future<void> _openAppStoreForUpdate(AppUpdate update) async {
+    final iosUrl = update.assets['ios'] as String? ?? '';
+    if (iosUrl.isEmpty) {
+      ServiceLocator.log.d('UPDATE_MANAGER: No iOS asset URL in version.json — opening releases page');
+      await _updateService.openDownloadPage();
+      return;
+    }
     try {
-      final uri = Uri.parse(appStoreUrl);
+      final uri = Uri.parse(iosUrl);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-      ServiceLocator.log.d('UPDATE_MANAGER: Opened App Store for iOS update');
+      ServiceLocator.log.d('UPDATE_MANAGER: Opened App Store for iOS update: $iosUrl');
     } catch (e) {
       ServiceLocator.log.d('UPDATE_MANAGER: Failed to open App Store: $e');
-      // Fallback: open GitHub releases page
       await _updateService.openDownloadPage();
     }
   }

@@ -104,6 +104,11 @@ class AppUpdate {
       return assets['macos'] ?? '';
     }
 
+    if (Platform.isIOS) {
+      // iOS updates go through the App Store; the URL lives in assets.ios
+      return assets['ios'] ?? '';
+    }
+
     if (Platform.isAndroid) {
       final arch = await _getAndroidArch();
       ServiceLocator.log
@@ -134,6 +139,10 @@ class AppUpdate {
 
     if (Platform.isMacOS) {
       return assets['macos'] ?? '';
+    }
+
+    if (Platform.isIOS) {
+      return assets['ios'] ?? '';
     }
 
     if (Platform.isAndroid) {
