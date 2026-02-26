@@ -10,6 +10,7 @@ import '../../../core/services/service_locator.dart';
 import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/i18n/app_strings.dart';
 import '../../player/providers/player_provider.dart';
+import '../../channels/providers/channel_provider.dart';
 
 /// Dialog for scanning QR code to search channels on TV
 class QrSearchDialog extends StatefulWidget {
@@ -95,6 +96,7 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
     ServiceLocator.log.d('remote: $command');
     if (!mounted) return;
     final player = Provider.of<PlayerProvider>(context, listen: false);
+    final channelProvider = Provider.of<ChannelProvider>(context, listen: false);
     switch (command) {
       case 'play_pause':
         player.togglePlayPause();
@@ -108,7 +110,21 @@ class _QrSearchDialogState extends State<QrSearchDialog> {
       case 'mute':
         player.setVolume(player.volume > 0 ? 0.0 : 1.0);
         break;
-      // Navigation commands (home, epg, favorites, ch+/- etc.) handled via app router in future
+      case 'channel_up':
+        final next = channelProvider.nextChannel();
+        if (next != null) {
+          player.playChannel(next);
+          ServiceLocator.log.d('CH+: ${next.name}');
+        }
+        break;
+      case 'channel_down':
+        final prev = channelProvider.previousChannel();
+        if (prev != null) {
+          player.playChannel(prev);
+          ServiceLocator.log.d('CH-: ${prev.name}');
+        }
+        break;
+      // Navigation commands (home, epg, favorites) handled via app router in future
     }
   }
 

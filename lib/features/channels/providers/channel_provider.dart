@@ -37,6 +37,9 @@ class ChannelProvider extends ChangeNotifier {
   bool _hasPendingNotify = false;
   static const _notifyThrottleDuration = Duration(milliseconds: 100); // 100ms
 
+  // ✅ Channel zapping (remote control ch+/ch-)
+  int _currentChannelIndex = 0;
+
   // Getters
   List<Channel> get allChannels => _allChannels; // 
   List<Channel> get channels => _displayedChannels; // UI
@@ -56,6 +59,34 @@ class ChannelProvider extends ChangeNotifier {
   int get loadedChannelCount => _displayedChannels.length;
   int get vodChannelCount => _vodChannels.length;
   int get seriesChannelCount => _seriesChannels.length;
+  int get currentChannelIndex => _currentChannelIndex;
+
+  // ✅ Channel zapping methods
+  void setCurrentChannelIndex(int index) {
+    if (index >= 0 && index < _allChannels.length) {
+      _currentChannelIndex = index;
+      notifyListeners();
+    }
+  }
+
+  Channel? nextChannel() {
+    if (_allChannels.isEmpty) return null;
+    _currentChannelIndex = (_currentChannelIndex + 1) % _allChannels.length;
+    notifyListeners();
+    return _allChannels[_currentChannelIndex];
+  }
+
+  Channel? previousChannel() {
+    if (_allChannels.isEmpty) return null;
+    _currentChannelIndex = (_currentChannelIndex - 1 + _allChannels.length) % _allChannels.length;
+    notifyListeners();
+    return _allChannels[_currentChannelIndex];
+  }
+
+  Channel? get currentChannel {
+    if (_allChannels.isEmpty || _currentChannelIndex >= _allChannels.length) return null;
+    return _allChannels[_currentChannelIndex];
+  }
 
   // ✅  notifyListeners()
   void _throttledNotify() {
