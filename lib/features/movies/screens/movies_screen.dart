@@ -381,19 +381,23 @@ class _MoviesScreenState extends State<MoviesScreen> {
     final content = isTV ? _buildTVLayout() : _buildMobileLayout();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.getBackgroundColor(context),
-              AppTheme.getBackgroundColor(context).withOpacity(0.8),
-              AppTheme.getPrimaryColor(context).withOpacity(0.05),
-            ],
+      body: SafeArea(
+        top: !isTV,
+        bottom: false,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.getBackgroundColor(context),
+                AppTheme.getBackgroundColor(context).withOpacity(0.8),
+                AppTheme.getPrimaryColor(context).withOpacity(0.05),
+              ],
+            ),
           ),
+          child: content,
         ),
-        child: content,
       ),
     );
   }

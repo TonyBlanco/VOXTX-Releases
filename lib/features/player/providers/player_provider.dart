@@ -652,6 +652,30 @@ class PlayerProvider extends ChangeNotifier {
         }
       }
     });
+
+    // ── Handle stream completion (end-of-file) ────────────────────────────
+    // For live streams the server may close the connection; auto-retry so
+    // playback resumes instead of showing a frozen/black screen.
+    _mediaKitPlayer!.stream.completed.listen((completed) {
+      if (!completed) return;
+      if (_isDisposed) return;
+      ServiceLocator.log.i('Stream completed (EOF)', tag: 'PlayerProvider');
+
+      if (_currentChannel != null && isLiveStream) {
+        // Live stream ended unexpectedly — retry the same channel
+        ServiceLocator.log.i('Live stream ended, auto-retrying...', tag: 'PlayerProvider');
+        Future.delayed(const Duration(seconds: 1), () {
+          if (_isDisposed) return;
+          if (_currentChannel != null) {
+            playChannel(_currentChannel!);
+          }
+        });
+      } else {
+        // VOD/series finished normally
+        _state = PlayerState.paused;
+        notifyListeners();
+      }
+    });
     
     _mediaKitPlayer!.stream.width.listen((width) {
       if (width != null && width > 0) {

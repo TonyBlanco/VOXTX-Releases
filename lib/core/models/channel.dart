@@ -61,10 +61,24 @@ class Channel {
   /// Get source count
   int get sourceCount => sources.length;
 
-  /// Determine channel type based on group name and URL
+  /// Determine channel type based on stored channelType, group name and URL.
+  /// The stored [channelType] (set at import time) takes priority over
+  /// heuristic detection from group names / URL patterns.
   ChannelType get type {
-    final group = groupName?.toLowerCase() ?? '';
+    // ── Trust stored channelType for VOD/Series (only Xtream sets these) ──
+    if (channelType == 'vod') return ChannelType.vod;
+    if (channelType == 'series') return ChannelType.vod; // seekable like VOD
+
+    // ── URL-based live detection FIRST ────────────────────────────────────
+    // Xtream live URLs always contain /live/ — this is more reliable than
+    // group name keywords which can be misleading ("Movie Channels", etc.)
     final urlLower = currentUrl.toLowerCase();
+    if (urlLower.contains('/live/')) {
+      return ChannelType.live;
+    }
+
+    // ── Fallback heuristic for M3U or ambiguous URLs ─────────────────────
+    final group = groupName?.toLowerCase() ?? '';
     
     //  .mp4 
     if (group.contains('') || group.contains('replay') ||
@@ -102,7 +116,7 @@ class Channel {
     }
     
     // URL 
-    if (urlLower.contains('/live/') || urlLower.contains('live.') ||
+    if (urlLower.contains('live.') ||
         urlLower.endsWith('.m3u8') || urlLower.contains('.m3u8?')) {
       return ChannelType.live;
     }
