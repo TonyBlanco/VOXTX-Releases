@@ -453,6 +453,8 @@ class PlayerProvider extends ChangeNotifier {
     String? hwdecMode;
     if (Platform.isAndroid) {
       hwdecMode = effectiveSoftware ? 'no' : 'mediacodec';
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      hwdecMode = effectiveSoftware ? 'no' : 'videotoolbox';
     } else if (Platform.isWindows) {
       if (effectiveSoftware) {
         hwdecMode = 'no';

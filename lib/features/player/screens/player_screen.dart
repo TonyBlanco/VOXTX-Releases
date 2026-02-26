@@ -145,6 +145,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     _enableWakelock();
     //  didChangeDependencies
     //  _localMultiScreenMode
+
+    // On mobile (iOS/Android phone), force landscape + immersive for the player
+    if (PlatformDetector.isMobile) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
   Future<void> _enableWakelock() async {
@@ -1061,6 +1070,32 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // Restore system UI
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+    // Restore orientation to user preference on mobile (was forced landscape for player)
+    if (PlatformDetector.isMobile) {
+      final orientation = _settingsProvider?.mobileOrientation ?? 'auto';
+      switch (orientation) {
+        case 'landscape':
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+          break;
+        case 'portrait':
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+          ]);
+          break;
+        case 'auto':
+        default:
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+          break;
+      }
+    }
 
     super.dispose();
   }
