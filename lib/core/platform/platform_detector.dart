@@ -15,6 +15,7 @@ class PlatformDetector {
   static bool get isDesktop => _currentPlatform == PlatformType.windows || _currentPlatform == PlatformType.macos || _currentPlatform == PlatformType.linux;
   static bool get isAndroid => _currentPlatform == PlatformType.android;
   static bool get isWindows => _currentPlatform == PlatformType.windows;
+  static bool get isMacOS => _currentPlatform == PlatformType.macos;
 
   /// Whether D-Pad navigation should be enabled
   static bool get useDPadNavigation => _isTV || isDesktop;

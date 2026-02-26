@@ -15,6 +15,7 @@ import '../../../core/platform/platform_detector.dart';
 import '../../../core/platform/native_player_channel.dart';
 import '../../../core/platform/windows_pip_channel.dart';
 import '../../../core/platform/windows_fullscreen_native.dart';
+import '../../../core/platform/macos_fullscreen_channel.dart';
 import '../../../core/models/channel.dart';
 import '../providers/player_provider.dart';
 import '../../favorites/providers/favorites_provider.dart';
@@ -974,12 +975,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     //  -  API
-    if (_isFullScreen && PlatformDetector.isWindows) {
-      final success = WindowsFullscreenNative.exitFullScreen();
-      if (!success) {
-        ServiceLocator.log
-            .d('Native exitFullScreen failed in dispose, using window_manager');
-        unawaited(windowManager.setFullScreen(false));
+    if (_isFullScreen &&
+        (PlatformDetector.isWindows || PlatformDetector.isMacOS)) {
+      if (PlatformDetector.isWindows) {
+        final success = WindowsFullscreenNative.exitFullScreen();
+        if (!success) {
+          ServiceLocator.log
+              .d('Native exitFullScreen failed in dispose, using window_manager');
+          unawaited(windowManager.setFullScreen(false));
+        }
+      } else {
+        unawaited(MacOSFullscreen.exitFullscreen());
       }
     }
 
@@ -2026,7 +2032,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                     onTap: () async {
                       await WindowsPipChannel.exitPipMode();
                       //
-                      if (PlatformDetector.isWindows) {
+                      if (PlatformDetector.isWindows ||
+                          PlatformDetector.isMacOS) {
                         await Future.delayed(const Duration(milliseconds: 300));
                         _isFullScreen = await windowManager.isFullScreen();
                       }
@@ -2195,12 +2202,17 @@ class _PlayerScreenState extends State<PlayerScreen>
               ScaffoldMessenger.of(context).clearSnackBars();
 
               //  -  API
-              if (_isFullScreen && PlatformDetector.isWindows) {
+              if (_isFullScreen &&
+                  (PlatformDetector.isWindows || PlatformDetector.isMacOS)) {
                 _isFullScreen = false;
-                final success = WindowsFullscreenNative.exitFullScreen();
-                if (!success) {
-                  //  API  window_manager
-                  unawaited(windowManager.setFullScreen(false));
+                if (PlatformDetector.isWindows) {
+                  final success = WindowsFullscreenNative.exitFullScreen();
+                  if (!success) {
+                    //  API  window_manager
+                    unawaited(windowManager.setFullScreen(false));
+                  }
+                } else {
+                  unawaited(MacOSFullscreen.exitFullscreen());
                 }
               }
 
@@ -3251,8 +3263,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                         color: Colors.white, size: 18),
                   ),
 
-                  // Windows ㄥ
-                  if (PlatformDetector.isWindows) ...[
+                  // Windows / macOS fullscreen
+                  if (PlatformDetector.isWindows ||
+                      PlatformDetector.isMacOS) ...[
                     const SizedBox(width: 16),
                     TVFocusable(
                       onSelect: () {
@@ -3549,7 +3562,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   // ㄥ (?Windows)
   void _toggleFullScreen() {
-    if (!PlatformDetector.isWindows) return;
+    if (!PlatformDetector.isWindows && !PlatformDetector.isMacOS) return;
 
     // €
     final now = DateTime.now();
@@ -3559,40 +3572,58 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _lastFullScreenToggle = now;
 
-    //  Windows API ㄥ
-    final success = WindowsFullscreenNative.toggleFullScreen();
+    if (PlatformDetector.isWindows) {
+      //  Windows API ㄥ
+      final success = WindowsFullscreenNative.toggleFullScreen();
 
-    if (success) {
-      // UI
-      Future.microtask(() {
-        if (mounted) {
-          setState(() {
-            _isFullScreen = WindowsFullscreenNative.isFullScreen();
-          });
-          _playerFocusNode.requestFocus();
-        }
-      });
-    } else {
-      //  API  window_manager
-      ServiceLocator.log
-          .d('Native fullscreen failed, falling back to window_manager');
-      windowManager
-          .isFullScreen()
-          .then((value) => windowManager.setFullScreen(!value));
+      if (success) {
+        // UI
+        Future.microtask(() {
+          if (mounted) {
+            setState(() {
+              _isFullScreen = WindowsFullscreenNative.isFullScreen();
+            });
+            _playerFocusNode.requestFocus();
+          }
+        });
+      } else {
+        //  API  window_manager
+        ServiceLocator.log
+            .d('Native fullscreen failed, falling back to window_manager');
+        windowManager
+            .isFullScreen()
+            .then((value) => windowManager.setFullScreen(!value));
 
-      Future.microtask(() {
-        if (mounted) {
-          windowManager.isFullScreen().then((isFullScreen) {
-            if (mounted) {
-              setState(() {
-                _isFullScreen = isFullScreen;
-              });
-              _playerFocusNode.requestFocus();
-            }
-          });
-        }
-      });
+        Future.microtask(() {
+          if (mounted) {
+            windowManager.isFullScreen().then((isFullScreen) {
+              if (mounted) {
+                setState(() {
+                  _isFullScreen = isFullScreen;
+                });
+                _playerFocusNode.requestFocus();
+              }
+            });
+          }
+        });
+      }
+      return;
     }
+
+    // macOS: window_manager native fullscreen
+    MacOSFullscreen.isFullscreen().then((isFullScreen) async {
+      if (isFullScreen) {
+        await MacOSFullscreen.exitFullscreen();
+      } else {
+        await MacOSFullscreen.enterFullscreen();
+      }
+      if (mounted) {
+        setState(() {
+          _isFullScreen = !isFullScreen;
+        });
+        _playerFocusNode.requestFocus();
+      }
+    });
   }
 
   void _showSettingsSheet(BuildContext context) {

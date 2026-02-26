@@ -94,6 +94,10 @@ class AppUpdate {
     if (Platform.isWindows) {
       return assets['windows'] ?? '';
     }
+
+    if (Platform.isMacOS) {
+      return assets['macos'] ?? '';
+    }
     
     if (Platform.isAndroid) {
       final arch = await _getAndroidArch();
@@ -120,6 +124,10 @@ class AppUpdate {
   static String _getDownloadUrlSync(Map<String, dynamic> assets) {
     if (Platform.isWindows) {
       return assets['windows'] ?? '';
+    }
+
+    if (Platform.isMacOS) {
+      return assets['macos'] ?? '';
     }
     
     if (Platform.isAndroid) {
@@ -190,7 +198,10 @@ class AppUpdate {
               downloadUrl = url;
             }
           }
-        } else if (Platform.isWindows && (name.endsWith('.exe') || name.endsWith('.zip'))) {
+        } else if (Platform.isWindows &&
+            (name.endsWith('.exe') || name.endsWith('.zip'))) {
+          downloadUrl = url;
+        } else if (Platform.isMacOS && name.endsWith('.dmg')) {
           downloadUrl = url;
         }
       }
@@ -201,7 +212,9 @@ class AppUpdate {
           final name = asset['name']?.toString().toLowerCase() ?? '';
           final url = asset['browser_download_url'] ?? '';
           if ((Platform.isAndroid && name.endsWith('.apk')) ||
-              (Platform.isWindows && (name.endsWith('.exe') || name.endsWith('.zip')))) {
+              (Platform.isWindows &&
+                  (name.endsWith('.exe') || name.endsWith('.zip'))) ||
+              (Platform.isMacOS && name.endsWith('.dmg'))) {
             downloadUrl = url;
             break;
           }
