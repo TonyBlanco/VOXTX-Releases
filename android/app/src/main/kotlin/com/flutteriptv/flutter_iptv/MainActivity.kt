@@ -16,9 +16,18 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.FileProvider
+import androidx.mediarouter.app.MediaRouteChooserDialogFragment
+import androidx.mediarouter.media.MediaRouteSelector
+import com.google.android.gms.cast.CastMediaControlIntent
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaLoadRequestData
+import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.framework.CastContext
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.speech.RecognizerIntent
+import android.app.Activity
 import java.io.File
 
 class MainActivity: FlutterFragmentActivity() {
@@ -27,13 +36,18 @@ class MainActivity: FlutterFragmentActivity() {
     private val PLAYER_CHANNEL = "com.flutteriptv/native_player"
     private val INSTALL_CHANNEL = "com.flutteriptv/install"
     private val LOG_CHANNEL = "com.flutteriptv/native_log"
+    private val CHROMECAST_CHANNEL = "com.flutteriptv/chromecast"
+    private val VOICE_SEARCH_CHANNEL = "com.flutteriptv/voice_search"
     
     private var playerFragment: NativePlayerFragment? = null
     private var pendingInstallPath: String? = null
     private val REQUEST_INSTALL_PERMISSION = 1001
+    private val REQUEST_VOICE_SEARCH = 1002
+    private var voiceSearchMethodChannel: MethodChannel? = null
     private var multiScreenFragment: MultiScreenPlayerFragment? = null
     private var playerContainer: FrameLayout? = null
     private var playerMethodChannel: MethodChannel? = null
+    private var castContext: CastContext? = null
     
     private lateinit var backPressedCallback: OnBackPressedCallback
     
@@ -129,6 +143,53 @@ class MainActivity: FlutterFragmentActivity() {
                 else -> {
                     result.notImplemented()
                 }
+            }
+        }
+
+        // Chromecast channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHROMECAST_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "isSupported" -> {
+                    result.success(isChromecastSupported())
+                }
+                "showDevicePicker" -> {
+                    result.success(showCastDevicePicker())
+                }
+                "isConnected" -> {
+                    result.success(isCastConnected())
+                }
+                "castMedia" -> {
+                    val url = call.argument<String>("url")
+                    val title = call.argument<String>("title")
+                    val imageUrl = call.argument<String>("imageUrl")
+                    val isLive = call.argument<Boolean>("isLive") ?: true
+                    val contentType = call.argument<String>("contentType") ?: "video/*"
+
+                    if (url.isNullOrBlank()) {
+                        result.error("INVALID_URL", "Media URL is required", null)
+                    } else {
+                        result.success(castMedia(url, title, imageUrl, isLive, contentType))
+                    }
+                }
+                "stopCasting" -> {
+                    stopCasting()
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Voice search channel (Android TV)
+        voiceSearchMethodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VOICE_SEARCH_CHANNEL)
+        voiceSearchMethodChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "startVoiceSearch" -> {
+                    result.success(startVoiceRecognition())
+                }
+                "isVoiceSearchAvailable" -> {
+                    result.success(isVoiceSearchAvailable())
+                }
+                else -> result.notImplemented()
             }
         }
         
@@ -301,6 +362,8 @@ class MainActivity: FlutterFragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
+
+        ensureCastContext()
         
         // Create player container overlay
         playerContainer = FrameLayout(this).apply {
@@ -882,6 +945,95 @@ class MainActivity: FlutterFragmentActivity() {
             false
         }
     }
+
+    private fun ensureCastContext() {
+        if (castContext != null) return
+        try {
+            castContext = CastContext.getSharedInstance(this)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize CastContext", e)
+        }
+    }
+
+    private fun isChromecastSupported(): Boolean {
+        ensureCastContext()
+        return castContext != null
+    }
+
+    private fun isCastConnected(): Boolean {
+        ensureCastContext()
+        val session = castContext?.sessionManager?.currentCastSession
+        return session?.isConnected == true
+    }
+
+    private fun showCastDevicePicker(): Boolean {
+        if (!isChromecastSupported()) return false
+
+        return try {
+            runOnUiThread {
+                val routeSelector = MediaRouteSelector.Builder()
+                    .addControlCategory(
+                        CastMediaControlIntent.categoryForCast(getString(R.string.cast_app_id))
+                    )
+                    .build()
+
+                val chooser = MediaRouteChooserDialogFragment()
+                chooser.routeSelector = routeSelector
+                chooser.show(supportFragmentManager, "chromecast_chooser")
+            }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open Chromecast device picker", e)
+            false
+        }
+    }
+
+    private fun castMedia(
+        url: String,
+        title: String?,
+        _imageUrl: String?,
+        isLive: Boolean,
+        contentType: String
+    ): Boolean {
+        if (!isCastConnected()) return false
+
+        return try {
+            val session = castContext?.sessionManager?.currentCastSession ?: return false
+            val remoteMediaClient = session.remoteMediaClient ?: return false
+
+            val metadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE).apply {
+                putString(MediaMetadata.KEY_TITLE, title ?: "VoXTV")
+            }
+
+            val mediaInfo = MediaInfo.Builder(url)
+                .setStreamType(
+                    if (isLive) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
+                )
+                .setContentType(contentType)
+                .setMetadata(metadata)
+                .build()
+
+            val requestData = MediaLoadRequestData.Builder()
+                .setMediaInfo(mediaInfo)
+                .setAutoplay(true)
+                .setCurrentTime(0)
+                .build()
+
+            remoteMediaClient.load(requestData)
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to cast media", e)
+            false
+        }
+    }
+
+    private fun stopCasting() {
+        try {
+            castContext?.sessionManager?.endCurrentSession(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop cast session", e)
+        }
+    }
     
     /**
      * Get EPG info for a channel from Flutter via MethodChannel
@@ -1056,6 +1208,43 @@ class MainActivity: FlutterFragmentActivity() {
                     Log.w(TAG, "User did not grant install permission")
                 }
             }
+        } else if (requestCode == REQUEST_VOICE_SEARCH) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                val spokenText = results?.firstOrNull() ?: ""
+                if (spokenText.isNotEmpty()) {
+                    Log.d(TAG, "Voice search result: $spokenText")
+                    voiceSearchMethodChannel?.invokeMethod("onVoiceResult", spokenText)
+                }
+            } else {
+                Log.d(TAG, "Voice search cancelled or failed")
+            }
+        }
+    }
+
+    // ─── Voice Search ───────────────────────────────────────────────────────────
+
+    private fun isVoiceSearchAvailable(): Boolean {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        return intent.resolveActivity(packageManager) != null
+    }
+
+    private fun startVoiceRecognition(): Boolean {
+        if (!isVoiceSearchAvailable()) {
+            Log.w(TAG, "Voice search not available on this device")
+            return false
+        }
+        try {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Search channels...")
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            }
+            startActivityForResult(intent, REQUEST_VOICE_SEARCH)
+            return true
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "Voice recognition activity not found", e)
+            return false
         }
     }
 }

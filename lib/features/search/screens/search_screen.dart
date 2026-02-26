@@ -17,6 +17,7 @@ import '../../settings/providers/settings_provider.dart';
 import '../../epg/providers/epg_provider.dart';
 import '../../multi_screen/providers/multi_screen_provider.dart';
 import '../../../core/platform/native_player_channel.dart';
+import '../../../core/platform/voice_search_channel.dart';
 import '../widgets/qr_search_dialog.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  bool _voiceSearchAvailable = false;
 
   @override
   void initState() {
@@ -42,10 +44,31 @@ class _SearchScreenState extends State<SearchScreen> {
         _searchFocusNode.requestFocus();
       });
     }
+    
+    // Check if voice search is available (Android TV)
+    if (PlatformDetector.isAndroid) {
+      _checkVoiceSearchAvailability();
+    }
+  }
+
+  Future<void> _checkVoiceSearchAvailability() async {
+    final available = await VoiceSearchChannel.isVoiceSearchAvailable();
+    if (mounted && available) {
+      setState(() => _voiceSearchAvailable = true);
+      // Register callback for voice search results
+      VoiceSearchChannel.onVoiceSearchResult = (query) {
+        if (mounted) {
+          _searchController.text = query;
+          setState(() => _searchQuery = query);
+        }
+      };
+      VoiceSearchChannel.init();
+    }
   }
 
   @override
   void dispose() {
+    VoiceSearchChannel.onVoiceSearchResult = null;
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -343,7 +366,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     setState(() => _searchQuery = '');
                   },
                 )
-              : null,
+              : _voiceSearchAvailable
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.mic_rounded,
+                        color: AppTheme.primaryColor,
+                        size: isLandscape ? 20 : 24,
+                      ),
+                      padding: isLandscape ? const EdgeInsets.all(4) : null,
+                      onPressed: () async {
+                        await VoiceSearchChannel.startVoiceSearch();
+                      },
+                    )
+                  : null,
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
             horizontal: isLandscape ? 12 : 16, // padding
