@@ -80,26 +80,24 @@ class Channel {
     // ── Fallback heuristic for M3U or ambiguous URLs ─────────────────────
     final group = groupName?.toLowerCase() ?? '';
     
-    //  .mp4 
-    if (group.contains('') || group.contains('replay') ||
-        group.contains('') || group.contains('catchup') ||
-        group.contains('')) {
+    // Replay / Catchup
+    if (group.contains('replay') || group.contains('catchup')) {
       return ChannelType.replay;
     }
     
-    // 
-    if (group.contains('') || group.contains('movie') ||
-        group.contains('') || group.contains('series') || group.contains('') ||
-        group.contains('') || group.contains('music') || group.contains('mv') ||
-        group.contains('') || group.contains('dance') ||
-        group.contains('') || group.contains('vod') ||
-        group.contains('') || group.contains('variety') ||
-        group.contains('') || group.contains('anime') ||
-        group.contains('') || group.contains('documentary')) {
+    // VOD / Movies / Series
+    if (group.contains('movie') ||
+        group.contains('series') ||
+        group.contains('music') || group.contains('mv') ||
+        group.contains('dance') ||
+        group.contains('vod') ||
+        group.contains('variety') ||
+        group.contains('anime') ||
+        group.contains('documentary')) {
       return ChannelType.vod;
     }
     
-    // URL 
+    // URL-based VOD
     if (urlLower.endsWith('.mp4') || urlLower.endsWith('.mkv') ||
         urlLower.endsWith('.avi') || urlLower.endsWith('.mov') ||
         urlLower.endsWith('.flv') || urlLower.endsWith('.wmv') ||
@@ -107,10 +105,9 @@ class Channel {
       return ChannelType.vod;
     }
     
-    // 
-    if (group.contains('') || group.contains('live') ||
-        group.contains('') || group.contains('cctv') ||
-        group.contains('') || group.contains('') || 
+    // Live TV
+    if (group.contains('live') ||
+        group.contains('cctv') ||
         group.contains('channel') || group.contains('tv')) {
       return ChannelType.live;
     }

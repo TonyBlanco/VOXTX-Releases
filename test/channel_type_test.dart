@@ -74,29 +74,33 @@ void main() {
 
     // ── M3U heuristic still works (no /live/ in URL) ─────────────────────
 
-    // ── M3U heuristic (no /live/ in URL, no explicit channelType) ──────
-    // NOTE: The existing group name heuristic has a pre-existing bug where
-    // contains('') (empty string from lost CJK characters) always returns
-    // true, making ALL group names match replay. This doesn't affect Xtream
-    // channels since those are handled by channelType or /live/ URL check.
+    // ── M3U heuristic (no /live/ in URL, channelType defaults to 'live') ──
 
-    test('M3U: group name heuristic hits replay due to empty-string bug', () {
-      // All group names match the first replay check due to contains('')
-      expect(
-        _make(groupName: 'Movies', url: 'http://server/stream1').type,
-        ChannelType.replay,
+    test('M3U: group "Movies" → VOD', () {
+      final ch = _make(
+        groupName: 'Movies',
+        url: 'http://server/stream1',
       );
-      expect(
-        _make(groupName: 'Live TV', url: 'http://server/stream1').type,
-        ChannelType.replay,
-      );
-      expect(
-        _make(groupName: 'Misc', url: 'http://server/video.mp4').type,
-        ChannelType.replay,
-      );
+      expect(ch.type, ChannelType.vod);
     });
 
-    test('M3U: /live/ URL overrides broken group heuristic', () {
+    test('M3U: group "Live TV" → live', () {
+      final ch = _make(
+        groupName: 'Live TV',
+        url: 'http://server/stream1',
+      );
+      expect(ch.type, ChannelType.live);
+    });
+
+    test('M3U: .mp4 URL → VOD regardless of group', () {
+      final ch = _make(
+        groupName: 'Misc',
+        url: 'http://server/video.mp4',
+      );
+      expect(ch.type, ChannelType.vod);
+    });
+
+    test('M3U: /live/ URL overrides group heuristic', () {
       final ch = _make(
         channelType: 'live',
         groupName: 'Movies',
@@ -114,27 +118,22 @@ void main() {
       expect(ch.type, ChannelType.replay);
     });
 
-    test('M3U: .m3u8 URL → live (via URL pattern after group heuristic)', () {
-      // NOTE: the group name heuristic contains empty-string checks
-      // (pre-existing bug) so most M3U channels without /live/ URL
-      // match replay. The .m3u8 check only fires if no group check matches.
+    test('M3U: .m3u8 URL with unmatched group → live', () {
       final ch = _make(
         channelType: 'live',
         groupName: 'Misc',
         url: 'http://server/stream/channel1.m3u8',
       );
-      // With empty-string bug in group checks, 'Misc' matches replay
-      expect(ch.type, ChannelType.replay);
+      expect(ch.type, ChannelType.live);
     });
 
-    test('M3U: unknown group & URL → falls through heuristic', () {
+    test('M3U: unknown group & URL → unknown', () {
       final ch = _make(
         channelType: 'live',
         groupName: 'Misc Stuff',
         url: 'http://server/random/path',
       );
-      // With empty-string bug in group checks, 'Misc Stuff' matches replay
-      expect(ch.type, ChannelType.replay);
+      expect(ch.type, ChannelType.unknown);
     });
 
     // ── isSeekable / isLive consistency ──────────────────────────────────
