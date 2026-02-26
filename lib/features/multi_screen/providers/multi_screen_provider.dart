@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import '../../../core/platform/web_shims/media_kit_shim.dart';
+import '../../../core/platform/web_shims/media_kit_video_shim.dart';
 import 'dart:math' as math;
 
 import '../../../core/models/channel.dart';

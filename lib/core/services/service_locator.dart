@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,30 +19,33 @@ import 'offline_download_service.dart';
 /// Service Locator for dependency injection
 class ServiceLocator {
   static late SharedPreferences _prefs;
-  static late DatabaseHelper _database;
-  static late Directory _appDir;
+  static DatabaseHelper? _database;
+  static Directory? _appDir;
   static late UpdateService _updateService;
   static late UpdateManager _updateManager;
   static late LogService _logService;
-  static late ChannelLogoService _channelLogoService;
+  static ChannelLogoService? _channelLogoService;
   static late RedirectCacheService _redirectCache;
-  static late WatchHistoryService _watchHistory;
+  static WatchHistoryService? _watchHistory;
   static late OmdbService _omdbService;
   static late WatchLaterService _watchLaterService;
-  static late OfflineDownloadService _offlineDownloads;
+  static OfflineDownloadService? _offlineDownloads;
+
+  /// Whether the database subsystem is available (false on web MVP).
+  static bool get isDatabaseAvailable => _database != null;
 
   static SharedPreferences get prefs => _prefs;
-  static DatabaseHelper get database => _database;
-  static Directory get appDir => _appDir;
+  static DatabaseHelper get database => _database!;
+  static Directory get appDir => _appDir!;
   static UpdateService get updateService => _updateService;
   static UpdateManager get updateManager => _updateManager;
   static LogService get log => _logService;
-  static ChannelLogoService get channelLogo => _channelLogoService;
+  static ChannelLogoService get channelLogo => _channelLogoService!;
   static RedirectCacheService get redirectCache => _redirectCache;
-  static WatchHistoryService get watchHistory => _watchHistory;
+  static WatchHistoryService get watchHistory => _watchHistory!;
   static OmdbService get omdb => _omdbService;
   static WatchLaterService get watchLater => _watchLaterService;
-  static OfflineDownloadService get offlineDownloads => _offlineDownloads;
+  static OfflineDownloadService get offlineDownloads => _offlineDownloads!;
   
   /// Check if log service is initialized
   static bool get isLogInitialized {
@@ -65,17 +69,23 @@ class ServiceLocator {
   }
 
   static Future<void> initDatabase() async {
+    // On web, skip database initialization entirely (MVP — no SQLite on web)
+    if (kIsWeb) {
+      log.d('ServiceLocator: Skipping database init on web (MVP)');
+      return;
+    }
+
     // Initialize app directory
     _appDir = await getApplicationDocumentsDirectory();
 
     // Initialize database
     _database = DatabaseHelper();
-    await _database.initialize();
+    await _database!.initialize();
 
     // Initialize channel logo service (after database)
-    _channelLogoService = ChannelLogoService(_database);
+    _channelLogoService = ChannelLogoService(_database!);
     // Initialize in background to avoid blocking app startup
-    _channelLogoService.initialize().catchError((e) {
+    _channelLogoService!.initialize().catchError((e) {
       log.e('Failed to initialize channel logo service: $e');
     });
 
@@ -100,8 +110,10 @@ class ServiceLocator {
     // Watch later service
     _watchLaterService = WatchLaterService(_prefs);
 
-    // Offline download service
-    _offlineDownloads = OfflineDownloadService(_database);
+    // Offline download service (not available on web)
+    if (!kIsWeb && _database != null) {
+      _offlineDownloads = OfflineDownloadService(_database!);
+    }
   }
 
   static Future<void> dispose() async {
@@ -113,7 +125,9 @@ class ServiceLocator {
       print('ServiceLocator:  - $e');
     }
     
-    await _database.close();
+    if (_database != null) {
+      await _database!.close();
+    }
   }
 
   /// Create a Dio instance configured with app-wide defaults
