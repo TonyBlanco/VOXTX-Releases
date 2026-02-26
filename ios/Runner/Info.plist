@@ -87,6 +87,12 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>VOXTV uses your local network to import playlists via QR code and to allow remote control from other devices on your Wi-Fi.</string>
 	<!--
+	  Photo library: file_picker plugin uses DKImagePickerController
+	  to let users import M3U/M3U8 playlist files from their device.
+	-->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>VOXTV may need access to your photo library to import playlist files.</string>
+	<!--
 	  Background audio: the app is an IPTV/streaming media player.
 	  Users expect audio to continue when the device is locked or
 	  the app is backgrounded (identical to Apple Music / Podcasts / VLC).

@@ -20,6 +20,8 @@ class UpdateManager {
 
   /// 
   Future<void> checkAndShowUpdateDialog(BuildContext context, {bool forceCheck = false}) async {
+    // iOS: updates go through the App Store — no custom update checks
+    if (Platform.isIOS) return;
     try {
       ServiceLocator.log.d('UPDATE_MANAGER: ...');
 
@@ -38,6 +40,8 @@ class UpdateManager {
 
   /// 
   Future<void> manualCheckForUpdate(BuildContext context) async {
+    // iOS: updates go through the App Store — no custom update checks
+    if (Platform.isIOS) return;
     final strings = AppStrings.of(context);
     try {
       ServiceLocator.log.d('UPDATE_MANAGER: ...');

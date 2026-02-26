@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/color_scheme_manager.dart';
@@ -882,6 +883,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               _buildDivider(),
+              // iOS: updates go through the App Store — hide custom update check
+              if (!Platform.isIOS)
               _buildActionTile(
                 context,
                 title:
@@ -891,12 +894,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.system_update_rounded,
                 onTap: () => _checkForUpdates(context),
               ),
+              if (!Platform.isIOS)
               _buildDivider(),
               _buildInfoTile(
                 context,
                 title: AppStrings.of(context)?.platform ?? 'Platform',
                 value: _getPlatformName(),
                 icon: Icons.devices_rounded,
+              ),
+              _buildDivider(),
+              _buildActionTile(
+                context,
+                title: 'Privacy Policy',
+                subtitle: 'How VOXTV handles your data',
+                icon: Icons.privacy_tip_outlined,
+                onTap: () => _openPrivacyPolicy(),
               ),
             ]),
 
@@ -2820,6 +2832,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   //
   void _checkForUpdates(BuildContext context) {
     ServiceLocator.updateManager.manualCheckForUpdate(context);
+  }
+
+  void _openPrivacyPolicy() {
+    launchUrl(
+      Uri.parse('https://tonyblanco.github.io/VOXTX-Releases/privacy-policy.html'),
+      mode: LaunchMode.externalApplication,
+    );
   }
 
   String _getScreenPositionLabel(BuildContext context, int position) {

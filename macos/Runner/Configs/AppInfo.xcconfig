@@ -11,4 +11,4 @@ PRODUCT_NAME = VOXTV
 PRODUCT_BUNDLE_IDENTIFIER = com.voxtv.player
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.flutteriptv. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 VOXTV. All rights reserved.

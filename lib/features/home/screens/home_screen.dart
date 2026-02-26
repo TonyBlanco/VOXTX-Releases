@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -111,6 +113,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _checkForUpdates() async {
+    // iOS: updates go through the App Store — no custom update checks
+    if (Platform.isIOS) return;
     try {
       final updateService = UpdateService();
       // 24
