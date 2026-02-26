@@ -14,7 +14,7 @@ Este paquete documenta qué se preparó para macOS y qué falta para enviar a Ap
 
 ## Datos actuales del proyecto
 - App name: `VOXTV`
-- Bundle ID: `com.flutteriptv.flutterIptv`
+- Bundle ID: `com.voxtv.player`
 - Versión Flutter (`pubspec.yaml`): `1.5.32+192`
 
 ## Nota importante

@@ -80,6 +80,13 @@
 		<true/>
 	</dict>
 	<!--
+	  Local network access: the app runs a lightweight local HTTP server
+	  to enable playlist import via QR code and remote control from other
+	  devices on the same Wi-Fi network.
+	-->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>VOXTV uses your local network to import playlists via QR code and to allow remote control from other devices on your Wi-Fi.</string>
+	<!--
 	  Background audio: the app is an IPTV/streaming media player.
 	  Users expect audio to continue when the device is locked or
 	  the app is backgrounded (identical to Apple Music / Podcasts / VLC).

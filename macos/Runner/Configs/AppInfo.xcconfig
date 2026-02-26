@@ -8,7 +8,7 @@
 PRODUCT_NAME = VOXTV
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.flutteriptv.flutterIptv
+PRODUCT_BUNDLE_IDENTIFIER = com.voxtv.player
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.flutteriptv. All rights reserved.

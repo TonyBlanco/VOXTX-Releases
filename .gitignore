@@ -93,3 +93,4 @@ android/app/*.keystore
 *.jks
 *.keystore
 release_assets/
+jadx_smarters

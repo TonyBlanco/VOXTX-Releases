@@ -1,6 +1,0 @@
-package l;
-
-/* JADX INFO: renamed from: l.b, reason: case insensitive filesystem */
-/* JADX INFO: loaded from: classes.dex */
-public abstract /* synthetic */ class AbstractC2168b {
-}

@@ -445,7 +445,7 @@ flutter pub run msix:create
 | Rechazo por contenido IPTV | Alto | Apple puede rechazar apps que faciliten streaming de contenido sin licencia. Preparar notas para reviewer explicando que la app es un reproductor genérico (como VLC) |
 | `screen_brightness` en iOS | Bajo | Puede requerir entitlement adicional en versiones futuras de iOS |
 | `file_picker` en iOS sandboxed | Bajo | Funciona para URL import, importar archivos M3U desde Files.app requiere pruebas |
-| Bundle ID cambio | Medio | Actualmente `com.flutteriptv.flutterIptv` — considerar cambiar a `com.tonyblanco.voxtv` antes de primera publicación |
+| Bundle ID cambio | Medio | Actualmente `com.voxtv.player` — considerar cambiar a `com.tonyblanco.voxtv` antes de primera publicación |
 
 ### Pasos de implementación para el agente
 

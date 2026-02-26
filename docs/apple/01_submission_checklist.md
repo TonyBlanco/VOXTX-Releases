@@ -7,7 +7,7 @@
 
 ## 2. Identidad de la app
 - [ ] App Name: `VOXTV`
-- [ ] Bundle ID: `com.flutteriptv.flutterIptv`
+- [ ] Bundle ID: `com.voxtv.player`
 - [ ] Versión marketing y build definidos
 - [ ] Icono de app y metadata finalizados
 

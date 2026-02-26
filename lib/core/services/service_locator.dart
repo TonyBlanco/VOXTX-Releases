@@ -124,7 +124,7 @@ class ServiceLocator {
     dio.options.followRedirects = true;
 
     final defaultHeaders = <String, dynamic>{
-      'User-Agent': 'IPTVSmartersPlayer',
+      'User-Agent': 'VOXTV/1.5',
       'Accept': 'application/json,text/plain,*/*',
     };
 

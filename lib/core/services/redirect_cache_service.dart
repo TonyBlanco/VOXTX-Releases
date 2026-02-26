@@ -141,8 +141,7 @@ class RedirectCacheService {
       client.connectionTimeout = const Duration(seconds: 2);
       
       final request = await client.getUrl(Uri.parse(url));
-      // Use Smarters-compatible User-Agent to avoid server blocking
-      request.headers.set(HttpHeaders.userAgentHeader, 'IPTVSmartersPlayer');
+      request.headers.set(HttpHeaders.userAgentHeader, 'VOXTV/1.5');
       request.followRedirects = false;
       
       final response = await request.close().timeout(const Duration(seconds: 2));
