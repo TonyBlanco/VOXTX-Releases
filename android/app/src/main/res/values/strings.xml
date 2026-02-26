@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FlutterIPTV</string>
+    <string name="cast_app_id">CC1AD845</string>
     
     <!-- Common -->
     <string name="uncategorized">Uncategorized</string>

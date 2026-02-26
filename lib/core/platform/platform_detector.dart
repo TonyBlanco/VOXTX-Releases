@@ -11,8 +11,12 @@ class PlatformDetector {
 
   static PlatformType get currentPlatform => _currentPlatform;
   static bool get isTV => _isTV;
-  static bool get isMobile => _currentPlatform == PlatformType.android && !_isTV;
-  static bool get isDesktop => _currentPlatform == PlatformType.windows || _currentPlatform == PlatformType.macos || _currentPlatform == PlatformType.linux;
+  static bool get isMobile =>
+      _currentPlatform == PlatformType.android && !_isTV;
+  static bool get isDesktop =>
+      _currentPlatform == PlatformType.windows ||
+      _currentPlatform == PlatformType.macos ||
+      _currentPlatform == PlatformType.linux;
   static bool get isAndroid => _currentPlatform == PlatformType.android;
   static bool get isWindows => _currentPlatform == PlatformType.windows;
   static bool get isMacOS => _currentPlatform == PlatformType.macos;
@@ -55,9 +59,11 @@ class PlatformDetector {
     try {
       final result = await _channel.invokeMethod<bool>('isTV');
       _isTV = result ?? false;
-      ServiceLocator.log.d('PlatformDetector: TV detection via channel: $_isTV');
+      ServiceLocator.log
+          .d('PlatformDetector: TV detection via channel: $_isTV');
     } catch (e) {
-      ServiceLocator.log.d('PlatformDetector: Failed to detect TV via channel: $e');
+      ServiceLocator.log
+          .d('PlatformDetector: Failed to detect TV via channel: $e');
       _isTV = false;
     }
   }
@@ -99,8 +105,10 @@ class PlatformDetector {
   static Future<bool> setKeepScreenOn(bool enable) async {
     if (!isAndroid) return false;
     try {
-      final result = await _channel.invokeMethod<bool>('setKeepScreenOn', {'enable': enable});
-      ServiceLocator.log.d('PlatformDetector: setKeepScreenOn($enable) result: $result');
+      final result = await _channel
+          .invokeMethod<bool>('setKeepScreenOn', {'enable': enable});
+      ServiceLocator.log
+          .d('PlatformDetector: setKeepScreenOn($enable) result: $result');
       return result ?? false;
     } catch (e) {
       ServiceLocator.log.d('PlatformDetector: setKeepScreenOn error: $e');

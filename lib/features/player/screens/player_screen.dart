@@ -26,6 +26,7 @@ import '../../epg/providers/epg_provider.dart';
 import '../../multi_screen/providers/multi_screen_provider.dart';
 import '../../multi_screen/widgets/multi_screen_player.dart';
 import '../../../core/services/service_locator.dart';
+import '../../../core/services/chromecast_service.dart';
 
 class PlayerScreen extends StatefulWidget {
   final String channelUrl;
@@ -98,6 +99,42 @@ class _PlayerScreenState extends State<PlayerScreen>
   //
   bool _isMultiScreenMode() {
     return _localMultiScreenMode && PlatformDetector.isDesktop;
+  }
+
+  Future<void> _handleChromecastAction(PlayerProvider provider) async {
+    final channel = provider.currentChannel;
+    if (channel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay canal activo para enviar')),
+      );
+      return;
+    }
+
+    final castService = ChromecastService.instance;
+    final supported = await castService.isSupported();
+    if (!supported) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Chromecast no disponible en este dispositivo')),
+      );
+      return;
+    }
+
+    final connected = await castService.isConnected();
+    final success = connected
+        ? await castService.castChannel(channel)
+        : await castService.connectAndCast(channel);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Enviado a Chromecast: ${channel.name}'
+              : 'No se pudo conectar o enviar a Chromecast',
+        ),
+      ),
+    );
   }
 
   @override
@@ -980,8 +1017,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (PlatformDetector.isWindows) {
         final success = WindowsFullscreenNative.exitFullScreen();
         if (!success) {
-          ServiceLocator.log
-              .d('Native exitFullScreen failed in dispose, using window_manager');
+          ServiceLocator.log.d(
+              'Native exitFullScreen failed in dispose, using window_manager');
           unawaited(windowManager.setFullScreen(false));
         }
       } else {
@@ -1384,7 +1421,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     if (currentIndex >= 0 &&
                         _channelScrollController.hasClients) {
                       //  44
-                      final itemHeight = 44.0;
+                      const itemHeight = 44.0;
                       final scrollOffset = currentIndex * itemHeight;
 
                       _channelScrollController.animateTo(
@@ -3189,6 +3226,35 @@ class _PlayerScreenState extends State<PlayerScreen>
 
                   const SizedBox(width: 16),
 
+                  if (PlatformDetector.isAndroid && !PlatformDetector.isTV) ...[
+                    TVFocusable(
+                      onSelect: () => _handleChromecastAction(provider),
+                      focusScale: 1.0,
+                      showFocusBorder: false,
+                      builder: (context, isFocused, child) {
+                        return Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isFocused
+                                ? AppTheme.getPrimaryColor(context)
+                                : const Color(0x33FFFFFF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isFocused
+                                  ? AppTheme.getPrimaryColor(context)
+                                  : const Color(0x1AFFFFFF),
+                              width: isFocused ? 2 : 1,
+                            ),
+                          ),
+                          child: child,
+                        );
+                      },
+                      child: const Icon(Icons.cast_rounded,
+                          color: Colors.white, size: 18),
+                    ),
+                    const SizedBox(width: 16),
+                  ],
+
                   // Category menu button
                   TVFocusable(
                     onSelect: () {
@@ -3221,7 +3287,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 if (currentIndex >= 0 &&
                                     _channelScrollController.hasClients) {
                                   //  44
-                                  final itemHeight = 44.0;
+                                  const itemHeight = 44.0;
                                   final scrollOffset =
                                       currentIndex * itemHeight;
 

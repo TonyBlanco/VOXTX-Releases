@@ -16,6 +16,13 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.FileProvider
+import androidx.mediarouter.app.MediaRouteChooserDialogFragment
+import androidx.mediarouter.media.MediaRouteSelector
+import com.google.android.gms.cast.CastMediaControlIntent
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaLoadRequestData
+import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.framework.CastContext
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -40,8 +47,7 @@ class MainActivity: FlutterFragmentActivity() {
     private var multiScreenFragment: MultiScreenPlayerFragment? = null
     private var playerContainer: FrameLayout? = null
     private var playerMethodChannel: MethodChannel? = null
-    // Chromecast: stub until dependencies added
-    // private var castContext: CastContext? = null
+    private var castContext: CastContext? = null
     
     private lateinit var backPressedCallback: OnBackPressedCallback
     
@@ -357,7 +363,7 @@ class MainActivity: FlutterFragmentActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
 
-        // ensureCastContext() // Chromecast stub
+        ensureCastContext()
         
         // Create player container overlay
         playerContainer = FrameLayout(this).apply {
@@ -940,25 +946,48 @@ class MainActivity: FlutterFragmentActivity() {
         }
     }
 
-    // === Chromecast stubs (TODO: add Cast SDK dependencies) ===
+    // === Chromecast ===
     
     private fun ensureCastContext() {
-        // Stub - Cast SDK not integrated yet
+        if (castContext != null) return
+        try {
+            castContext = CastContext.getSharedInstance(this)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize CastContext", e)
+        }
     }
 
     private fun isChromecastSupported(): Boolean {
-        // Stub - Cast SDK not integrated yet
-        return false
+        ensureCastContext()
+        return castContext != null
     }
 
     private fun isCastConnected(): Boolean {
-        // Stub - Cast SDK not integrated yet
-        return false
+        ensureCastContext()
+        val session = castContext?.sessionManager?.currentCastSession
+        return session?.isConnected == true
     }
 
     private fun showCastDevicePicker(): Boolean {
-        // Stub - Cast SDK not integrated yet
-        return false
+        if (!isChromecastSupported()) return false
+
+        return try {
+            runOnUiThread {
+                val routeSelector = MediaRouteSelector.Builder()
+                    .addControlCategory(
+                        CastMediaControlIntent.categoryForCast(getString(R.string.cast_app_id))
+                    )
+                    .build()
+
+                val chooser = MediaRouteChooserDialogFragment()
+                chooser.routeSelector = routeSelector
+                chooser.show(supportFragmentManager, "chromecast_chooser")
+            }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open Chromecast device picker", e)
+            false
+        }
     }
 
     private fun castMedia(
@@ -968,12 +997,44 @@ class MainActivity: FlutterFragmentActivity() {
         isLive: Boolean,
         contentType: String
     ): Boolean {
-        // Stub - Cast SDK not integrated yet
-        return false
+        if (!isCastConnected()) return false
+
+        return try {
+            val session = castContext?.sessionManager?.currentCastSession ?: return false
+            val remoteMediaClient = session.remoteMediaClient ?: return false
+
+            val metadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE).apply {
+                putString(MediaMetadata.KEY_TITLE, title ?: "VoXTV")
+            }
+
+            val mediaInfo = MediaInfo.Builder(url)
+                .setStreamType(
+                    if (isLive) MediaInfo.STREAM_TYPE_LIVE else MediaInfo.STREAM_TYPE_BUFFERED
+                )
+                .setContentType(contentType)
+                .setMetadata(metadata)
+                .build()
+
+            val requestData = MediaLoadRequestData.Builder()
+                .setMediaInfo(mediaInfo)
+                .setAutoplay(true)
+                .setCurrentTime(0)
+                .build()
+
+            remoteMediaClient.load(requestData)
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to cast media", e)
+            false
+        }
     }
 
     private fun stopCasting() {
-        // Stub - Cast SDK not integrated yet
+        try {
+            castContext?.sessionManager?.endCurrentSession(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop cast session", e)
+        }
     }
     
     /**

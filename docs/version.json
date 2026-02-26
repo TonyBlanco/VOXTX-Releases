@@ -1,23 +1,23 @@
 {
-  "version": "1.5.35",
-  "build": 195,
+  "version": "1.5.36",
+  "build": 196,
   "releaseDate": "2025-02-26",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-arm64.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-armeabi.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-arm64.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-armeabi.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-x86_64.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-arm64.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-armeabi.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.35/VoXTV-v1.5.35-x86_64.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-arm64.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-armeabi.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/VoXTV-v1.5.36-x86_64.apk"
     }
   },
   "changelog": {
-    "es": "- Channel Zapping CH+/CH- con mando remoto\\n- Búsqueda por voz en Android TV\\n- Reanudación de descargas offline",
-    "en": "- Channel Zapping CH+/CH- with remote control\\n- Voice search on Android TV\\n- Offline download resume"
+    "es": "- Chromecast: envía contenido a tu TV desde el móvil\\n- Channel Zapping CH+/CH- con mando remoto\\n- Búsqueda por voz en Android TV",
+    "en": "- Chromecast: cast content to your TV from mobile\\n- Channel Zapping CH+/CH- with remote control\\n- Voice search on Android TV"
   },
   "minVersion": "1.0.0"
 }
