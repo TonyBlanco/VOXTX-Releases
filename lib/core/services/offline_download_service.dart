@@ -79,6 +79,48 @@ class OfflineDownloadService {
     return rec;
   }
 
+  /// Resume a failed/cancelled download from where it left off.
+  /// Uses HTTP Range header to continue from existing bytes.
+  /// Returns null if the recording doesn't exist or can't be resumed.
+  Future<OfflineRecording?> resumeDownload(int recordingId) async {
+    final rows = await _db.rawQuery(
+      'SELECT * FROM offline_recordings WHERE id = ?',
+      [recordingId],
+    );
+    if (rows.isEmpty) return null;
+
+    final recording = OfflineRecording.fromMap(rows.first);
+    
+    // Only resume failed/cancelled downloads
+    if (recording.status != DownloadStatus.failed &&
+        recording.status != DownloadStatus.cancelled) {
+      return null;
+    }
+
+    // Check if partial file exists
+    final file = File(recording.filePath);
+    int existingBytes = 0;
+    if (await file.exists()) {
+      existingBytes = await file.length();
+    }
+
+    // Update status to downloading
+    await _updateStatus(recordingId, DownloadStatus.downloading);
+    
+    _progress[recordingId] = 0.0;
+    _progressController.add(Map.from(_progress));
+
+    // Run download with offset
+    _runDownload(recording, resumeFromBytes: existingBytes);
+
+    ServiceLocator.log.i(
+      'Resuming download: ${recording.channelName} from ${_humanSize(existingBytes)}',
+      tag: 'OfflineDownloadService',
+    );
+
+    return recording;
+  }
+
   /// Cancel an active download.
   Future<void> cancelDownload(int recordingId) async {
     _cancelTokens[recordingId]?.cancel('User cancelled');
@@ -152,6 +194,7 @@ class OfflineDownloadService {
   Future<void> _runDownload(
     OfflineRecording recording, {
     Duration? duration,
+    int resumeFromBytes = 0,
   }) async {
     final id = recording.id!;
     final cancelToken = CancelToken();
@@ -173,19 +216,34 @@ class OfflineDownloadService {
     final file = File(recording.filePath);
 
     try {
-      int writtenBytes = 0;
-      final sink = file.openWrite();
+      int writtenBytes = resumeFromBytes;
+      
+      // Use append mode if resuming, otherwise write mode
+      final fileMode = resumeFromBytes > 0 ? FileMode.writeOnlyAppend : FileMode.writeOnly;
+      final sink = file.openWrite(mode: fileMode);
+
+      // Build request options with Range header for resume
+      final options = Options(
+        responseType: ResponseType.stream,
+        headers: resumeFromBytes > 0 ? {'Range': 'bytes=$resumeFromBytes-'} : null,
+      );
 
       final response = await dio.get<ResponseBody>(
         recording.channelUrl,
-        options: Options(responseType: ResponseType.stream),
+        options: options,
         cancelToken: cancelToken,
       );
 
-      final total = int.tryParse(
+      // Parse content-length (may be partial if resuming)
+      int total = int.tryParse(
             response.headers.value('content-length') ?? '',
           ) ??
           -1;
+      
+      // If resuming, add existing bytes to total for accurate progress
+      if (resumeFromBytes > 0 && total > 0) {
+        total += resumeFromBytes;
+      }
 
       await for (final chunk in response.data!.stream) {
         if (cancelToken.isCancelled) break;
