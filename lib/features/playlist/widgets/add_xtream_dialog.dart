@@ -18,6 +18,79 @@ class AddXtreamDialog extends StatefulWidget {
 
   @override
   State<AddXtreamDialog> createState() => _AddXtreamDialogState();
+
+  /// Validate that [server] (raw user input) is a usable hostname/IP.
+  /// Returns the normalised URL on success, throws [Exception] with a
+  /// user-friendly message on failure.  No network calls are made.
+  ///
+  /// This is a **static** method so it can be unit-tested without widget
+  /// dependencies.
+  static String validateServerInput(String server) {
+    final raw = server.trim();
+
+    // 1. Reject empty
+    if (raw.isEmpty) {
+      throw Exception(
+          'Servidor vac\u00edo. Introduce un dominio o IP (ej: panel.example.com:8080)');
+    }
+
+    // 2. Reject bare protocol keywords ("http", "https", etc.)
+    final lower = raw.toLowerCase();
+    if (lower == 'http' || lower == 'https') {
+      throw Exception(
+          'Servidor Xtream inv\u00e1lido. Usa un dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
+    }
+
+    // 3. Normalise: add scheme if missing
+    var withScheme = raw;
+    if (!withScheme.startsWith('http://') &&
+        !withScheme.startsWith('https://')) {
+      withScheme = 'http://$withScheme';
+    }
+
+    // 4. Strip trailing slashes
+    while (withScheme.endsWith('/')) {
+      withScheme = withScheme.substring(0, withScheme.length - 1);
+    }
+
+    // 5. Parse and validate host
+    final uri = Uri.tryParse(withScheme);
+    if (uri == null) {
+      throw Exception(
+          'URL de servidor no se pudo analizar. Usa dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
+    }
+
+    final host = uri.host.toLowerCase();
+
+    if (host.isEmpty) {
+      throw Exception(
+          'Servidor Xtream inv\u00e1lido: no se detect\u00f3 host. Usa dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
+    }
+
+    // 6. Reject if the parsed host is itself a protocol keyword
+    //    (catches "http://http", "https://https", "http://https", etc.)
+    if (host == 'http' || host == 'https') {
+      throw Exception(
+          'Servidor Xtream inv\u00e1lido ("$host" no es un dominio). Usa dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
+    }
+
+    // 7. Host must look like a real domain or IP (has a dot or is IPv6 with colon)
+    if (!host.contains('.') && !host.contains(':')) {
+      // Allow "localhost" as a special case for dev/testing
+      if (host != 'localhost') {
+        throw Exception(
+            'Servidor Xtream inv\u00e1lido ("$host" no parece un dominio). Usa dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
+      }
+    }
+
+    // 8. Ensure scheme is http or https
+    if (uri.scheme != 'http' && uri.scheme != 'https') {
+      throw Exception(
+          'Protocolo no soportado (${uri.scheme}). Usa http:// o https://');
+    }
+
+    return withScheme;
+  }
 }
 
 class _AddXtreamDialogState extends State<AddXtreamDialog> {
@@ -61,6 +134,8 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
     _applyPreset(_presets.first);
   }
 
+  /// Normalize server input into a full URL with scheme.
+  /// Does NOT validate – call [validateServerInput] first.
   String _normalizeServerUrl(String server) {
     var normalized = server.trim();
     if (normalized.isEmpty) return normalized;
@@ -77,7 +152,9 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
   }
 
   Future<String> _validateXtreamAndGetServerBase(String server, String username, String password) async {
-    final baseServer = _normalizeServerUrl(server);
+    // ── Pre-flight: reject garbage hostnames BEFORE any network call ──
+    final baseServer = AddXtreamDialog.validateServerInput(server);
+
     final authUrl = '$baseServer/player_api.php?username=${Uri.encodeComponent(username)}&password=${Uri.encodeComponent(password)}';
 
     final dio = Dio(
