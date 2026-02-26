@@ -82,7 +82,7 @@ Also keep `docs/version.json` in sync (used by the GitHub Pages website).
   "build": YYY,
   "releaseDate": "YYYY-MM-DD",
   "assets": {
-    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/flutteriptv-Windows-x64-Setup.exe",
+    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/voxtv-Windows-x64-Setup.exe",
     "android_mobile": {
       "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-arm64-v8a-release.apk",
       "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.XX/app-armeabi-v7a-release.apk",

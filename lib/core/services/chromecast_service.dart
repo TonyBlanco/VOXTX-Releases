@@ -11,7 +11,7 @@ class ChromecastService {
   static final ChromecastService instance = ChromecastService._();
 
   static const MethodChannel _channel =
-      MethodChannel('com.flutteriptv/chromecast');
+      MethodChannel('com.voxtv/chromecast');
 
   Future<bool> isSupported() async {
     if (!Platform.isAndroid) return false;

@@ -83,7 +83,7 @@ class UpdateService {
       final response = await http.get(
         Uri.parse(_versionJsonUrl),
         headers: {
-          'User-Agent': 'FlutterIPTV-App',
+          'User-Agent': 'VOXTV/1.5',
           'Cache-Control': 'no-cache',
         },
       ).timeout(const Duration(seconds: 10));
@@ -156,11 +156,11 @@ class UpdateService {
       if (urlFileName.isNotEmpty) {
         fileName = urlFileName;
       } else if (Platform.isWindows) {
-        fileName = 'flutter_iptv_update.exe';
+        fileName = 'voxtv_update.exe';
       } else if (Platform.isMacOS) {
-        fileName = 'flutter_iptv_update.dmg';
+        fileName = 'voxtv_update.dmg';
       } else {
-        fileName = 'flutter_iptv_update.apk';
+        fileName = 'voxtv_update.apk';
       }
 
       final file = File('${tempDir.path}/$fileName');
@@ -168,7 +168,7 @@ class UpdateService {
 
       //
       final request = http.Request('GET', Uri.parse(downloadUrl));
-      request.headers['User-Agent'] = 'FlutterIPTV-App';
+      request.headers['User-Agent'] = 'VOXTV/1.5';
 
       final response = await http.Client().send(request);
 

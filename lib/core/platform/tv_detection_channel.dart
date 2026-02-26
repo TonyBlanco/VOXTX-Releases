@@ -3,7 +3,7 @@ import 'platform_detector.dart';
 
 /// Platform channel for Android TV detection
 class TVDetectionChannel {
-  static const MethodChannel _channel = MethodChannel('com.flutteriptv/platform');
+  static const MethodChannel _channel = MethodChannel('com.voxtv/platform');
 
   /// Check if the app is running on Android TV
   static Future<bool> isTV() async {

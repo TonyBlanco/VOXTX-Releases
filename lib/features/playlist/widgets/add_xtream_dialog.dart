@@ -175,7 +175,7 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
         connectTimeout: const Duration(seconds: 12),
         receiveTimeout: const Duration(seconds: 20),
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Android TV; FlutterIPTV) AppleWebKit/537.36',
+          'User-Agent': 'Mozilla/5.0 (SmartTV; VOXTV) AppleWebKit/537.36',
           'Accept': 'application/json,text/plain,*/*',
         },
         validateStatus: (status) => status != null && status < 500,

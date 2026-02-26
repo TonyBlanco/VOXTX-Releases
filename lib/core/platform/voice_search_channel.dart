@@ -4,7 +4,7 @@ import '../services/service_locator.dart';
 /// Voice search channel for Android TV.
 /// Uses Android's RecognizerIntent for speech recognition.
 class VoiceSearchChannel {
-  static const _channel = MethodChannel('com.flutteriptv/voice_search');
+  static const _channel = MethodChannel('com.voxtv/voice_search');
   
   /// Callback for when voice search returns a result
   static Function(String query)? onVoiceSearchResult;

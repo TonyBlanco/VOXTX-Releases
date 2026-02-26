@@ -1,4 +1,4 @@
-package com.flutteriptv.flutter_iptv
+package com.voxtv.player
 
 import android.util.Log
 import java.net.HttpURLConnection

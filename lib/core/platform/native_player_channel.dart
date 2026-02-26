@@ -8,7 +8,7 @@ import '../services/service_locator.dart';
 
 /// Service to launch native Android player via MethodChannel
 class NativePlayerChannel {
-  static const _channel = MethodChannel('com.flutteriptv/native_player');
+  static const _channel = MethodChannel('com.voxtv/native_player');
   static bool _initialized = false;
   static Function? _onPlayerClosedCallback;
   static Function? _onMultiScreenClosedCallback;

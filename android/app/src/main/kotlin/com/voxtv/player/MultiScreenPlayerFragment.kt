@@ -1,4 +1,4 @@
-package com.flutteriptv.flutter_iptv
+package com.voxtv.player
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

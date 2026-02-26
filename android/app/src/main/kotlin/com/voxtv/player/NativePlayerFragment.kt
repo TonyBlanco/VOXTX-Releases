@@ -1,4 +1,4 @@
-package com.flutteriptv.flutter_iptv
+package com.voxtv.player
 
 import android.net.TrafficStats
 import android.os.Bundle
@@ -33,7 +33,7 @@ import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.flutteriptv.flutter_iptv.MainActivity
+import com.voxtv.player.MainActivity
 
 class NativePlayerFragment : Fragment() {
     private val TAG = "NativePlayerFragment"

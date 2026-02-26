@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FlutterIPTV</string>
+    <string name="app_name">VOXTV</string>
     
     <!-- Common -->
     <string name="uncategorized">未分类</string>

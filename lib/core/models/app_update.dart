@@ -24,7 +24,7 @@ class AppUpdate {
 
   //  CPU
   static String? _cachedCpuAbi;
-  static const _platformChannel = MethodChannel('com.flutteriptv/platform');
+  static const _platformChannel = MethodChannel('com.voxtv/platform');
 
   ///  GitHub Pages version.json
   static Future<AppUpdate> fromVersionJsonAsync(

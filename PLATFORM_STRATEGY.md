@@ -308,9 +308,9 @@ SQLITE3_USE_SYSTEM_LIBRARY=1 flutter run -d macos
 
 # Release (distribución)
 SQLITE3_USE_SYSTEM_LIBRARY=1 flutter build macos --release
-open build/macos/Build/Products/Release/flutter_iptv.app
+open build/macos/Build/Products/Release/voxtv.app
 # Crear DMG:
-hdiutil create -volname "VOXTX" -srcfolder build/macos/Build/Products/Release/flutter_iptv.app -ov -format UDZO VOXTX-macOS.dmg
+hdiutil create -volname "VOXTV" -srcfolder build/macos/Build/Products/Release/voxtv.app -ov -format UDZO VOXTV-macOS.dmg
 ```
 
 #### Paso 10 — Release macOS

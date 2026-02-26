@@ -62,7 +62,7 @@
 
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.flutteriptv.flutter_iptv.CastOptionsProvider" />
+            android:value="com.voxtv.player.CastOptionsProvider" />
     </application>
     
     <uses-feature

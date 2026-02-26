@@ -320,7 +320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-12-13
 
 ### Added
-- Initial release of FlutterIPTV
+- Initial release of VOXTV
 - **Multi-Platform Support**
   - Windows (PC) with keyboard/mouse navigation
   - Android Mobile with touch-optimized interface

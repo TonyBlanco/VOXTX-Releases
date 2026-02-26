@@ -4,7 +4,7 @@ import 'service_locator.dart';
 /// 
 /// AndroidFlutterLogService
 class NativeLogChannel {
-  static const MethodChannel _channel = MethodChannel('com.flutteriptv/native_log');
+  static const MethodChannel _channel = MethodChannel('com.voxtv/native_log');
   static bool _initialized = false;
 
   /// 

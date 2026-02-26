@@ -16,7 +16,7 @@ class UpdateManager {
   final UpdateService _updateService = UpdateService();
   
   // Android  APK  MethodChannel
-  static const _installChannel = MethodChannel('com.flutteriptv/install');
+  static const _installChannel = MethodChannel('com.voxtv/install');
 
   /// 
   Future<void> checkAndShowUpdateDialog(BuildContext context, {bool forceCheck = false}) async {

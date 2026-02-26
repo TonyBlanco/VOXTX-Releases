@@ -1,4 +1,4 @@
-package com.flutteriptv.flutter_iptv
+package com.voxtv.player
 
 import android.app.PictureInPictureParams
 import android.content.ActivityNotFoundException
@@ -32,12 +32,12 @@ import java.io.File
 
 class MainActivity: FlutterFragmentActivity() {
     private val TAG = "MainActivity"
-    private val CHANNEL = "com.flutteriptv/platform"
-    private val PLAYER_CHANNEL = "com.flutteriptv/native_player"
-    private val INSTALL_CHANNEL = "com.flutteriptv/install"
-    private val LOG_CHANNEL = "com.flutteriptv/native_log"
-    private val CHROMECAST_CHANNEL = "com.flutteriptv/chromecast"
-    private val VOICE_SEARCH_CHANNEL = "com.flutteriptv/voice_search"
+    private val CHANNEL = "com.voxtv/platform"
+    private val PLAYER_CHANNEL = "com.voxtv/native_player"
+    private val INSTALL_CHANNEL = "com.voxtv/install"
+    private val LOG_CHANNEL = "com.voxtv/native_log"
+    private val CHROMECAST_CHANNEL = "com.voxtv/chromecast"
+    private val VOICE_SEARCH_CHANNEL = "com.voxtv/voice_search"
     
     private var playerFragment: NativePlayerFragment? = null
     private var pendingInstallPath: String? = null

@@ -7,7 +7,7 @@ import '../services/service_locator.dart';
 class PlatformDetector {
   static late PlatformType _currentPlatform;
   static bool _isTV = false;
-  static const _channel = MethodChannel('com.flutteriptv/platform');
+  static const _channel = MethodChannel('com.voxtv/platform');
 
   static PlatformType get currentPlatform => _currentPlatform;
   static bool get isTV => _isTV;

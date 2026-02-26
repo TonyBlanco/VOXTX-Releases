@@ -63,13 +63,13 @@ jobs:
           if (!$version) { $version = "1.0.0" }
           @"
           [Setup]
-          AppName=FlutterIPTV
+          AppName=VOXTV
           AppVersion=$version
-          AppPublisher=FlutterIPTV
-          DefaultDirName={autopf}\FlutterIPTV
-          DefaultGroupName=FlutterIPTV
+          AppPublisher=VOXTV
+          DefaultDirName={autopf}\VOXTV
+          DefaultGroupName=VOXTV
           OutputDir=.
-          OutputBaseFilename=flutteriptv-Windows-x64-Setup
+          OutputBaseFilename=voxtv-Windows-x64-Setup
           Compression=lzma2
           SolidCompression=yes
           ArchitecturesInstallIn64BitMode=x64
@@ -77,12 +77,12 @@ jobs:
           [Files]
           Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
           [Icons]
-          Name: "{group}\FlutterIPTV"; Filename: "{app}\flutter_iptv.exe"
-          Name: "{autodesktop}\FlutterIPTV"; Filename: "{app}\flutter_iptv.exe"; Tasks: desktopicon
+          Name: "{group}\VOXTV"; Filename: "{app}\voxtv.exe"
+          Name: "{autodesktop}\VOXTV"; Filename: "{app}\voxtv.exe"; Tasks: desktopicon
           [Tasks]
           Name: "desktopicon"; Description: "Create desktop shortcut"; GroupDescription: "Additional icons:"
           [Run]
-          Filename: "{app}\flutter_iptv.exe"; Description: "Launch FlutterIPTV"; Flags: nowait postinstall skipifsilent
+          Filename: "{app}\voxtv.exe"; Description: "Launch VOXTV"; Flags: nowait postinstall skipifsilent
           "@ | Out-File "installer.iss" -Encoding UTF8
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
         shell: pwsh
@@ -91,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: flutteriptv-Windows-x64-Setup.exe
+          path: voxtv-Windows-x64-Setup.exe
           retention-days: 5
 
   # ============================================
@@ -137,17 +137,17 @@ jobs:
           flutter clean
           flutter build apk --release --split-per-abi
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/flutteriptv-Android-Mobile-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/flutteriptv-Android-Mobile-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/flutteriptv-Android-Mobile-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/voxtv-Android-Mobile-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/voxtv-Android-Mobile-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/voxtv-Android-Mobile-x86_64.apk
       
       - name: Build TV APKs
         run: |
           flutter clean
           flutter build apk --release --dart-define=IS_TV=true --split-per-abi
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/flutteriptv-AndroidTV-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/flutteriptv-AndroidTV-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/flutteriptv-AndroidTV-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/voxtv-AndroidTV-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/voxtv-AndroidTV-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/voxtv-AndroidTV-x86_64.apk
       
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
@@ -217,7 +217,7 @@ jobs:
           fi
           
           cat > release_notes.md << EOF
-          ## 📺 FlutterIPTV ${VERSION}
+          ## 📺 VOXTV ${VERSION}
           
           ### 📝 更新内容 What's New
           
@@ -234,21 +234,21 @@ jobs:
           #### 🖥️ Windows
           | 文件 | 说明 |
           |------|------|
-          | [flutteriptv-Windows-x64-Setup.exe](${BASE_URL}/flutteriptv-Windows-x64-Setup.exe) | Windows 64位安装包 |
+          | [voxtv-Windows-x64-Setup.exe](${BASE_URL}/voxtv-Windows-x64-Setup.exe) | Windows 64位安装包 |
           
           #### 📱 Android 手机版
           | 文件 | 说明 |
           |------|------|
-          | [flutteriptv-Android-Mobile-arm64-v8a.apk](${BASE_URL}/flutteriptv-Android-Mobile-arm64-v8a.apk) | 64位 ARM 设备（推荐） |
-          | [flutteriptv-Android-Mobile-armeabi-v7a.apk](${BASE_URL}/flutteriptv-Android-Mobile-armeabi-v7a.apk) | 32位 ARM 设备 |
-          | [flutteriptv-Android-Mobile-x86_64.apk](${BASE_URL}/flutteriptv-Android-Mobile-x86_64.apk) | x86_64 模拟器 |
+          | [voxtv-Android-Mobile-arm64-v8a.apk](${BASE_URL}/voxtv-Android-Mobile-arm64-v8a.apk) | 64位 ARM 设备（推荐） |
+          | [voxtv-Android-Mobile-armeabi-v7a.apk](${BASE_URL}/voxtv-Android-Mobile-armeabi-v7a.apk) | 32位 ARM 设备 |
+          | [voxtv-Android-Mobile-x86_64.apk](${BASE_URL}/voxtv-Android-Mobile-x86_64.apk) | x86_64 模拟器 |
           
           #### 📺 Android TV 电视版
           | 文件 | 说明 |
           |------|------|
-          | [flutteriptv-AndroidTV-arm64-v8a.apk](${BASE_URL}/flutteriptv-AndroidTV-arm64-v8a.apk) | 64位 ARM 电视（推荐） |
-          | [flutteriptv-AndroidTV-armeabi-v7a.apk](${BASE_URL}/flutteriptv-AndroidTV-armeabi-v7a.apk) | 32位 ARM 电视 |
-          | [flutteriptv-AndroidTV-x86_64.apk](${BASE_URL}/flutteriptv-AndroidTV-x86_64.apk) | x86_64 电视模拟器 |
+          | [voxtv-AndroidTV-arm64-v8a.apk](${BASE_URL}/voxtv-AndroidTV-arm64-v8a.apk) | 64位 ARM 电视（推荐） |
+          | [voxtv-AndroidTV-armeabi-v7a.apk](${BASE_URL}/voxtv-AndroidTV-armeabi-v7a.apk) | 32位 ARM 电视 |
+          | [voxtv-AndroidTV-x86_64.apk](${BASE_URL}/voxtv-AndroidTV-x86_64.apk) | x86_64 电视模拟器 |
           EOF
       
       - name: Create Release
@@ -256,18 +256,18 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
-          name: flutteriptv ${{ steps.version.outputs.VERSION }}
+          name: voxtv ${{ steps.version.outputs.VERSION }}
           body_path: release_notes.md
           draft: false
           prerelease: false
           files: |
-            release-assets/windows-release/flutteriptv-Windows-x64-Setup.exe
-            release-assets/android-release/flutteriptv-Android-Mobile-arm64-v8a.apk
-            release-assets/android-release/flutteriptv-Android-Mobile-armeabi-v7a.apk
-            release-assets/android-release/flutteriptv-Android-Mobile-x86_64.apk
-            release-assets/android-release/flutteriptv-AndroidTV-arm64-v8a.apk
-            release-assets/android-release/flutteriptv-AndroidTV-armeabi-v7a.apk
-            release-assets/android-release/flutteriptv-AndroidTV-x86_64.apk
+            release-assets/windows-release/voxtv-Windows-x64-Setup.exe
+            release-assets/android-release/voxtv-Android-Mobile-arm64-v8a.apk
+            release-assets/android-release/voxtv-Android-Mobile-armeabi-v7a.apk
+            release-assets/android-release/voxtv-Android-Mobile-x86_64.apk
+            release-assets/android-release/voxtv-AndroidTV-arm64-v8a.apk
+            release-assets/android-release/voxtv-AndroidTV-armeabi-v7a.apk
+            release-assets/android-release/voxtv-AndroidTV-x86_64.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

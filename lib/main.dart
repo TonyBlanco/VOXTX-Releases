@@ -131,7 +131,7 @@ void main() async {
       ),
     );
 
-    runApp(const FlutterIPTVApp());
+    runApp(const VOXTVApp());
   } catch (e, stackTrace) {
     // Use debugPrint as fallback if log service is not initialized
     debugPrint('Fatal error during app initialization: $e');
@@ -176,14 +176,14 @@ void main() async {
   }
 }
 
-class FlutterIPTVApp extends StatefulWidget {
-  const FlutterIPTVApp({super.key});
+class VOXTVApp extends StatefulWidget {
+  const VOXTVApp({super.key});
 
   @override
-  State<FlutterIPTVApp> createState() => _FlutterIPTVAppState();
+  State<VOXTVApp> createState() => _VOXTVAppState();
 }
 
-class _FlutterIPTVAppState extends State<FlutterIPTVApp> {
+class _VOXTVAppState extends State<VOXTVApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
