@@ -138,5 +138,38 @@ void main() {
           AddXtreamDialog.validateServerInput('http://localhost:8080');
       expect(result, 'http://localhost:8080');
     });
+
+    // ── iOS auto-capitalisation cases ──────────────────────────────────────
+
+    test('handles iOS auto-capitalised "Http://panel.com:8080"', () {
+      final result =
+          AddXtreamDialog.validateServerInput('Http://panel.com:8080');
+      expect(result, 'http://panel.com:8080');
+    });
+
+    test('handles iOS all-caps "HTTP://panel.com"', () {
+      final result =
+          AddXtreamDialog.validateServerInput('HTTP://panel.com');
+      expect(result, 'http://panel.com');
+    });
+
+    test('handles "Https://secure.panel.com"', () {
+      final result =
+          AddXtreamDialog.validateServerInput('Https://secure.panel.com');
+      expect(result, 'https://secure.panel.com');
+    });
+
+    test('handles "HTTPS://PANEL.COM:25461"', () {
+      final result =
+          AddXtreamDialog.validateServerInput('HTTPS://PANEL.COM:25461');
+      // Scheme is lowercased; host case preserved (DNS is case-insensitive)
+      expect(result, 'https://PANEL.COM:25461');
+    });
+
+    test('handles mixed case "hTtP://panel.com"', () {
+      final result =
+          AddXtreamDialog.validateServerInput('hTtP://panel.com');
+      expect(result, 'http://panel.com');
+    });
   });
 }

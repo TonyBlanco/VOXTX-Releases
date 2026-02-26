@@ -41,10 +41,16 @@ class AddXtreamDialog extends StatefulWidget {
           'Servidor Xtream inv\u00e1lido. Usa un dominio/IP v\u00e1lido (ej: panel.example.com:8080)');
     }
 
-    // 3. Normalise: add scheme if missing
+    // 3. Normalise: add scheme if missing (case-insensitive check for iOS
+    //    keyboards that auto-capitalise, e.g. "Http://", "HTTP://")
     var withScheme = raw;
-    if (!withScheme.startsWith('http://') &&
-        !withScheme.startsWith('https://')) {
+    final lowerScheme = withScheme.toLowerCase();
+    if (lowerScheme.startsWith('http://') || lowerScheme.startsWith('https://')) {
+      // Force scheme to lowercase so Uri.parse works correctly
+      final colonIdx = withScheme.indexOf('://');
+      withScheme = withScheme.substring(0, colonIdx).toLowerCase() +
+          withScheme.substring(colonIdx);
+    } else {
       withScheme = 'http://$withScheme';
     }
 
@@ -140,7 +146,14 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
     var normalized = server.trim();
     if (normalized.isEmpty) return normalized;
 
-    if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    // Case-insensitive check: iOS keyboards auto-capitalise ("Http://")
+    final lowerNorm = normalized.toLowerCase();
+    if (lowerNorm.startsWith('http://') || lowerNorm.startsWith('https://')) {
+      // Force scheme to lowercase
+      final colonIdx = normalized.indexOf('://');
+      normalized = normalized.substring(0, colonIdx).toLowerCase() +
+          normalized.substring(colonIdx);
+    } else {
       normalized = 'http://$normalized';
     }
 
@@ -570,8 +583,14 @@ class _AddXtreamDialogState extends State<AddXtreamDialog> {
           focusNode: _serverFocus,
           textInputAction: TextInputAction.next,
           keyboardType: TextInputType.url,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
+          enableSuggestions: false,
           onSubmitted: (_) => _usernameFocus.requestFocus(),
-          decoration: const InputDecoration(hintText: 'URL del servidor'),
+          decoration: const InputDecoration(
+            hintText: 'http://panel.example.com:8080',
+            prefixIcon: Icon(Icons.dns_outlined, size: 20),
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
