@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart' as io_client;
+import '../platform/web_shims/http_io_client_shim.dart' as io_client;
 import 'dart:io';
 import '../models/channel.dart';
 import '../services/service_locator.dart';

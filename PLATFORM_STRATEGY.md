@@ -456,109 +456,80 @@ flutter build ipa
 
 ---
 
-## PLATAFORMA: WebOS (LG Smart TV) — ESTADO: 🟠 MVP técnico validado en TV real (2026-02-26)
+## PLATAFORMA: WebOS (LG Smart TV) — ESTADO: � MVP compilado
 
 ### Contexto
 WebOS no es una plataforma Flutter nativa. Requiere **Flutter Web** + **packaging con LG ares-cli**.
 Samsung Tizen es diferente y requiere su propio SDK (Tizen Flutter plugin).
 
-### Nota operativa confirmada (TV real)
-- Con Node `v25.x`, `ares-install` puede fallar en upload con `isDate is not a function`.
-- Para deploy real, usar Node 20 para todos los comandos `ares-*`:
-```bash
-export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
-node -v  # debe ser v20.x
-```
-- Runbook detallado para agentes: `docs/webos_agent_runbook.md`
+### Estrategia implementada (MVP)
+En lugar de reemplazar `media_kit`, `sqflite`, `window_manager`, etc., el MVP usa
+**web shims**: archivos stub que exportan la misma API con no-ops, seleccionados
+mediante `export … if (dart.library.io)`. Esto permite que `flutter build web`
+compile **sin tocar ni una línea del código nativo**.
 
-### Limitaciones críticas
-- `media_kit` **NO soporta web** — necesita reemplazo con `video_player` web o HLS.js via `dart:html`
-- `sqflite` NO funciona en web — hay que migrar a `sembast` o `IndexedDB`
-- `screen_brightness` NO funciona en web
-- `wakelock_plus` funciona en web via `navigator.wakeLock` API
-- `file_picker` funciona en web con limitaciones
-- `window_manager` NO funciona en web
+| Paquete | Shim web | Motivo |
+|---------|----------|--------|
+| `media_kit` | `media_kit_shim.dart` → `media_kit_stub.dart` | Depende de `dart:ffi` |
+| `media_kit_video` | `media_kit_video_shim.dart` → `media_kit_video_stub.dart` | Depende de `dart:ffi` |
+| `sqflite_common_ffi` | `sqflite_ffi_shim.dart` → `sqflite_ffi_stub.dart` | Depende de `dart:ffi` |
+| `window_manager` | `window_manager_shim.dart` → `window_manager_stub.dart` | Sin efecto en web |
+| `windows_fullscreen_native` | `windows_fullscreen_shim.dart` → `windows_fullscreen_stub.dart` | Usa `dart:ffi` directamente |
+| `windows_pip_channel` | `windows_pip_shim.dart` → `windows_pip_stub.dart` | Depende de `window_manager` + `screen_retriever` |
+| `http/io_client` | `http_io_client_shim.dart` → `http_io_client_stub.dart` | `IOClient` no disponible en web |
 
-### Arquitectura recomendada para WebOS
+> **Nota:** `dart:io` SÍ compila en Flutter web (stub nativo de Flutter). No
+> necesita shim. Las guardas `if (!kIsWeb)` protegen las llamadas que lanzarían
+> `UnsupportedError` en runtime.
 
-```
-Flutter Web build → index.html + main.dart.js
-  ↓
-LG ares-cli packaging → appinfo.json + .ipk package
-  ↓
-Deploy a TV via SSH o LG Developer Mode
-```
+### Limitaciones del MVP
+- **Sin reproducción de video** — la pantalla de player muestra "Video not supported on web"
+- **Sin base de datos local** — `service_locator.dart` no inicializa SQLite en web
+- **Sin gestión de ventana** — fullscreen/PiP/title-bar son no-ops
 
-### Pasos de implementación para el agente
+### Próximos pasos post-MVP
+1. Integrar `video_player` web (HTML5 `<video>`) o `hls.js` para reproducción de streams
+2. Migrar persistencia a `shared_preferences` / `IndexedDB` / `sembast`
+3. Evaluar rendimiento de canvaskit en LG WebOS 4+ (Chromium)
+4. Para TVs LG antiguas (WebOS 3.x), probar `--web-renderer html`
 
-#### Paso 1 — Crear repo y branch
-```bash
-gh repo create TonyBlanco/VOXTX-WebOS --private
-git remote add webos https://github.com/TonyBlanco/VOXTX-WebOS.git
-git checkout -b platform/webos
-```
-
-#### Paso 2 — Instalar LG ares-cli
-```bash
-npm install -g @webosose/ares-cli
-ares-setup-device  # configurar TV en modo developer
-```
-
-#### Paso 3 — Reemplazar video player para web
-Añadir a pubspec:
-```yaml
-# Solo para web — usar condicionalmente
-video_player: ^2.9.2   # ya incluido — funciona en web via HTML5 video
-```
-Crear `lib/core/services/web_player_service.dart`:
-```dart
-// Usar kIsWeb para seleccionar el player:
-// kIsWeb → video_player (HTML5 <video>) con soporte HLS via hls.js
-// !kIsWeb → media_kit
-```
-
-#### Paso 4 — Reemplazar SQLite para web
-```yaml
-sembast: ^3.4.9         # KV store que funciona en web via IndexedDB
-```
-Crear `lib/core/database/web_database_helper.dart` implementando la misma interfaz que `database_helper.dart`.
-
-#### Paso 5 — D-Pad para WebOS (LG Magic Remote)
+### D-Pad para WebOS (LG Magic Remote)
 El Magic Remote de LG genera eventos de teclado estándar:
-- `ArrowUp/Down/Left/Right` → navigación
+- `ArrowUp/Down/Left/Right` → navegación
 - `Enter` → select
 - `Escape/Back` → navegación atrás
 - Botones de color (rojo/verde/amarillo/azul)
 
 El sistema de `tv_focusable.dart` ya maneja teclas de cursor — funciona sin cambios.
 
-#### Paso 6 — appinfo.json para LG WebOS
-Crear `webos/appinfo.json`:
+### appinfo.json para LG WebOS
+Ubicación: `webos/appinfo.json` — ya creado con:
 ```json
 {
   "id": "com.tonyblanco.voxtv",
-  "version": "1.5.22",
+  "version": "1.5.36",
   "vendor": "TonyBlanco",
   "type": "web",
   "main": "index.html",
   "title": "VOXTV",
   "icon": "icon.png",
-  "largeIcon": "icon_large.png",
-  "bgColor": "#000000",
-  "iconColor": "#000000",
-  "splashBackground": "#000000",
-  "requiredPermissions": [
-    "NETWORK_ACCESS",
-    "LOCAL_STORAGE",
-    "MEDIA_OPERATION"
-  ]
+  "largeIcon": "largeIcon.png",
+  "requiredPermissions": ["all"]
 }
 ```
 
-#### Paso 7 — Build y packaging
+### Build, packaging y deploy a LG TV
+
+#### Requisitos previos
+```bash
+npm install -g @webosose/ares-cli
+ares-setup-device  # configurar TV en modo developer
+```
+
+#### Build y packaging
 ```bash
 # 1. Build Flutter web
-flutter build web --release --no-wasm-dry-run
+flutter build web --release --web-renderer canvaskit
 
 # 2. Copiar build/web/* al directorio del paquete webos
 cp -r build/web/* webos/
@@ -566,20 +537,33 @@ cp -r build/web/* webos/
 # 3. Crear paquete .ipk con ares-cli
 ares-package webos/ -o build/
 
-# 4. Forzar Node 20 para ares-install/launch
-export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+# 4. Instalar en TV (en Developer Mode)
+ares-install --device MyTV build/com.tonyblanco.voxtv_1.5.36_all.ipk
 
-# 5. Instalar en TV (en Developer Mode)
-ares-install --device MyTV build/com.tonyblanco.voxtv_1.5.22_all.ipk
-
-# 6. Lanzar
+# 5. Lanzar
 ares-launch --device MyTV com.tonyblanco.voxtv
+
+# 6. Ver logs (debug)
+ares-inspect --device MyTV --app com.tonyblanco.voxtv
+
+# 7. Desinstalar
+ares-install --device MyTV --remove com.tonyblanco.voxtv
+```
+
+#### Comandos útiles ares-cli
+```bash
+ares-setup-device --list                 # listar dispositivos configurados
+ares-setup-device --reset                # resetear config de dispositivos
+ares-device-info --device MyTV           # info del dispositivo
+ares-novacom --device MyTV --getkey      # obtener clave del developer mode
+ares-server webos/                       # servidor local para test rápido
+ares-launch --device MyTV --hosted       # lanzar hosted app (dev)
 ```
 
 ### Consideraciones adicionales WebOS
 - LG WebOS 3.x y anteriores tienen soporte web limitado (pueden no soportar canvas WebGL)
-- `ares-package` puede fallar minificando JS moderno de Flutter (`canvaskit/skwasm/flutter.js`) con ciertas versiones de `@webos-tools/cli`
-- Si ocurre, tratarlo como problema de tooling de empaquetado, no de conectividad de TV
+- WebOS 4+ (2018+) usa Chromium y soporta `canvaskit` renderer de Flutter
+- Para TVs LG más antiguas, usar `--web-renderer html` (más compatible, peor calidad)
 - El repositorio de apps oficial de LG es LG Content Store — requiere proceso de certificación
 
 ---
@@ -592,7 +576,7 @@ Android TV      ████████████████████   9
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           ██████████░░░░░░░░░░   45%  ⚠️ Funcional — sidebar ✅, PiP ✅, fullscreen ✅ (falta: update service, DLNA)
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
-WebOS           ████████░░░░░░░░░░░░   40%  🟠 Build+package+install+launch validados en LG real (MVP sin playback final)
+WebOS           ██████░░░░░░░░░░░░░░   30%  🟡 MVP: web build compila, shims, packaging webos/
 ```
 
 ---
@@ -650,8 +634,7 @@ Cuando haya releases para múltiples plataformas, `version.json` en `VOXTX-Relea
 | iOS | `PlatformException` en brightness | `screen_brightness` requiere entitlement en iOS |
 | iOS | No puede instalar IPA directo | Solo via TestFlight o App Store — nunca descarga directa |
 | Windows | MSIX requiere certificado | Usar self-signed para desarrollo, CA real para Store |
-| WebOS | `ares-install` falla con `isDate is not a function` | Ejecutar `ares-*` con Node 20 (`export PATH="/opt/homebrew/opt/node@20/bin:$PATH"`) |
-| WebOS | `ares-package` falla con `Failed to minify code` | Problema del minificador de `@webos-tools/cli` con JS moderno (canvaskit/skwasm/flutter.js) |
+| WebOS | Pantalla en negro | Cambiar `--web-renderer html` en lugar de `canvaskit` |
 | WebOS | Streams no reproducen | Añadir HLS.js como `<script>` en `web/index.html` |
 | Todos | `sqflite` crash en web | Usar `sembast` para web, `sqflite` para el resto |
 | Android | Gradle downgrade (7.x) rompe la build | `gradle-wrapper.properties` debe mantener `gradle-8.14-all.zip` — NO aceptar sugerencias de downgrade del IDE |

@@ -1,13 +1,14 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:window_manager/window_manager.dart';
+import 'core/platform/web_shims/media_kit_shim.dart';
+import 'core/platform/web_shims/window_manager_shim.dart';
 import 'core/i18n/app_strings.dart';
 
 import 'dart:io';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'core/platform/web_shims/sqflite_ffi_shim.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
@@ -69,26 +70,30 @@ void main() async {
       return true; // handled — no crash dialog
     };
 
-    // Initialize MediaKit
-    MediaKit.ensureInitialized();
+    // Initialize MediaKit (not available on web)
+    if (!kIsWeb) {
+      MediaKit.ensureInitialized();
+    }
 
-    // Initialize native player channel for Android TV
-    NativePlayerChannel.init();
+    // Initialize native player channel for Android TV (not on web)
+    if (!kIsWeb) {
+      NativePlayerChannel.init();
+    }
 
     // Initialize native log channel for Android TV only
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       await NativeLogChannel.init();
     }
 
-    // Initialize Windows/Linux/macOS Database Engine
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    // Initialize Windows/Linux/macOS Database Engine (not on web)
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
 
     // Initialize window manager before any desktop fullscreen/window calls.
     // Multi-screen and player flows use window_manager on desktop (including macOS).
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       await windowManager.ensureInitialized();
       if (Platform.isWindows) {
         WindowOptions windowOptions = const WindowOptions(
@@ -234,7 +239,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
         .d('_DlnaAwareApp.initState() llamado', tag: 'AutoRefresh');
 
     // Listener de cierre de ventana en Windows
-    if (Platform.isWindows) {
+    if (!kIsWeb && Platform.isWindows) {
       windowManager.addListener(this);
     }
     // Crear inmediatamente DlnaProvider (iniciará DLNA automáticamente)
@@ -288,7 +293,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
 
   @override
   void dispose() {
-    if (Platform.isWindows) {
+    if (!kIsWeb && Platform.isWindows) {
       windowManager.removeListener(this);
     }
     // Eliminar listener de SettingsProvider para evitar memory leak en sesiones largas de TV
@@ -647,7 +652,7 @@ class _DlnaAwareAppState extends State<_DlnaAwareApp> with WindowListener {
               built = TvAppFocusWrapper(child: built);
             }
             // 3. On Windows: overlay the custom title bar.
-            if (Platform.isWindows) {
+            if (!kIsWeb && Platform.isWindows) {
               return Stack(children: [built, const WindowTitleBar()]);
             }
             return built;

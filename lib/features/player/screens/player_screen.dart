@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import '../../../core/platform/web_shims/media_kit_video_shim.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:window_manager/window_manager.dart';
+import '../../../core/platform/web_shims/window_manager_shim.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 
@@ -13,8 +13,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/tv_focusable.dart';
 import '../../../core/platform/platform_detector.dart';
 import '../../../core/platform/native_player_channel.dart';
-import '../../../core/platform/windows_pip_channel.dart';
-import '../../../core/platform/windows_fullscreen_native.dart';
+import '../../../core/platform/web_shims/windows_pip_shim.dart';
+import '../../../core/platform/web_shims/windows_fullscreen_shim.dart';
 import '../../../core/platform/macos_fullscreen_channel.dart';
 import '../../../core/models/channel.dart';
 import '../providers/player_provider.dart';
