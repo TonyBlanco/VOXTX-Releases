@@ -1,0 +1,23 @@
+{
+  "version": "1.5.36",
+  "build": 196,
+  "releaseDate": "2026-02-26",
+  "assets": {
+    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
+    "android_mobile": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-x86_64-release.apk"
+    },
+    "android_tv": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-x86_64-release.apk"
+    }
+  },
+  "changelog": {
+    "es": "- Chromecast: envia contenido a tu TV desde el movil\n- Channel Zapping CH+/CH- con mando remoto\n- Busqueda por voz en Android TV",
+    "en": "- Chromecast: cast content to your TV from mobile\n- Channel Zapping CH+/CH- with remote control\n- Voice search on Android TV"
+  },
+  "minVersion": "1.0.0"
+}

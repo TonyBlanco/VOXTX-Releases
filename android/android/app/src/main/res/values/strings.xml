@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FlutterIPTV</string>
+    <string name="cast_app_id">CC1AD845</string>
+    
+    <!-- Common -->
+    <string name="uncategorized">Uncategorized</string>
+    <string name="channel">Channel %d</string>
+    <string name="category_name">Category</string>
+    
+    <!-- Player -->
+    <string name="press_back_again_to_exit">Press back again to exit</string>
+    <string name="source_indicator">Source %1$d/%2$d</string>
+    <string name="hardware_decode">HW</string>
+    <string name="software_decode">SW</string>
+    <string name="epg_ends_in_minutes">Ends in %d min</string>
+    <string name="added_to_favorites">Added to favorites</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
+    <string name="operation_failed">Operation failed</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="up_next">Up Next</string>
+    <string name="controls_hint">↑↓ Switch channel · ← Short:Source/Double:Category · Long←→ Seek · OK Play/Pause · Double OK Favorite · Long OK Multi-screen</string>
+    <string name="category">Category</string>
+    <string name="channels">Channels</string>
+    
+    <!-- Multi-screen -->
+    <string name="multi_screen_mode">Multi-screen Mode</string>
+    <string name="press_back_to_exit">Press Back to exit</string>
+    <string name="dpad_move_switch_audio">D-pad Move/Switch audio</string>
+    <string name="ok_add_channel">OK Add channel</string>
+    <string name="long_ok_clear_screen">Long OK Clear screen</string>
+    <string name="back_exit_to_single">Back Exit to single</string>
+    <string name="screen_number">Screen %d</string>
+    <string name="screen_activated">Screen %d activated</string>
+    <string name="screen_cleared">Screen %d cleared</string>
+    <string name="press_ok_to_add_channel">Press OK to add channel</string>
+    <string name="playback_failed">Playback failed</string>
+    <string name="all_channels">All Channels</string>
+    <string name="channel_count">%d channels</string>
+    <string name="exit_multi_screen">Exit Multi-screen</string>
+    <string name="currently_playing">Currently playing: %s</string>
+    <string name="continue_playing">Continue</string>
+    <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_video_url_provided">No video URL provided</string>
+    <string name="playback_failed_with_reason">Playback failed: %1$s</string>
+    <string name="source_error">Source error</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="detecting_sources">Detecting sources...</string>
+    <string name="detecting_source_progress">Detecting source %1$d/%2$d</string>
+    <string name="auto_switching_source">Auto-switching source...</string>
+    <string name="waiting_source_detection">Detecting source, please wait...</string>
+    <string name="finding_available_source">Finding available source...</string>
+    <string name="channel_with_source_checking">%1$s (Checking source %2$d/%3$d)</string>
+    <string name="current_channel_single_source">Current channel has only one source</string>
+    <string name="next_source_label">next</string>
+    <string name="previous_source_label">previous</string>
+    <string name="switched_to_source">Switched to %1$s source (%2$d/%3$d)</string>
+</resources>

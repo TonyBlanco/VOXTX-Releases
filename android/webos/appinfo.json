@@ -1,0 +1,18 @@
+{
+  "id": "com.tonyblanco.voxtv",
+  "version": "1.5.36",
+  "vendor": "TonyBlanco",
+  "type": "web",
+  "main": "index.html",
+  "title": "VOXTV",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgColor": "#000000",
+  "iconColor": "#FF1565C0",
+  "splashBackground": "#000000",
+  "transparent": false,
+  "handlesRelaunch": false,
+  "requiredPermissions": [
+    "all"
+  ]
+}

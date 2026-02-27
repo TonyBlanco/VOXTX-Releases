@@ -1,0 +1,12 @@
+# Build output (copied from build/web/) — regenerate with:
+#   flutter build web --release && cp -r build/web/* webos/
+*.js
+*.js.map
+.last_build_id
+assets/
+canvaskit/
+icons/
+favicon.png
+manifest.json
+version.json
+index.html
