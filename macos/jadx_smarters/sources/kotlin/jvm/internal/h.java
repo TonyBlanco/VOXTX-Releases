@@ -1,0 +1,8 @@
+package kotlin.jvm.internal;
+
+import k8.InterfaceC2153b;
+
+/* JADX INFO: loaded from: classes4.dex */
+public interface h extends InterfaceC2153b {
+    int getArity();
+}

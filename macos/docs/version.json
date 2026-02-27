@@ -1,0 +1,23 @@
+{
+  "version": "1.5.27",
+  "build": 187,
+  "releaseDate": "2026-02-25",
+  "assets": {
+    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
+    "android_mobile": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-x86_64-release.apk"
+    },
+    "android_tv": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Android/releases/download/v1.5.27/app-x86_64-release.apk"
+    }
+  },
+  "changelog": {
+    "es": "- Selector de pistas de audio en el reproductor\n- Selector de subtítulos en el reproductor",
+    "en": "- Audio track selector in the player\n- Subtitle track selector in the player"
+  },
+  "minVersion": "1.0.0"
+}

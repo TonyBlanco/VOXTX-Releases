@@ -1,0 +1,42 @@
+package com.google.android.gms.internal.cast;
+
+import F4.a;
+import F4.b;
+import com.google.android.gms.common.util.VisibleForTesting;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import o4.q0;
+
+/* JADX INFO: loaded from: classes3.dex */
+public final class zzae extends q0 {
+
+    @VisibleForTesting
+    public final Set zza = Collections.synchronizedSet(new HashSet());
+
+    @Override // o4.r0
+    public final a zzb() {
+        return b.Z(this);
+    }
+
+    @Override // o4.r0
+    public final void zzc() {
+        Iterator it = this.zza.iterator();
+        while (it.hasNext()) {
+            ((zzad) it.next()).zza();
+        }
+    }
+
+    @Override // o4.r0
+    public final void zzd() {
+        Iterator it = this.zza.iterator();
+        while (it.hasNext()) {
+            ((zzad) it.next()).zzb();
+        }
+    }
+
+    public final void zze(zzad zzadVar) {
+        this.zza.add(zzadVar);
+    }
+}

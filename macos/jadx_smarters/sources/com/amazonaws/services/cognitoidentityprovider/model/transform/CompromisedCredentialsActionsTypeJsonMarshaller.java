@@ -1,0 +1,26 @@
+package com.amazonaws.services.cognitoidentityprovider.model.transform;
+
+import com.amazonaws.services.cognitoidentityprovider.model.CompromisedCredentialsActionsType;
+import com.amazonaws.util.json.AwsJsonWriter;
+
+/* JADX INFO: loaded from: classes.dex */
+class CompromisedCredentialsActionsTypeJsonMarshaller {
+    private static CompromisedCredentialsActionsTypeJsonMarshaller instance;
+
+    public static CompromisedCredentialsActionsTypeJsonMarshaller getInstance() {
+        if (instance == null) {
+            instance = new CompromisedCredentialsActionsTypeJsonMarshaller();
+        }
+        return instance;
+    }
+
+    public void marshall(CompromisedCredentialsActionsType compromisedCredentialsActionsType, AwsJsonWriter awsJsonWriter) throws Exception {
+        awsJsonWriter.beginObject();
+        if (compromisedCredentialsActionsType.getEventAction() != null) {
+            String eventAction = compromisedCredentialsActionsType.getEventAction();
+            awsJsonWriter.name("EventAction");
+            awsJsonWriter.value(eventAction);
+        }
+        awsJsonWriter.endObject();
+    }
+}
