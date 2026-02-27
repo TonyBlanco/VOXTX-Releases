@@ -1,0 +1,24 @@
+{
+  "version": "1.5.21",
+  "build": 181,
+  "releaseDate": "2026-02-24",
+  "assets": {
+    "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
+    "android_mobile": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-x86_64-release.apk"
+    },
+    "android_tv": {
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.21/app-x86_64-release.apk"
+    }
+  },
+  "changelog": {
+    "es": "- Guía de Programas (EPG Screen) completa\n- Mini player real en panel lateral TV\n- Fix EPG no aparecía en tarjetas de canales LIVE",
+    "en": "- Full EPG Program Guide screen\n- Real video mini player in TV side panel\n- Fix EPG not showing on LIVE channel cards",
+    "zh": "- Full EPG Program Guide screen\n- Real video mini player in TV side panel\n- Fix EPG not showing on LIVE channel cards"
+  },
+  "minVersion": "1.0.0"
+}
