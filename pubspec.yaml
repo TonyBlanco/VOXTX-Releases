@@ -1,0 +1,19 @@
+name: voxtv_root_suite
+description: Shared workspace layer for verifying tests across VoXtv platforms
+publish_to: none
+version: 0.0.1+0
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  test: ^1.29.0
+
+flutter:
+  uses-material-design: true

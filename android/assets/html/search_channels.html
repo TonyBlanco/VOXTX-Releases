@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoXtv - Search</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        nav a.active { background: linear-gradient(90deg, #667eea, #764ba2); color: #fff; }
+        .page { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+        h1 {
+            text-align: center; margin-bottom: 6px; font-size: 22px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 13px; }
+        .card {
+            background: #1e2a3a; border-radius: 16px; padding: 22px;
+            margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08);
+        }
+        .card h2 {
+            font-size: 15px; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card h2::before {
+            content: ''; display: inline-block; width: 3px; height: 18px;
+            background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 2px;
+        }
+        input {
+            width: 100%; padding: 13px 15px; border: none; border-radius: 10px;
+            background: #2a3a4a; color: #fff; font-size: 16px;
+            margin-bottom: 11px; outline: none; transition: all 0.3s;
+        }
+        input:focus { background: #344556; box-shadow: 0 0 0 2px rgba(102,126,234,0.5); }
+        input::placeholder { color: #555; }
+        button {
+            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: #fff; font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102,126,234,0.35); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .message { padding: 11px 15px; border-radius: 8px; margin-top: 10px; text-align: center; font-size: 14px; }
+        .message.success { background: rgba(34,197,94,0.2); color: #22c55e; }
+        .message.error   { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .lang-btn {
+            position: fixed; top: 12px; right: 16px;
+            background: #2a3a4a; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px; padding: 6px 11px; cursor: pointer;
+            font-size: 13px; color: #ccc; transition: all 0.2s;
+        }
+        .lang-btn:hover { background: #344556; color: #fff; }
+    </style>
+</head>
+<body>
+    <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">ES</button>
+    <nav>
+        <a href="/search" class="active" id="nav-search">🔍 Search</a>
+        <a href="/import" id="nav-import">📥 Import</a>
+        <a href="/remote" id="nav-remote">🎮 Remote</a>
+    </nav>
+
+    <div class="page">
+        <h1>🔍 VoXtv</h1>
+        <p class="subtitle" id="subtitle">Search channels on your TV</p>
+
+        <div class="card">
+            <h2 id="searchTitle">Search Channels</h2>
+            <input type="text" id="searchInput" placeholder="Channel name or category" autocomplete="off">
+            <button onclick="submitSearch()" id="searchBtn">Search</button>
+            <div id="searchMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        const i18n = {
+            'es': {
+                title: 'VoXtv - Buscar',
+                subtitle: 'Busca canales en tu TV',
+                searchTitle: 'Buscar Canales',
+                searchPlaceholder: 'Nombre de canal o categoria',
+                searchButton: 'Buscar',
+                searchInputError: 'Escribe algo para buscar',
+                searching: 'Buscando...',
+                success: 'Enviado a la TV',
+                failed: 'Error al enviar',
+                networkError: 'Error de red — asegurate de estar en la misma WiFi',
+                langBtn: 'EN',
+                navSearch: 'Buscar', navImport: 'Importar', navRemote: 'Mando'
+            },
+            'en': {
+                title: 'VoXtv - Search',
+                subtitle: 'Search channels on your TV',
+                searchTitle: 'Search Channels',
+                searchPlaceholder: 'Channel name or category',
+                searchButton: 'Search',
+                searchInputError: 'Please enter a search query',
+                searching: 'Searching...',
+                success: 'Sent to TV',
+                failed: 'Failed to send',
+                networkError: 'Network error — make sure you are on the same WiFi',
+                langBtn: 'ES',
+                navSearch: 'Search', navImport: 'Import', navRemote: 'Remote'
+            }
+        };
+
+        function detectLanguage() {
+            const p = new URLSearchParams(window.location.search).get('lang');
+            if (p && i18n[p]) return p;
+            return (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+        }
+
+        let currentLang = detectLanguage();
+        let t = i18n[currentLang];
+
+        function applyLanguage() {
+            document.documentElement.lang = currentLang;
+            document.title = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('searchTitle').textContent = t.searchTitle;
+            document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+            document.getElementById('searchBtn').textContent = t.searchButton;
+            document.getElementById('langBtn').textContent = t.langBtn;
+            document.getElementById('nav-search').innerHTML = '🔍 ' + t.navSearch;
+            document.getElementById('nav-import').innerHTML = '📥 ' + t.navImport;
+            document.getElementById('nav-remote').innerHTML = '🎮 ' + t.navRemote;
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            t = i18n[currentLang];
+            applyLanguage();
+            const url = new URL(window.location);
+            url.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', url);
+        }
+
+        applyLanguage();
+        document.getElementById('searchInput').focus();
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitSearch();
+        });
+
+        async function submitSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const btn = document.getElementById('searchBtn');
+            const msg = document.getElementById('searchMessage');
+            if (!query) { showMessage(msg, t.searchInputError, 'error'); return; }
+
+            btn.disabled = true;
+            btn.textContent = t.searching;
+            try {
+                const res = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMessage(msg, '✓ ' + t.success, 'success');
+                    document.getElementById('searchInput').value = '';
+                } else {
+                    showMessage(msg, t.failed + ': ' + data.message, 'error');
+                }
+            } catch (e) {
+                showMessage(msg, t.networkError, 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = t.searchButton;
+        }
+
+        function showMessage(el, text, type) {
+            el.textContent = text;
+            el.className = 'message ' + type;
+            setTimeout(() => { el.textContent = ''; el.className = ''; }, 4000);
+        }
+    </script>
+</body>
+</html>

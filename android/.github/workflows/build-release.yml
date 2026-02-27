@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*.*.*'  # 仅在推送tag时触发
+      - 'v*.*.*'  # Only triggers on tag pushes
   workflow_dispatch:
     inputs:
       version:
@@ -203,53 +203,46 @@ jobs:
           
           # Read changelog from version.json
           if [ -f "docs/version.json" ]; then
-            CHANGELOG_ZH=$(jq -r '.changelog.zh' docs/version.json | sed 's/\\n/\n/g')
-            CHANGELOG_EN=$(jq -r '.changelog.en' docs/version.json | sed 's/\\n/\n/g')
+            CHANGELOG=$(jq -r '.changelog.en' docs/version.json | sed 's/\\n/\n/g')
           else
             # Fallback to git commits if version.json not found
             PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -v "^${TAG}$" | head -1)
             if [ -n "$PREV_TAG" ]; then
-              CHANGELOG_ZH=$(git log --pretty=format:"- %s" ${PREV_TAG}..${TAG} 2>/dev/null | grep -v "^- Merge" || echo "- Bug fixes and improvements")
-              CHANGELOG_EN="${CHANGELOG_ZH}"
+              CHANGELOG=$(git log --pretty=format:"- %s" ${PREV_TAG}..${TAG} 2>/dev/null | grep -v "^- Merge" || echo "- Bug fixes and improvements")
             else
-              CHANGELOG_ZH="- 初始版本"
-              CHANGELOG_EN="- Initial release"
+              CHANGELOG="- Initial release"
             fi
           fi
           
           cat > release_notes.md << EOF
           ## 📺 FlutterIPTV ${VERSION}
           
-          ### 📝 更新内容 What's New
+          ### 📝 What's New
           
-          **中文 Chinese:**
-          ${CHANGELOG_ZH}
-          
-          **English:**
-          ${CHANGELOG_EN}
+          ${CHANGELOG}
           
           ---
           
-          ### 📥 下载 Downloads
+          ### 📥 Downloads
           
           #### 🖥️ Windows
-          | 文件 | 说明 |
-          |------|------|
-          | [flutteriptv-Windows-x64-Setup.exe](${BASE_URL}/flutteriptv-Windows-x64-Setup.exe) | Windows 64位安装包 |
+          | File | Description |
+          |------|-------------|
+          | [flutteriptv-Windows-x64-Setup.exe](${BASE_URL}/flutteriptv-Windows-x64-Setup.exe) | Windows 64-bit installer |
           
-          #### 📱 Android 手机版
-          | 文件 | 说明 |
-          |------|------|
-          | [flutteriptv-Android-Mobile-arm64-v8a.apk](${BASE_URL}/flutteriptv-Android-Mobile-arm64-v8a.apk) | 64位 ARM 设备（推荐） |
-          | [flutteriptv-Android-Mobile-armeabi-v7a.apk](${BASE_URL}/flutteriptv-Android-Mobile-armeabi-v7a.apk) | 32位 ARM 设备 |
-          | [flutteriptv-Android-Mobile-x86_64.apk](${BASE_URL}/flutteriptv-Android-Mobile-x86_64.apk) | x86_64 模拟器 |
+          #### 📱 Android Mobile
+          | File | Description |
+          |------|-------------|
+          | [flutteriptv-Android-Mobile-arm64-v8a.apk](${BASE_URL}/flutteriptv-Android-Mobile-arm64-v8a.apk) | 64-bit ARM devices (recommended) |
+          | [flutteriptv-Android-Mobile-armeabi-v7a.apk](${BASE_URL}/flutteriptv-Android-Mobile-armeabi-v7a.apk) | 32-bit ARM devices |
+          | [flutteriptv-Android-Mobile-x86_64.apk](${BASE_URL}/flutteriptv-Android-Mobile-x86_64.apk) | x86_64 emulator |
           
-          #### 📺 Android TV 电视版
-          | 文件 | 说明 |
-          |------|------|
-          | [flutteriptv-AndroidTV-arm64-v8a.apk](${BASE_URL}/flutteriptv-AndroidTV-arm64-v8a.apk) | 64位 ARM 电视（推荐） |
-          | [flutteriptv-AndroidTV-armeabi-v7a.apk](${BASE_URL}/flutteriptv-AndroidTV-armeabi-v7a.apk) | 32位 ARM 电视 |
-          | [flutteriptv-AndroidTV-x86_64.apk](${BASE_URL}/flutteriptv-AndroidTV-x86_64.apk) | x86_64 电视模拟器 |
+          #### 📺 Android TV
+          | File | Description |
+          |------|-------------|
+          | [flutteriptv-AndroidTV-arm64-v8a.apk](${BASE_URL}/flutteriptv-AndroidTV-arm64-v8a.apk) | 64-bit ARM TV (recommended) |
+          | [flutteriptv-AndroidTV-armeabi-v7a.apk](${BASE_URL}/flutteriptv-AndroidTV-armeabi-v7a.apk) | 32-bit ARM TV |
+          | [flutteriptv-AndroidTV-x86_64.apk](${BASE_URL}/flutteriptv-AndroidTV-x86_64.apk) | x86_64 TV emulator |
           EOF
       
       - name: Create Release

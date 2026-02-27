@@ -35,24 +35,23 @@ import java.util.concurrent.Executors
 import kotlin.math.pow
 
 /**
- * TV端分屏播放器 Fragment
- * 逻辑参考 Windows 分屏：
- * 1. 方向键移动焦点
- * 2. OK键：空屏幕显示频道选择器，有频道则切换活动屏幕
- * 3. 长按OK键清空当前屏幕
- * 4. 返回键退出分屏（可转为普通播放）
- * 5. 支持音量增强
+ * Multi-screen player fragment with Windows-style split-screen navigation:
+ * 1. Arrow keys move focus between screens.
+ * 2. OK opens the channel selector when the screen is empty or makes it active.
+ * 3. Long OK clears the current screen.
+ * 4. Back exits splitscreen back to the single-player view.
+ * 5. Volume boost is supported.
  */
 class MultiScreenPlayerFragment : Fragment() {
     private val TAG = "MultiScreenPlayer"
 
-    // 4个播放器实例
+    // Four player instances
     private val players = arrayOfNulls<ExoPlayer>(4)
     private val playerViews = arrayOfNulls<PlayerView>(4)
     private val screenContainers = arrayOfNulls<View>(4)
     private val overlays = arrayOfNulls<View>(4)
 
-    // 屏幕状态
+    // Screen states
     data class ScreenState(
         var channelIndex: Int = -1,
         var channelName: String = "",
@@ -61,25 +60,25 @@ class MultiScreenPlayerFragment : Fragment() {
         var hasError: Boolean = false,
         var videoWidth: Int = 0,
         var videoHeight: Int = 0,
-        var retryCount: Int = 0,  // 重试计数
-        var currentSourceIndex: Int = 0  // 当前源索引
+        var retryCount: Int = 0,  // Retry counter
+        var currentSourceIndex: Int = 0  // Current source index
     )
     private val screenStates = Array(4) { ScreenState() }
     
-    // 重试相关常量
+    // Retry-related constants
     private val MAX_RETRIES = 3
     private val RETRY_DELAY = 2000L
 
-    // 当前焦点和活动屏幕
+    // Focused and active screens
     private var focusedScreenIndex = 0
-    private var activeScreenIndex = 0  // 有声音的屏幕
+    private var activeScreenIndex = 0
 
-    // 控制栏
+    // Control bar
     private lateinit var topBar: View
     private lateinit var bottomBar: View
     private var controlsVisible = true
 
-    // 频道选择器
+    // Channel selector
     private lateinit var channelSelectorPanel: View
     private lateinit var categoryList: RecyclerView
     private lateinit var channelGrid: RecyclerView
@@ -88,35 +87,35 @@ class MultiScreenPlayerFragment : Fragment() {
     private lateinit var selectorChannelCount: TextView
     private var channelSelectorVisible = false
     private var targetScreenForSelector = 0
-    private var selectedCategoryIndex = 0  // 0 = 全部频道
+    private var selectedCategoryIndex = 0  // 0 = all channels
     private var categoryFocusIndex = 0
     private var channelFocusIndex = 0
-    private var isCategoryFocused = true  // true = 分类列表有焦点, false = 频道网格有焦点
+    private var isCategoryFocused = true  // true = category list has focus, false = channel grid
 
-    // 频道数据
+    // Channel data
     private var channelUrls = arrayListOf<String>()
     private var channelNames = arrayListOf<String>()
     private var channelGroups = arrayListOf<String>()
     private var channelSources = arrayListOf<ArrayList<String>>()
     private var channelLogos = arrayListOf<String>()
     
-    // 分类数据
-    private var categories = arrayListOf<String>()  // 分类名称列表
-    private var categoryChannelCounts = hashMapOf<String, Int>()  // 每个分类的频道数量
+    // Category data
+    private var categories = arrayListOf<String>()
+    private var categoryChannelCounts = hashMapOf<String, Int>()
     
-    // 初始频道索引（从频道列表进入时选择的频道）
+    // Initial channel index (from channel list entry)
     private var initialChannelIndex = 0
-    // 初始源索引（从单屏进入分屏时的源索引）
+    // Initial source index (from single player transition)
     private var initialSourceIndex = 0
     
-    // 默认屏幕位置（1-4，对应四个屏幕）
+    // Default screen position (1-4)
     private var defaultScreenPosition = 1
     
-    // 音量增强
+    // Volume boost
     private var volumeBoostDb = 0
     private var baseVolume = 1.0f
     
-    // 是否显示频道名称
+    // Whether to show channel names
     private var showChannelName = false
 
     // Handler
@@ -124,16 +123,15 @@ class MultiScreenPlayerFragment : Fragment() {
     private var hideControlsRunnable: Runnable? = null
     private val CONTROLS_HIDE_DELAY = 4000L
     
-    // 长按检测
+    // Long press detection
     private var okKeyDownTime = 0L
     private val LONG_PRESS_THRESHOLD = 500L
     private var longPressHandled = false
-    private var ignoreInitialKeyEvents = true  // 忽略初始按键事件
-    private var initTime = 0L  // 初始化时间
+    private var ignoreInitialKeyEvents = true  // Ignore initial key events
+    private var initTime = 0L  // Initialization timestamp
 
-    // 回调
     var onCloseListener: (() -> Unit)? = null
-    var onExitToNormalPlayer: ((Int, Int) -> Unit)? = null  // 退出到普通播放器，传递当前频道索引和源索引
+    var onExitToNormalPlayer: ((Int, Int) -> Unit)? = null
 
     companion object {
         private const val ARG_CHANNEL_URLS = "channel_urls"
@@ -150,7 +148,6 @@ class MultiScreenPlayerFragment : Fragment() {
         private const val ARG_RESTORE_SCREEN_STATES = "restore_screen_states"
         private const val ARG_SHOW_CHANNEL_NAME = "show_channel_name"
         
-        // 静态图片缓存，在 Fragment 之间共享
         private val imageCache = hashMapOf<String, Bitmap?>()
         private val loadingUrls = hashSetOf<String>()
 
@@ -189,7 +186,6 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
     
-    // 公开方法供 MainActivity 获取状态
     fun getScreenState(index: Int): ScreenState? {
         return if (index in 0..3) screenStates[index] else null
     }
@@ -205,13 +201,11 @@ class MultiScreenPlayerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated")
         
-        // 记录初始化时间，用于忽略初始按键事件
         initTime = System.currentTimeMillis()
         ignoreInitialKeyEvents = true
 
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // 解析参数
         var restoreActiveIndex = -1
         var restoreFocusedIndex = -1
         var restoreScreenStates: ArrayList<ArrayList<String>>? = null
@@ -236,15 +230,12 @@ class MultiScreenPlayerFragment : Fragment() {
 
         Log.d(TAG, "Loaded ${channelUrls.size} channels, initial=$initialChannelIndex, sourceIndex=$initialSourceIndex, volumeBoost=$volumeBoostDb, defaultScreen=$defaultScreenPosition, restoreActive=$restoreActiveIndex, showChannelName=$showChannelName")
 
-        // 初始化视图
         initViews(view)
 
-        // 初始化播放器
         for (i in 0..3) {
             initializePlayer(i)
         }
 
-        // 设置按键监听
         view.isFocusableInTouchMode = true
         view.requestFocus()
         view.setOnKeyListener { _, keyCode, event ->
@@ -255,15 +246,12 @@ class MultiScreenPlayerFragment : Fragment() {
             }
         }
 
-        // 检查是否需要恢复状态
         if (restoreActiveIndex >= 0 && restoreScreenStates != null) {
             Log.d(TAG, "Restoring multi-screen state")
-            // 恢复之前的分屏状态
             for (i in 0..3) {
                 val stateData = restoreScreenStates?.getOrNull(i)
                 if (stateData != null && stateData.size >= 3) {
                     val channelIndex = stateData[0].toIntOrNull() ?: -1
-                    // 读取源索引（第4个字段，如果存在）
                     val sourceIndex = if (stateData.size >= 4) stateData[3].toIntOrNull() ?: 0 else 0
                     if (channelIndex >= 0 && channelIndex < channelUrls.size) {
                         Log.d(TAG, "Restoring screen $i: channelIndex=$channelIndex, sourceIndex=$sourceIndex")
@@ -273,40 +261,30 @@ class MultiScreenPlayerFragment : Fragment() {
             }
             activeScreenIndex = restoreActiveIndex.coerceIn(0, 3)
             focusedScreenIndex = restoreFocusedIndex.coerceIn(0, 3)
-            // 如果有初始频道和源索引，更新活动屏幕的频道（从单屏切换到分屏时）
             if (initialChannelIndex >= 0 && initialChannelIndex < channelUrls.size) {
                 playChannelOnScreen(activeScreenIndex, initialChannelIndex, initialSourceIndex)
             }
-            // 确保活动屏幕有声音
             for (i in 0..3) {
                 players[i]?.volume = if (i == activeScreenIndex) getEffectiveVolume() else 0f
             }
         } else {
-            // 默认在指定屏幕位置播放初始频道（参考Windows分屏逻辑）
-            // defaultScreenPosition: 1=左上, 2=右上, 3=左下, 4=右下
             if (initialChannelIndex >= 0 && initialChannelIndex < channelUrls.size) {
                 val screenIndex = (defaultScreenPosition - 1).coerceIn(0, 3)
-                // 先设置活动屏幕索引，确保播放时有声音
                 activeScreenIndex = screenIndex
                 focusedScreenIndex = screenIndex
-                // 然后播放频道（使用初始源索引）
                 playChannelOnScreen(screenIndex, initialChannelIndex, initialSourceIndex)
-                // 确保该屏幕有声音
                 players[screenIndex]?.volume = getEffectiveVolume()
             }
         }
 
-        // 更新UI
         updateAllScreenOverlays()
         showControls()
     }
 
     private fun initViews(view: View) {
-        // 控制栏
         topBar = view.findViewById(R.id.top_bar)
         bottomBar = view.findViewById(R.id.bottom_bar)
 
-        // 频道选择器
         channelSelectorPanel = view.findViewById(R.id.channel_selector_panel)
         categoryList = view.findViewById(R.id.selector_category_list)
         channelGrid = view.findViewById(R.id.selector_channel_grid)
@@ -314,18 +292,14 @@ class MultiScreenPlayerFragment : Fragment() {
         selectorCategoryTitle = view.findViewById(R.id.selector_category_title)
         selectorChannelCount = view.findViewById(R.id.selector_channel_count)
 
-        // 初始化分类数据
         buildCategoryData()
 
-        // 设置分类列表
         categoryList.layoutManager = LinearLayoutManager(requireContext())
         categoryList.adapter = CategoryAdapter()
 
-        // 设置频道网格
         channelGrid.layoutManager = GridLayoutManager(requireContext(), 5)
         channelGrid.adapter = ChannelAdapter()
 
-        // 4个屏幕
         val containerIds = arrayOf(R.id.screen_container_0, R.id.screen_container_1, R.id.screen_container_2, R.id.screen_container_3)
         val playerViewIds = arrayOf(R.id.player_view_0, R.id.player_view_1, R.id.player_view_2, R.id.player_view_3)
         val overlayIds = arrayOf(R.id.overlay_0, R.id.overlay_1, R.id.overlay_2, R.id.overlay_3)
@@ -335,7 +309,6 @@ class MultiScreenPlayerFragment : Fragment() {
             playerViews[i] = view.findViewById(playerViewIds[i])
             overlays[i] = view.findViewById(overlayIds[i])
 
-            // 设置屏幕编号
             overlays[i]?.findViewById<TextView>(R.id.screen_number)?.text = getString(R.string.screen_number, i + 1)
             overlays[i]?.findViewById<TextView>(R.id.badge_number)?.text = "${i + 1}"
 
@@ -353,11 +326,10 @@ class MultiScreenPlayerFragment : Fragment() {
             .setBufferDurationsMs(15000, 30000, 500, 1500)
             .build()
 
-        // 配置 HTTP 数据源和 MediaSourceFactory 支持 HLS/DASH
         val dataSourceFactory = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(8000)
             .setReadTimeoutMs(15000)
-            .setAllowCrossProtocolRedirects(true)  // 允许跨协议重定向 (HTTP→HTTPS)
+            .setAllowCrossProtocolRedirects(true)
             .setUserAgent("Wget/1.21.3")
         
         val mediaSourceFactory = DefaultMediaSourceFactory(requireContext())
@@ -370,31 +342,30 @@ class MultiScreenPlayerFragment : Fragment() {
                 playerViews[index]?.player = player
                 player.playWhenReady = true
                 player.repeatMode = Player.REPEAT_MODE_OFF
-                // 只有活动屏幕有声音
                 player.volume = if (index == activeScreenIndex) getEffectiveVolume() else 0f
 
                 player.addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         when (playbackState) {
                             Player.STATE_BUFFERING -> {
-                                NativeLogger.d(TAG, "屏幕 $index 播放器状态: BUFFERING")
+                                NativeLogger.d(TAG, "Screen $index player state: BUFFERING")
                                 screenStates[index].isLoading = true
                                 screenStates[index].hasError = false
                                 updateScreenOverlay(index)
                             }
                             Player.STATE_READY -> {
-                                NativeLogger.i(TAG, "屏幕 $index 播放器状态: READY")
+                                NativeLogger.i(TAG, "Screen $index player state: READY")
                                 screenStates[index].isLoading = false
                                 screenStates[index].hasError = false
                                 updateScreenOverlay(index)
                             }
                             Player.STATE_ENDED -> {
-                                NativeLogger.d(TAG, "屏幕 $index 播放器状态: ENDED")
+                                NativeLogger.d(TAG, "Screen $index player state: ENDED")
                                 screenStates[index].isLoading = false
                                 updateScreenOverlay(index)
                             }
                             Player.STATE_IDLE -> {
-                                NativeLogger.d(TAG, "屏幕 $index 播放器状态: IDLE")
+                                NativeLogger.d(TAG, "Screen $index player state: IDLE")
                                 screenStates[index].isLoading = false
                                 updateScreenOverlay(index)
                             }
@@ -404,18 +375,17 @@ class MultiScreenPlayerFragment : Fragment() {
                     override fun onVideoSizeChanged(videoSize: VideoSize) {
                         screenStates[index].videoWidth = videoSize.width
                         screenStates[index].videoHeight = videoSize.height
-                        NativeLogger.d(TAG, "屏幕 $index 视频尺寸: ${videoSize.width}x${videoSize.height}")
+                        NativeLogger.d(TAG, "Screen $index video size: ${videoSize.width}x${videoSize.height}")
                         updateScreenOverlay(index)
                     }
 
                     override fun onPlayerError(error: PlaybackException) {
-                        NativeLogger.e(TAG, "屏幕 $index 播放器错误: ${error.message}, 错误码: ${error.errorCode}", error)
+                        NativeLogger.e(TAG, "Screen $index player error: ${error.message}, error code: ${error.errorCode}", error)
                         error.cause?.let { cause ->
-                            NativeLogger.e(TAG, "屏幕 $index 错误原因: ${cause.message}", cause)
+                                NativeLogger.e(TAG, "Screen $index error cause: ${cause.message}", cause)
                         }
                         screenStates[index].isLoading = false
                         
-                        // 尝试重试或切换源
                         val state = screenStates[index]
                         val sources = if (state.channelIndex >= 0 && state.channelIndex < channelSources.size) {
                             channelSources[state.channelIndex]
@@ -424,8 +394,7 @@ class MultiScreenPlayerFragment : Fragment() {
                         }
                         
                         if (state.retryCount < MAX_RETRIES) {
-                            // 先重试当前源
-                            NativeLogger.w(TAG, "屏幕 $index 重试播放 (尝试 ${state.retryCount + 1}/$MAX_RETRIES)")
+                            NativeLogger.w(TAG, "Screen $index retrying playback (attempt ${state.retryCount + 1}/$MAX_RETRIES)")
                             state.retryCount++
                             state.isLoading = true
                             updateScreenOverlay(index)
@@ -434,18 +403,15 @@ class MultiScreenPlayerFragment : Fragment() {
                                 playUrlOnScreen(index, state.channelUrl)
                             }, RETRY_DELAY)
                         } else if (state.currentSourceIndex + 1 < sources.size) {
-                            // 重试次数用完，检测并切换到下一个源
-                            NativeLogger.w(TAG, "屏幕 $index 重试次数用完，检测下一个源")
+                            NativeLogger.w(TAG, "Screen $index retry limit reached, checking next source")
                             state.isLoading = true
                             updateScreenOverlay(index)
                             
-                            // 在后台线程检测源
                             Thread {
                                 val originalName = state.channelName
                                 var foundIndex = -1
                                 for (i in (state.currentSourceIndex + 1) until sources.size) {
                                     activity?.runOnUiThread {
-                                        // 更新状态显示正在检测的源
                                         state.channelName = getString(
                                             R.string.channel_with_source_checking,
                                             originalName,
@@ -457,11 +423,11 @@ class MultiScreenPlayerFragment : Fragment() {
                                     }
                                     
                                     if (testSource(sources[i])) {
-                                        NativeLogger.i(TAG, "屏幕 $index 找到可用源 ${i + 1}/${sources.size}")
+                                        NativeLogger.i(TAG, "Screen $index found available source ${i + 1}/${sources.size}")
                                         foundIndex = i
                                         break
                                     } else {
-                                        NativeLogger.d(TAG, "屏幕 $index 源 ${i + 1}/${sources.size} 不可用")
+                                        NativeLogger.d(TAG, "Screen $index source ${i + 1}/${sources.size} unavailable")
                                     }
                                 }
                                 
@@ -469,8 +435,7 @@ class MultiScreenPlayerFragment : Fragment() {
                                     state.channelName = originalName
                                     
                                     if (foundIndex >= 0) {
-                                        // 找到可用源，切换
-                                        NativeLogger.i(TAG, "屏幕 $index 切换到源 ${foundIndex + 1}/${sources.size}")
+                                        NativeLogger.i(TAG, "Screen $index switching to source ${foundIndex + 1}/${sources.size}")
                                         state.currentSourceIndex = foundIndex
                                         state.retryCount = 0
                                         val nextUrl = sources[foundIndex]
@@ -480,8 +445,7 @@ class MultiScreenPlayerFragment : Fragment() {
                                         
                                         playUrlOnScreen(index, nextUrl)
                                     } else {
-                                        // 所有源都不可用
-                                        NativeLogger.e(TAG, "屏幕 $index 所有源都不可用")
+                                        NativeLogger.e(TAG, "Screen $index all sources unavailable")
                                         state.hasError = true
                                         state.isLoading = false
                                         updateScreenOverlay(index)
@@ -489,8 +453,7 @@ class MultiScreenPlayerFragment : Fragment() {
                                 }
                             }.start()
                         } else {
-                            // 所有重试都失败了，没有更多源
-                            NativeLogger.e(TAG, "屏幕 $index 所有重试都失败，没有更多源")
+                            NativeLogger.e(TAG, "Screen $index all retries failed, no more sources")
                             state.hasError = true
                             updateScreenOverlay(index)
                         }
@@ -499,12 +462,10 @@ class MultiScreenPlayerFragment : Fragment() {
             }
     }
     
-    // 计算有效音量（包含增强）
     private fun getEffectiveVolume(): Float {
         if (volumeBoostDb == 0) {
             return baseVolume
         }
-        // 将 dB 转换为线性增益
         val boostFactor = 10.0.pow(volumeBoostDb / 20.0)
         return (baseVolume * boostFactor).coerceIn(0.0, 2.0).toFloat()
     }
@@ -513,24 +474,19 @@ class MultiScreenPlayerFragment : Fragment() {
         if (screenIndex < 0 || screenIndex > 3) return
         if (channelIndex < 0 || channelIndex >= channelUrls.size) return
 
-        // 记录观看历史
         (activity as? MainActivity)?.addWatchHistory(channelIndex)
 
-        // 获取源列表
-        // 获取源列表
         val sources = if (channelIndex < channelSources.size) channelSources[channelIndex] else arrayListOf()
         
         val name = channelNames.getOrElse(channelIndex) { "Channel ${channelIndex + 1}" }
         
-        // 如果有多个源且未指定特定源（sourceIndex == 0），则进行自动检测
         if (sources.size > 1 && sourceIndex == 0) {
             Log.d(TAG, "Multi-source channel '$name' on screen $screenIndex, starting auto-detection")
             
-            // 先更新UI为加载状态
             screenStates[screenIndex].apply {
                 this.channelIndex = channelIndex
                 this.channelName = name
-                this.channelUrl = "" // 暂时为空
+                this.channelUrl = ""
                 this.isLoading = true
                 this.hasError = false
                 this.videoWidth = 0
@@ -540,7 +496,6 @@ class MultiScreenPlayerFragment : Fragment() {
             }
             updateScreenOverlay(screenIndex)
             
-            // 在后台线程检测源
             Thread {
                 var foundIndex = -1
                 for (i in sources.indices) {
@@ -561,17 +516,14 @@ class MultiScreenPlayerFragment : Fragment() {
                     }
                 }
                 
-                // 如果所有源都不可用，使用第一个源（会报错然后触发onPlayerError的重试逻辑）
                 if (foundIndex == -1) foundIndex = 0
                 
                 val finalIndex = foundIndex
                 val finalUrl = sources[finalIndex]
                 
                 activity?.runOnUiThread {
-                    // 恢复原始频道名称
                     screenStates[screenIndex].channelName = name
                     
-                    // 更新状态并播放
                     screenStates[screenIndex].apply {
                         this.channelUrl = finalUrl
                         this.currentSourceIndex = finalIndex
@@ -582,7 +534,6 @@ class MultiScreenPlayerFragment : Fragment() {
                 }
             }.start()
         } else {
-            // 直接播放（单源或指定了源）
             val validSourceIndex = if (sources.isNotEmpty()) sourceIndex.coerceIn(0, sources.size - 1) else 0
             val url = if (sources.isNotEmpty()) {
                 sources[validSourceIndex]
@@ -610,55 +561,47 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
 
-    // 解析真实播放地址（使用统一的RedirectResolver）
     private fun resolveRealPlayUrl(url: String): String {
-        return RedirectResolver.resolveRealPlayUrl(url, useCache = true) // 使用缓存，避免重复请求
+        return RedirectResolver.resolveRealPlayUrl(url, useCache = true)
     }
-    
-    // 播放指定屏幕的URL（在后台线程解析重定向）
+
     private fun playUrlOnScreen(screenIndex: Int, url: String) {
         Thread {
-            NativeLogger.d(TAG, "屏幕 $screenIndex >>> 开始解析302重定向")
+            NativeLogger.d(TAG, "Screen $screenIndex >>> starting 302 redirect resolution")
             val startTime = System.currentTimeMillis()
             val redirectStartTime = System.currentTimeMillis()
-            
+
             val realUrl = resolveRealPlayUrl(url)
-            
+
             val redirectTime = System.currentTimeMillis() - redirectStartTime
-            NativeLogger.d(TAG, "屏幕 $screenIndex >>> 302重定向解析完成，耗时: ${redirectTime}ms")
-            
+            NativeLogger.d(TAG, "Screen $screenIndex >>> 302 redirect resolved in ${redirectTime}ms")
+
             activity?.runOnUiThread {
-                NativeLogger.d(TAG, "屏幕 $screenIndex >>> 使用播放地址: $realUrl")
-                NativeLogger.d(TAG, "屏幕 $screenIndex >>> 开始初始化播放器")
+                NativeLogger.d(TAG, "Screen $screenIndex >>> using playback URL: $realUrl")
+                NativeLogger.d(TAG, "Screen $screenIndex >>> initializing player")
                 val playStartTime = System.currentTimeMillis()
-                
+
                 players[screenIndex]?.let { player ->
                     player.setMediaItem(MediaItem.fromUri(realUrl))
                     player.prepare()
                 }
-                
+
                 val playTime = System.currentTimeMillis() - playStartTime
                 val totalTime = System.currentTimeMillis() - startTime
-                NativeLogger.d(TAG, "屏幕 $screenIndex >>> 播放器初始化完成，耗时: ${playTime}ms")
-                NativeLogger.i(TAG, "屏幕 $screenIndex >>> 播放流程总耗时: ${totalTime}ms")
+                NativeLogger.d(TAG, "Screen $screenIndex >>> player initialized in ${playTime}ms")
+                NativeLogger.i(TAG, "Screen $screenIndex >>> total startup time: ${totalTime}ms")
             }
         }.start()
     }
 
-    // 检测源是否可用（在后台线程执行）
-    // 同时解析302重定向并缓存真实地址，避免播放时重复请求
     private fun testSource(url: String): Boolean {
         return try {
-            // 直接调用RedirectResolver解析真实地址
-            // 如果成功解析，说明源可用，同时地址已被缓存
             val realUrl = RedirectResolver.resolveRealPlayUrl(url, useCache = true)
-            
-            // 如果返回的地址不为空，说明源可用
             val isAvailable = realUrl.isNotEmpty()
-            Log.d(TAG, "testSource: $url -> ${if (isAvailable) "可用 (真实地址已缓存)" else "不可用"}")
+            Log.d(TAG, "testSource: $url -> ${if (isAvailable) "available (real URL cached)" else "unavailable"}")
             isAvailable
         } catch (e: Exception) {
-            Log.d(TAG, "testSource: $url -> 异常: ${e.message}")
+            Log.d(TAG, "testSource: $url -> error: ${e.message}")
             false
         }
     }
@@ -686,22 +629,19 @@ class MultiScreenPlayerFragment : Fragment() {
 
     private fun setActiveScreen(index: Int) {
         if (index < 0 || index > 3) return
-        if (screenStates[index].channelIndex < 0) return  // 空屏幕不能设为活动
+        if (screenStates[index].channelIndex < 0) return
         if (index == activeScreenIndex) return
 
         Log.d(TAG, "Setting active screen to $index")
 
-        // 静音旧的活动屏幕
         players[activeScreenIndex]?.volume = 0f
 
         activeScreenIndex = index
 
-        // 取消静音新的活动屏幕（使用有效音量）
         players[activeScreenIndex]?.volume = getEffectiveVolume()
 
         updateAllScreenOverlays()
         
-        // 显示提示
         Toast.makeText(requireContext(), getString(R.string.screen_activated, index + 1), Toast.LENGTH_SHORT).show()
     }
 
@@ -720,19 +660,15 @@ class MultiScreenPlayerFragment : Fragment() {
         Log.d(TAG, "updateScreenOverlay: index=$index, showChannelName=$showChannelName, channelIndex=${state.channelIndex}, isLoading=${state.isLoading}, hasError=${state.hasError}")
 
         activity?.runOnUiThread {
-            // 只使用一个选择框（焦点框），焦点屏幕显示
             val focusBorder = overlay.findViewById<View>(R.id.focus_border)
             focusBorder?.visibility = if (isFocused) View.VISIBLE else View.GONE
 
-            // 隐藏活动边框（不再使用）
             val activeBorder = overlay.findViewById<View>(R.id.active_border)
             activeBorder?.visibility = View.GONE
 
-            // 隐藏屏幕编号徽章
             val badge = overlay.findViewById<View>(R.id.screen_badge)
             badge?.visibility = View.GONE
 
-            // 加载/空/错误/播放状态
             val loadingIndicator = overlay.findViewById<ProgressBar>(R.id.loading_indicator)
             val emptyPlaceholder = overlay.findViewById<View>(R.id.empty_placeholder)
             val errorContainer = overlay.findViewById<View>(R.id.error_container)
@@ -746,7 +682,6 @@ class MultiScreenPlayerFragment : Fragment() {
 
             when {
                 state.channelIndex < 0 -> {
-                    // 空屏幕
                     emptyPlaceholder?.visibility = View.VISIBLE
                     loadingIndicator?.visibility = View.GONE
                     errorContainer?.visibility = View.GONE
@@ -778,14 +713,11 @@ class MultiScreenPlayerFragment : Fragment() {
                     bottomInfo?.visibility = if (showChannelName) View.VISIBLE else View.GONE
                     channelNameText?.text = state.channelName
 
-                    // 显示分辨率和声音图标
                     if (state.videoWidth > 0 && state.videoHeight > 0) {
                         infoContainer?.visibility = View.VISIBLE
                         resolutionText?.text = "${state.videoWidth}x${state.videoHeight}"
-                        // 声音图标显示在分辨率后面
                         audioIcon?.visibility = if (isActive) View.VISIBLE else View.GONE
                     } else {
-                        // 即使没有分辨率信息，如果是活动屏幕也显示声音图标
                         if (isActive) {
                             infoContainer?.visibility = View.VISIBLE
                             resolutionText?.text = ""
@@ -799,12 +731,10 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
 
-    // ==================== 按键处理 ====================
     
     private fun handleKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         Log.d(TAG, "handleKeyDown: keyCode=$keyCode, channelSelectorVisible=$channelSelectorVisible, ignoreInitial=$ignoreInitialKeyEvents")
         
-        // 忽略初始化后500ms内的按键事件（防止从普通播放器长按进入时触发）
         if (ignoreInitialKeyEvents) {
             if (System.currentTimeMillis() - initTime < 500) {
                 Log.d(TAG, "Ignoring initial key event")
@@ -813,26 +743,22 @@ class MultiScreenPlayerFragment : Fragment() {
             ignoreInitialKeyEvents = false
         }
         
-        // 如果频道选择器显示中，由它处理按键
         if (channelSelectorVisible) {
             return handleSelectorKeyDown(keyCode, event)
         }
         
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                // 记录按下时间，用于检测长按
                 if (okKeyDownTime == 0L) {
                     okKeyDownTime = System.currentTimeMillis()
                     longPressHandled = false
                 }
                 
-                // 检查是否达到长按阈值
                 handler.postDelayed({
                     if (okKeyDownTime > 0 && !longPressHandled) {
                         val pressDuration = System.currentTimeMillis() - okKeyDownTime
                         if (pressDuration >= LONG_PRESS_THRESHOLD) {
                             longPressHandled = true
-                            // 长按：清空当前屏幕
                             handleLongPressOk()
                         }
                     }
@@ -859,7 +785,6 @@ class MultiScreenPlayerFragment : Fragment() {
                     handler.postDelayed({
                         if (leftKeyDownTime > 0 && !navLongPressHandled) {
                             navLongPressHandled = true
-                            // 长按：切换上一个源
                             switchSourceOnFocusedScreen(-1)
                         }
                     }, LONG_PRESS_THRESHOLD)
@@ -875,7 +800,6 @@ class MultiScreenPlayerFragment : Fragment() {
                     handler.postDelayed({
                         if (rightKeyDownTime > 0 && !navLongPressHandled) {
                             navLongPressHandled = true
-                            // 长按：切换下一个源
                             switchSourceOnFocusedScreen(1)
                         }
                     }, LONG_PRESS_THRESHOLD)
@@ -888,35 +812,29 @@ class MultiScreenPlayerFragment : Fragment() {
             }
             
             KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_PAGE_UP -> {
-                // 上一个频道（在当前焦点屏幕）
                 switchChannelOnFocusedScreen(-1)
                 return true
             }
             
             KeyEvent.KEYCODE_CHANNEL_DOWN, KeyEvent.KEYCODE_PAGE_DOWN -> {
-                // 下一个频道（在当前焦点屏幕）
                 switchChannelOnFocusedScreen(1)
                 return true
             }
             
             KeyEvent.KEYCODE_VOLUME_UP -> {
-                // 音量增加（系统处理）
                 return false
             }
             
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                // 音量减少（系统处理）
                 return false
             }
             
             KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_INFO -> {
-                // 显示/隐藏控制栏
                 toggleControls()
                 return true
             }
         }
         
-        // 显示控制栏
         showControls()
         return false
     }
@@ -927,13 +845,11 @@ class MultiScreenPlayerFragment : Fragment() {
                 val pressDuration = System.currentTimeMillis() - okKeyDownTime
                 okKeyDownTime = 0L
                 
-                // 如果已经处理了长按，不再处理短按
                 if (longPressHandled) {
                     longPressHandled = false
                     return true
                 }
                 
-                // 短按：切换活动屏幕（有声音的屏幕）
                 if (pressDuration < LONG_PRESS_THRESHOLD) {
                     handleShortPressOk()
                 }
@@ -945,7 +861,6 @@ class MultiScreenPlayerFragment : Fragment() {
                 if (leftKeyDownTime > 0) {
                     leftKeyDownTime = 0L
                     if (!navLongPressHandled) {
-                        // 短按：移动焦点左
                         moveFocus(-1, 0)
                     }
                     navLongPressHandled = false
@@ -957,7 +872,6 @@ class MultiScreenPlayerFragment : Fragment() {
                 if (rightKeyDownTime > 0) {
                     rightKeyDownTime = 0L
                     if (!navLongPressHandled) {
-                        // 短按：移动焦点右
                         moveFocus(1, 0)
                     }
                     navLongPressHandled = false
@@ -969,17 +883,14 @@ class MultiScreenPlayerFragment : Fragment() {
     }
 
 
-    // 长按检测 - 左右键
     private var leftKeyDownTime = 0L
     private var rightKeyDownTime = 0L
     private var navLongPressHandled = false
     
-    // 在焦点屏幕切换源
     private fun switchSourceOnFocusedScreen(direction: Int) {
         val index = focusedScreenIndex
         val state = screenStates[index]
         
-        // 如果当前屏幕没有播放频道，忽略
         if (state.channelIndex < 0) return
         
         val sources = if (state.channelIndex < channelSources.size) {
@@ -993,23 +904,12 @@ class MultiScreenPlayerFragment : Fragment() {
             return 
         }
         
-        // 计算新索引
         var newSourceIndex = state.currentSourceIndex + direction
         if (newSourceIndex < 0) newSourceIndex = sources.size - 1
         if (newSourceIndex >= sources.size) newSourceIndex = 0
         
         Log.d(TAG, "Manually switching source on screen $index to $newSourceIndex")
         
-        // 播放新源（playChannelOnScreen 已包含自动检测逻辑，如果 sourceIndex=0 会触发检测）
-        // 但这里我们希望直接播放新源，或者如果是切回0号源也希望能检测？
-        // playChannelOnScreen 的逻辑是：如果 sources.size > 1 && sourceIndex == 0 -> 检测
-        // 如果我们要手动切到 0 号源，但不想触发重新全量检测（太慢），怎么办？
-        // 其实 sourceIndex=0 触发检测是为了初始进入。手动切源时我们希望它尝试播放。
-        // 所以我们需要微调 playChannelOnScreen 或者在这里处理。
-        // 现在 playChannelOnScreen 如果 sourceIndex=0 会检测。
-        // 如果 newSourceIndex 是 0，它会重新检测一遍，这其实也没坏处（确保可用）。
-        // 如果不想重新检测，可以修改 playChannelOnScreen。
-        // 但为了简单，先由它去检测。
         
         playChannelOnScreen(index, state.channelIndex, newSourceIndex)
         
@@ -1030,10 +930,7 @@ class MultiScreenPlayerFragment : Fragment() {
         ).show()
     }
 
-    // 移动焦点（移动到有频道的屏幕时自动切换声音）
     private fun moveFocus(dx: Int, dy: Int) {
-        // 计算新的焦点位置
-        // 屏幕布局: 0 1
         //          2 3
         val col = focusedScreenIndex % 2
         val row = focusedScreenIndex / 2
@@ -1041,7 +938,6 @@ class MultiScreenPlayerFragment : Fragment() {
         var newCol = col + dx
         var newRow = row + dy
         
-        // 边界检查
         newCol = newCol.coerceIn(0, 1)
         newRow = newRow.coerceIn(0, 1)
         
@@ -1050,7 +946,6 @@ class MultiScreenPlayerFragment : Fragment() {
         if (newIndex != focusedScreenIndex) {
             focusedScreenIndex = newIndex
             
-            // 如果新焦点屏幕有频道，自动切换声音到该屏幕
             if (screenStates[newIndex].channelIndex >= 0) {
                 setActiveScreen(newIndex)
             }
@@ -1060,27 +955,20 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
     
-    // 短按OK：
-    // - 如果是空屏幕，显示频道选择器（类似Windows点击空屏幕）
-    // - 如果有频道，切换为活动屏幕（有声音）
     private fun handleShortPressOk() {
         val currentState = screenStates[focusedScreenIndex]
         
         if (currentState.channelIndex < 0) {
-            // 空屏幕：显示频道选择器
             showChannelSelector(focusedScreenIndex)
         } else {
-            // 有频道：切换为活动屏幕
             setActiveScreen(focusedScreenIndex)
         }
         showControls()
     }
     
-    // 长按OK：清空当前屏幕
     private fun handleLongPressOk() {
         Log.d(TAG, "Long press OK - clearing screen $focusedScreenIndex")
         
-        // 如果要清空的是活动屏幕，先切换活动屏幕到其他有内容的屏幕
         if (focusedScreenIndex == activeScreenIndex) {
             for (i in 0..3) {
                 if (i != focusedScreenIndex && screenStates[i].channelIndex >= 0) {
@@ -1094,13 +982,11 @@ class MultiScreenPlayerFragment : Fragment() {
         Toast.makeText(requireContext(), getString(R.string.screen_cleared, focusedScreenIndex + 1), Toast.LENGTH_SHORT).show()
     }
     
-    // 在焦点屏幕切换频道
     private fun switchChannelOnFocusedScreen(direction: Int) {
         val currentState = screenStates[focusedScreenIndex]
         val currentIndex = if (currentState.channelIndex >= 0) {
             currentState.channelIndex
         } else {
-            // 如果当前屏幕是空的，从活动屏幕的频道开始
             screenStates[activeScreenIndex].channelIndex.coerceAtLeast(0)
         }
         
@@ -1109,27 +995,22 @@ class MultiScreenPlayerFragment : Fragment() {
         showControls()
     }
     
-    // 返回键处理
     fun handleBackKey(): Boolean {
         Log.d(TAG, "handleBackKey called, channelSelectorVisible=$channelSelectorVisible")
         
-        // 如果频道选择器显示中，先关闭它
         if (channelSelectorVisible) {
             Log.d(TAG, "Closing channel selector")
             hideChannelSelector()
             return true
         }
         
-        // 检查是否有活动屏幕正在播放
         val activeState = screenStates[activeScreenIndex]
         Log.d(TAG, "Active screen channel index: ${activeState.channelIndex}, source index: ${activeState.currentSourceIndex}")
         
         if (activeState.channelIndex >= 0) {
-            // 有频道在播放，退出分屏进入普通播放模式（传递源索引）
             Log.d(TAG, "Exiting to normal player with channel: ${activeState.channelIndex}, source: ${activeState.currentSourceIndex}")
             onExitToNormalPlayer?.invoke(activeState.channelIndex, activeState.currentSourceIndex)
         } else {
-            // 没有播放内容，直接关闭分屏返回频道列表
             Log.d(TAG, "No active channel, closing multi-screen")
             onCloseListener?.invoke()
         }
@@ -1144,7 +1025,6 @@ class MultiScreenPlayerFragment : Fragment() {
             .setTitle(getString(R.string.exit_multi_screen))
             .setMessage(getString(R.string.currently_playing, channelName))
             .setPositiveButton(getString(R.string.continue_playing)) { _, _ ->
-                // 退出分屏，转为普通播放器继续播放（传递源索引）
                 onExitToNormalPlayer?.invoke(activeState.channelIndex, activeState.currentSourceIndex)
                 onCloseListener?.invoke()
             }
@@ -1155,7 +1035,6 @@ class MultiScreenPlayerFragment : Fragment() {
             .show()
     }
     
-    // ==================== 控制栏 ====================
     
     private fun showControls() {
         if (!controlsVisible) {
@@ -1164,7 +1043,6 @@ class MultiScreenPlayerFragment : Fragment() {
             bottomBar.visibility = View.VISIBLE
         }
         
-        // 重置隐藏定时器
         hideControlsRunnable?.let { handler.removeCallbacks(it) }
         hideControlsRunnable = Runnable {
             hideControls()
@@ -1186,21 +1064,17 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
     
-    // ==================== 生命周期 ====================
     
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
         
-        // 确保屏幕常亮
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         
-        // 恢复播放 - 检查播放器状态
         for (i in 0..3) {
             if (screenStates[i].channelIndex >= 0) {
                 players[i]?.let { p ->
                     if (p.playbackState == Player.STATE_IDLE || p.playbackState == Player.STATE_ENDED) {
-                        // 播放器处于空闲或结束状态，需要重新加载
                         Log.d(TAG, "Screen $i player in IDLE/ENDED state, reloading...")
                         val channelIndex = screenStates[i].channelIndex
                         val sourceIndex = screenStates[i].currentSourceIndex
@@ -1211,11 +1085,9 @@ class MultiScreenPlayerFragment : Fragment() {
                             }
                         }
                     } else {
-                        // 播放器状态正常，直接恢复播放
                         p.play()
                     }
                 } ?: run {
-                    // 播放器不存在，重新初始化并播放
                     Log.d(TAG, "Screen $i player is null, reinitializing...")
                     val channelIndex = screenStates[i].channelIndex
                     val sourceIndex = screenStates[i].currentSourceIndex
@@ -1234,7 +1106,6 @@ class MultiScreenPlayerFragment : Fragment() {
         super.onPause()
         Log.d(TAG, "onPause")
         
-        // 暂停所有播放
         for (i in 0..3) {
             players[i]?.pause()
         }
@@ -1244,10 +1115,8 @@ class MultiScreenPlayerFragment : Fragment() {
         super.onDestroyView()
         Log.d(TAG, "onDestroyView")
         
-        // 取消定时器
         hideControlsRunnable?.let { handler.removeCallbacks(it) }
         
-        // 释放所有播放器
         for (i in 0..3) {
             players[i]?.release()
             players[i] = null
@@ -1256,18 +1125,13 @@ class MultiScreenPlayerFragment : Fragment() {
         activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     
-    // ==================== 公共方法 ====================
     
-    // 设置音量增强
     fun setVolumeBoost(db: Int) {
         volumeBoostDb = db
-        // 更新活动屏幕的音量
         players[activeScreenIndex]?.volume = getEffectiveVolume()
     }
     
-    // ==================== 图片加载 ====================
     
-    // 使用顶部 companion object 中的静态缓存
     private val imageExecutor = Executors.newFixedThreadPool(8)
     
     private fun loadImageAsync(url: String, imageView: ImageView, defaultView: ImageView) {
@@ -1277,7 +1141,6 @@ class MultiScreenPlayerFragment : Fragment() {
             return
         }
         
-        // 检查缓存
         if (imageCache.containsKey(url)) {
             val bitmap = imageCache[url]
             if (bitmap != null) {
@@ -1291,17 +1154,14 @@ class MultiScreenPlayerFragment : Fragment() {
             return
         }
         
-        // 显示默认图标，等待加载
         imageView.visibility = View.GONE
         defaultView.visibility = View.VISIBLE
         
-        // 避免重复加载
         synchronized(loadingUrls) {
             if (loadingUrls.contains(url)) return
             loadingUrls.add(url)
         }
         
-        // 异步加载
         imageExecutor.execute {
             try {
                 val connection = URL(url).openConnection()
@@ -1330,7 +1190,6 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
     
-    // 预加载可见范围内的台标
     private fun preloadLogos(startIndex: Int, count: Int) {
         val filteredChannels = getFilteredChannels()
         val endIndex = minOf(startIndex + count, filteredChannels.size)
@@ -1371,19 +1230,16 @@ class MultiScreenPlayerFragment : Fragment() {
         }
     }
     
-    // ==================== 频道选择器 ====================
     
     private fun buildCategoryData() {
         categories.clear()
         categoryChannelCounts.clear()
         
-        // 统计每个分类的频道数量
         for (group in channelGroups) {
             val count = categoryChannelCounts[group] ?: 0
             categoryChannelCounts[group] = count + 1
         }
         
-        // 构建分类列表（去重）
         val uniqueGroups = channelGroups.distinct()
         categories.addAll(uniqueGroups)
         
@@ -1398,20 +1254,15 @@ class MultiScreenPlayerFragment : Fragment() {
         channelFocusIndex = 0
         isCategoryFocused = true
         
-        // 更新标题
         selectorScreenTitle.text = getString(R.string.screen_number, screenIndex + 1)
         
-        // 刷新列表
         categoryList.adapter?.notifyDataSetChanged()
         updateChannelGrid()
         
-        // 预加载前20个台标
         preloadLogos(0, 20)
         
-        // 显示面板
         channelSelectorPanel.visibility = View.VISIBLE
         
-        // 隐藏控制栏
         hideControls()
     }
     
@@ -1436,16 +1287,13 @@ class MultiScreenPlayerFragment : Fragment() {
         
         channelGrid.adapter?.notifyDataSetChanged()
         
-        // 预加载当前分类的前20个台标
         preloadLogos(0, 20)
     }
     
     private fun getFilteredChannels(): List<Int> {
         return if (selectedCategoryIndex == 0) {
-            // 全部频道
             channelUrls.indices.toList()
         } else {
-            // 按分类过滤
             val categoryName = categories[selectedCategoryIndex - 1]
             channelUrls.indices.filter { channelGroups.getOrNull(it) == categoryName }
         }
@@ -1463,14 +1311,12 @@ class MultiScreenPlayerFragment : Fragment() {
             
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (!isCategoryFocused) {
-                    // 频道网格内向左移动
                     val columns = 5
                     if (channelFocusIndex % columns > 0) {
                         channelFocusIndex--
                         channelGrid.adapter?.notifyDataSetChanged()
                         channelGrid.scrollToPosition(channelFocusIndex)
                     } else {
-                        // 在第一列，切换到分类列表
                         isCategoryFocused = true
                         categoryList.adapter?.notifyDataSetChanged()
                         channelGrid.adapter?.notifyDataSetChanged()
@@ -1481,14 +1327,12 @@ class MultiScreenPlayerFragment : Fragment() {
             
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (isCategoryFocused) {
-                    // 从分类列表切换到频道网格
                     isCategoryFocused = false
                     channelFocusIndex = 0
                     categoryList.adapter?.notifyDataSetChanged()
                     channelGrid.adapter?.notifyDataSetChanged()
                     channelGrid.scrollToPosition(0)
                 } else {
-                    // 频道网格内向右移动
                     val columns = 5
                     val filteredChannels = getFilteredChannels()
                     if (channelFocusIndex % columns < columns - 1 && channelFocusIndex + 1 < filteredChannels.size) {
@@ -1502,14 +1346,12 @@ class MultiScreenPlayerFragment : Fragment() {
             
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (isCategoryFocused) {
-                    // 分类列表向上
                     if (categoryFocusIndex > 0) {
                         categoryFocusIndex--
                         categoryList.adapter?.notifyDataSetChanged()
                         categoryList.scrollToPosition(categoryFocusIndex)
                     }
                 } else {
-                    // 频道网格向上
                     val columns = 5
                     if (channelFocusIndex >= columns) {
                         channelFocusIndex -= columns
@@ -1522,15 +1364,13 @@ class MultiScreenPlayerFragment : Fragment() {
             
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (isCategoryFocused) {
-                    // 分类列表向下
-                    val maxIndex = categories.size  // +1 for "全部频道"
+                    val maxIndex = categories.size
                     if (categoryFocusIndex < maxIndex) {
                         categoryFocusIndex++
                         categoryList.adapter?.notifyDataSetChanged()
                         categoryList.scrollToPosition(categoryFocusIndex)
                     }
                 } else {
-                    // 频道网格向下
                     val columns = 5
                     val filteredChannels = getFilteredChannels()
                     if (channelFocusIndex + columns < filteredChannels.size) {
@@ -1544,13 +1384,11 @@ class MultiScreenPlayerFragment : Fragment() {
             
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                 if (isCategoryFocused) {
-                    // 选择分类
                     selectedCategoryIndex = categoryFocusIndex
                     channelFocusIndex = 0
                     updateChannelGrid()
                     categoryList.adapter?.notifyDataSetChanged()
                 } else {
-                    // 选择频道
                     val filteredChannels = getFilteredChannels()
                     if (channelFocusIndex < filteredChannels.size) {
                         val channelIndex = filteredChannels[channelFocusIndex]
@@ -1564,7 +1402,6 @@ class MultiScreenPlayerFragment : Fragment() {
         return false
     }
     
-    // ==================== 适配器 ====================
     
     inner class CategoryAdapter : RecyclerView.Adapter<CategoryAdapter.ViewHolder>() {
         
@@ -1593,11 +1430,9 @@ class MultiScreenPlayerFragment : Fragment() {
                 holder.count.text = (categoryChannelCounts[categoryName] ?: 0).toString()
             }
             
-            // 选中状态
             holder.indicator.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
             holder.name.setTextColor(if (isSelected) 0xFFE91E63.toInt() else Color.WHITE)
             
-            // 焦点状态
             holder.itemView.setBackgroundColor(
                 when {
                     isFocused -> 0x33E91E63.toInt()
@@ -1607,7 +1442,7 @@ class MultiScreenPlayerFragment : Fragment() {
             )
         }
         
-        override fun getItemCount(): Int = categories.size + 1  // +1 for "全部频道"
+        override fun getItemCount(): Int = categories.size + 1
     }
     
     inner class ChannelAdapter : RecyclerView.Adapter<ChannelAdapter.ViewHolder>() {
@@ -1634,11 +1469,9 @@ class MultiScreenPlayerFragment : Fragment() {
             
             holder.name.text = channelNames.getOrElse(channelIndex) { "Channel ${channelIndex + 1}" }
             
-            // 加载台标
             val logoUrl = channelLogos.getOrElse(channelIndex) { "" }
             loadImageAsync(logoUrl, holder.logo, holder.defaultLogo)
             
-            // 焦点状态 - 设置背景View
             val bgView = holder.container.findViewById<View>(R.id.item_background)
             bgView?.setBackgroundResource(
                 if (isFocused) R.drawable.channel_grid_item_focused else R.drawable.channel_grid_item_bg
