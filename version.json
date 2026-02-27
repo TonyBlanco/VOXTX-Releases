@@ -1,23 +1,23 @@
 {
-  "version": "1.5.36",
-  "build": 196,
-  "releaseDate": "2026-02-26",
+  "version": "1.5.37",
+  "build": 197,
+  "releaseDate": "2026-02-27",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.36/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.37/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Chromecast: envia contenido a tu TV desde el movil\n- CH+/CH- con mando remoto\n- Busqueda por voz en Android TV\n- Descarga offline con reanudacion",
-    "en": "- Chromecast: cast content to your TV from mobile\n- CH+/CH- channel zapping with remote\n- Voice search on Android TV\n- Offline download resume"
+    "es": "- Fix: botones de Audio, Subtitulos, Calidad y Chromecast visibles en movil\n- Fix: player abre en landscape + modo inmersivo\n- Fix: VOD pausa al terminar en vez de reiniciar",
+    "en": "- Fix: Audio, Subtitle, Quality and Chromecast buttons visible on mobile\n- Fix: player opens in landscape + immersive mode\n- Fix: VOD pauses at end instead of restarting"
   },
   "minVersion": "1.0.0"
 }
