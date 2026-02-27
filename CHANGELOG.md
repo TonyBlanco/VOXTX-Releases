@@ -78,6 +78,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- OTA update detection now compares `version` and `build` (supports build-only updates like `1.5.36+197` over `1.5.36+196`).
+- Release workflow is now pinned to publish GitHub Releases in `TonyBlanco/VOXTX-Releases`.
+- Release workflow now uses `VOXTX_RELEASES_TOKEN` for cross-repository release publishing.
+- `version.json` and `docs/version.json` were synchronized to avoid Android reading stale release metadata.
+
+### Docs
+- Added `docs/android_update_release_guide.md` with release/update rules and troubleshooting.
+- Updated `AGENT_WORKFLOW.md` with explicit manifest sync and token requirements.
+
 ## [1.5.21] - 2026-02-24
 
 ### Added

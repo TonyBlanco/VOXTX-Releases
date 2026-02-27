@@ -190,6 +190,9 @@ Descarga la última versión desde [Releases](https://github.com/TonyBlanco/VOXT
 
 ## 🛠️ Desarrollo
 
+### WebOS (LG TV) para agentes
+- Ver `docs/webos_agent_runbook.md` para el flujo real de build/package/install/launch en TV física y los bloqueos conocidos de `ares-cli`.
+
 ### Requisitos
 - Flutter SDK (`>=3.5.0`)
 - Android Studio (Android/TV)

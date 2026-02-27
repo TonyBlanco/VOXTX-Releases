@@ -460,7 +460,7 @@ class NativePlayerFragment : Fragment() {
                 Log.d(TAG, "频道有多个源且未指定特定源(index=0)，开始在后台线程检测...")
                 
                 // 显示正在检测的状态
-                updateStatus("检测源...")
+                updateStatus(getString(R.string.detecting_sources))
                 showLoading()
                 
                 // 在后台线程检测源
@@ -469,7 +469,7 @@ class NativePlayerFragment : Fragment() {
                     for (i in sources.indices) {
                         // 实时更新UI显示当前检测的源
                         activity?.runOnUiThread {
-                            updateStatus("检测源 ${i + 1}/${sources.size}")
+                            updateStatus(getString(R.string.detecting_source_progress, i + 1, sources.size))
                         }
                         
                         Log.d(TAG, "检测源 ${i + 1}/${sources.size}: ${sources[i]}")
@@ -510,7 +510,7 @@ class NativePlayerFragment : Fragment() {
             }
         } else {
             Log.e(TAG, "错误：没有提供视频URL")
-            showError("No video URL provided")
+            showError(getString(R.string.no_video_url_provided))
         }
         
         // Start clock update
@@ -1393,7 +1393,7 @@ class NativePlayerFragment : Fragment() {
                             isAutoDetecting = true
                             
                             // 显示正在检测的状态
-                            updateStatus("自动切换源...")
+                            updateStatus(getString(R.string.auto_switching_source))
                             showLoading()
                             
                             // 在后台线程异步检测源
@@ -1406,7 +1406,7 @@ class NativePlayerFragment : Fragment() {
                                 while (nextSourceIndex < sources.size && isAutoDetecting) {
                                     // 实时更新UI显示当前检测的源
                                     activity?.runOnUiThread {
-                                        updateStatus("检测源 ${nextSourceIndex + 1}/${sources.size}")
+                                        updateStatus(getString(R.string.detecting_source_progress, nextSourceIndex + 1, sources.size))
                                     }
                                     
                                     // 检测源是否可用
@@ -1456,7 +1456,7 @@ class NativePlayerFragment : Fragment() {
                                         } else {
                                             // 所有源都不可用，显示错误
                                             Log.d(TAG, "所有 ${sources.size} 个源都不可用，全部失败")
-                                            showError("播放失败: ${error.message}")
+                                            showError(formatPlaybackError(error))
                                             updateStatus("Offline")
                                         }
                                     }
@@ -1464,7 +1464,7 @@ class NativePlayerFragment : Fragment() {
                             }.start()
                         } else {
                             // 只有一个源，直接显示错误
-                            showError("播放失败: ${error.message}")
+                            showError(formatPlaybackError(error))
                             updateStatus("Offline")
                         }
                     }
@@ -1727,7 +1727,7 @@ class NativePlayerFragment : Fragment() {
         // 防止重复手动切换
         if (isManualSwitching) {
             activity?.let {
-                android.widget.Toast.makeText(it, "正在检测源，请稍候...", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(it, getString(R.string.waiting_source_detection), android.widget.Toast.LENGTH_SHORT).show()
             }
             return
         }
@@ -1749,7 +1749,7 @@ class NativePlayerFragment : Fragment() {
         
         showControls()
         showLoading()
-        updateStatus("正在寻找可用源...")
+        updateStatus(getString(R.string.finding_available_source))
         
         val startIndex = currentSourceIndex
         
@@ -1783,7 +1783,7 @@ class NativePlayerFragment : Fragment() {
 
                     activity?.runOnUiThread {
                         if (myVerificationId == currentVerificationId) {
-                            updateStatus("检测源 ${indexToCheck + 1}/${sources.size}")
+                            updateStatus(getString(R.string.detecting_source_progress, indexToCheck + 1, sources.size))
                             showControls()
                         }
                     }
@@ -1922,7 +1922,7 @@ class NativePlayerFragment : Fragment() {
             Log.d(TAG, "开始在后台线程检测源...")
             
             // 显示正在检测的状态
-            updateStatus("检测源...")
+            updateStatus(getString(R.string.detecting_sources))
             showLoading()
             
             // 在后台线程检测源
@@ -1937,7 +1937,7 @@ class NativePlayerFragment : Fragment() {
                     // 实时更新UI显示当前检测的源
                     activity?.runOnUiThread {
                         if (myVerificationId != currentVerificationId) return@runOnUiThread
-                        updateStatus("检测源 ${i + 1}/${sources.size}")
+                        updateStatus(getString(R.string.detecting_source_progress, i + 1, sources.size))
                         currentSourceIndex = i
                         updateSourceIndicator()
                         showControls()
@@ -2143,6 +2143,16 @@ class NativePlayerFragment : Fragment() {
     private fun hideLoading() {
         loadingIndicator.visibility = View.GONE
         errorText.visibility = View.GONE
+    }
+
+    private fun formatPlaybackError(error: PlaybackException): String {
+        val rawReason = error.message?.trim().orEmpty()
+        val localizedReason = when {
+            rawReason.isEmpty() -> getString(R.string.unknown_error)
+            rawReason.equals("Source error", ignoreCase = true) -> getString(R.string.source_error)
+            else -> rawReason
+        }
+        return getString(R.string.playback_failed_with_reason, localizedReason)
     }
 
     private fun showError(message: String) {

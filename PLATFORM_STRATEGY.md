@@ -456,11 +456,20 @@ flutter build ipa
 
 ---
 
-## PLATAFORMA: WebOS (LG Smart TV) — ESTADO: 🔴 No iniciado, más complejo
+## PLATAFORMA: WebOS (LG Smart TV) — ESTADO: 🟠 MVP técnico validado en TV real (2026-02-26)
 
 ### Contexto
 WebOS no es una plataforma Flutter nativa. Requiere **Flutter Web** + **packaging con LG ares-cli**.
 Samsung Tizen es diferente y requiere su propio SDK (Tizen Flutter plugin).
+
+### Nota operativa confirmada (TV real)
+- Con Node `v25.x`, `ares-install` puede fallar en upload con `isDate is not a function`.
+- Para deploy real, usar Node 20 para todos los comandos `ares-*`:
+```bash
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+node -v  # debe ser v20.x
+```
+- Runbook detallado para agentes: `docs/webos_agent_runbook.md`
 
 ### Limitaciones críticas
 - `media_kit` **NO soporta web** — necesita reemplazo con `video_player` web o HLS.js via `dart:html`
@@ -549,7 +558,7 @@ Crear `webos/appinfo.json`:
 #### Paso 7 — Build y packaging
 ```bash
 # 1. Build Flutter web
-flutter build web --release --web-renderer canvaskit
+flutter build web --release --no-wasm-dry-run
 
 # 2. Copiar build/web/* al directorio del paquete webos
 cp -r build/web/* webos/
@@ -557,17 +566,20 @@ cp -r build/web/* webos/
 # 3. Crear paquete .ipk con ares-cli
 ares-package webos/ -o build/
 
-# 4. Instalar en TV (en Developer Mode)
+# 4. Forzar Node 20 para ares-install/launch
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+
+# 5. Instalar en TV (en Developer Mode)
 ares-install --device MyTV build/com.tonyblanco.voxtv_1.5.22_all.ipk
 
-# 5. Lanzar
+# 6. Lanzar
 ares-launch --device MyTV com.tonyblanco.voxtv
 ```
 
 ### Consideraciones adicionales WebOS
 - LG WebOS 3.x y anteriores tienen soporte web limitado (pueden no soportar canvas WebGL)
-- WebOS 4+ (2018+) usa Chromium y soporta `canvaskit` renderer de Flutter
-- Para TVs LG más antiguas, usar `--web-renderer html` (más compatible, peor calidad)
+- `ares-package` puede fallar minificando JS moderno de Flutter (`canvaskit/skwasm/flutter.js`) con ciertas versiones de `@webos-tools/cli`
+- Si ocurre, tratarlo como problema de tooling de empaquetado, no de conectividad de TV
 - El repositorio de apps oficial de LG es LG Content Store — requiere proceso de certificación
 
 ---
@@ -580,7 +592,7 @@ Android TV      ████████████████████   9
 Windows         ████████████░░░░░░░░   65%  ⚠️ Funcional, sin systray/MSIX
 macOS           ██████████░░░░░░░░░░   45%  ⚠️ Funcional — sidebar ✅, PiP ✅, fullscreen ✅ (falta: update service, DLNA)
 iOS             ████░░░░░░░░░░░░░░░░   20%  🔴 Solo detección de plataforma
-WebOS           ██░░░░░░░░░░░░░░░░░░   10%  🔴 kIsWeb detectado, sin trabajo
+WebOS           ████████░░░░░░░░░░░░   40%  🟠 Build+package+install+launch validados en LG real (MVP sin playback final)
 ```
 
 ---
@@ -638,7 +650,8 @@ Cuando haya releases para múltiples plataformas, `version.json` en `VOXTX-Relea
 | iOS | `PlatformException` en brightness | `screen_brightness` requiere entitlement en iOS |
 | iOS | No puede instalar IPA directo | Solo via TestFlight o App Store — nunca descarga directa |
 | Windows | MSIX requiere certificado | Usar self-signed para desarrollo, CA real para Store |
-| WebOS | Pantalla en negro | Cambiar `--web-renderer html` en lugar de `canvaskit` |
+| WebOS | `ares-install` falla con `isDate is not a function` | Ejecutar `ares-*` con Node 20 (`export PATH="/opt/homebrew/opt/node@20/bin:$PATH"`) |
+| WebOS | `ares-package` falla con `Failed to minify code` | Problema del minificador de `@webos-tools/cli` con JS moderno (canvaskit/skwasm/flutter.js) |
 | WebOS | Streams no reproducen | Añadir HLS.js como `<script>` en `web/index.html` |
 | Todos | `sqflite` crash en web | Usar `sembast` para web, `sqflite` para el resto |
 | Android | Gradle downgrade (7.x) rompe la build | `gradle-wrapper.properties` debe mantener `gradle-8.14-all.zip` — NO aceptar sugerencias de downgrade del IDE |

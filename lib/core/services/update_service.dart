@@ -39,7 +39,8 @@ class UpdateService {
 
       //
       final currentVersion = await getCurrentVersion();
-      ServiceLocator.log.d('UPDATE: : $currentVersion');
+      final currentBuild = await getCurrentBuild();
+      ServiceLocator.log.d('UPDATE: : $currentVersion+$currentBuild');
 
       //
       final latestRelease = await _fetchLatestRelease();
@@ -51,7 +52,11 @@ class UpdateService {
       ServiceLocator.log.d('UPDATE: : ${latestRelease.version}');
 
       //
-      if (_isNewerVersion(latestRelease.version, currentVersion)) {
+      if (_isNewerRelease(
+        latestRelease: latestRelease,
+        currentVersion: currentVersion,
+        currentBuild: currentBuild,
+      )) {
         ServiceLocator.log.d('UPDATE: ');
         await _saveLastUpdateCheckTime();
         return latestRelease;
@@ -74,6 +79,17 @@ class UpdateService {
     } catch (e) {
       ServiceLocator.log.d('UPDATE: : $e');
       return '0.0.0';
+    }
+  }
+
+  ///
+  Future<int> getCurrentBuild() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return int.tryParse(packageInfo.buildNumber) ?? 0;
+    } catch (e) {
+      ServiceLocator.log.d('UPDATE: : $e');
+      return 0;
     }
   }
 
@@ -111,6 +127,32 @@ class UpdateService {
       ServiceLocator.log.d('UPDATE: : $e');
       return false;
     }
+  }
+
+  ///
+  bool _isNewerRelease({
+    required AppUpdate latestRelease,
+    required String currentVersion,
+    required int currentBuild,
+  }) {
+    if (_isNewerVersion(latestRelease.version, currentVersion)) {
+      return true;
+    }
+
+    try {
+      final latestVer = Version.parse(latestRelease.version);
+      final currentVer = Version.parse(currentVersion);
+      if (latestVer == currentVer) {
+        return latestRelease.build > currentBuild;
+      }
+    } catch (e) {
+      ServiceLocator.log.d('UPDATE: : $e');
+      if (latestRelease.version.trim() == currentVersion.trim()) {
+        return latestRelease.build > currentBuild;
+      }
+    }
+
+    return false;
   }
 
   ///

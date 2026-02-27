@@ -13,6 +13,7 @@ on:
 
 env:
   FLUTTER_VERSION: '3.38.5'
+  RELEASES_REPO: 'TonyBlanco/VOXTX-Releases'
 
 jobs:
   # ============================================
@@ -198,7 +199,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           TAG="${{ steps.version.outputs.TAG }}"
-          BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          BASE_URL="https://github.com/${{ env.RELEASES_REPO }}/releases/download/${TAG}"
           
           # Read changelog from version.json
           if [ -f "docs/version.json" ]; then
@@ -255,6 +256,7 @@ jobs:
         if: steps.version.outputs.CREATE_RELEASE == 'true'
         uses: softprops/action-gh-release@v1
         with:
+          repository: ${{ env.RELEASES_REPO }}
           tag_name: ${{ steps.version.outputs.TAG }}
           name: flutteriptv ${{ steps.version.outputs.VERSION }}
           body_path: release_notes.md
@@ -269,7 +271,7 @@ jobs:
             release-assets/android-release/flutteriptv-AndroidTV-armeabi-v7a.apk
             release-assets/android-release/flutteriptv-AndroidTV-x86_64.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.VOXTX_RELEASES_TOKEN }}
 
       - name: Build Complete (No Release)
         if: steps.version.outputs.CREATE_RELEASE == 'false'
