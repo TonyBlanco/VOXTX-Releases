@@ -45,6 +45,8 @@ version: MAJOR.MINOR.PATCH+BUILD
 - **PATCH** (+1) — bug fixes, small improvements  
 - **MINOR** (+1, PATCH→0) — new features  
 - **BUILD** always +1 from previous, never reset  
+- **Update detection rule**: app compares `version` and `build`.  
+  If version is equal but build is higher, it is treated as an update.
 
 ---
 
@@ -76,6 +78,7 @@ https://raw.githubusercontent.com/TonyBlanco/VOXTX-Releases/main/version.json
 **Must be updated on every release or the app will never show the update notification.**
 
 Also keep `docs/version.json` in sync (used by the GitHub Pages website).
+Both files must have the same: `version`, `build`, `releaseDate`, and Android asset URLs.
 ```json
 {
   "version": "1.5.XX",
@@ -161,6 +164,7 @@ gh release create v1.5.XX \
 ```
 
 > **IMPORTANT**: Always use `--notes-file` not `--notes` to avoid shell multi-line escaping errors.
+> **IMPORTANT (GitHub Actions)**: workflow release to `VOXTX-Releases` requires secret `VOXTX_RELEASES_TOKEN`.
 
 ---
 
@@ -193,7 +197,27 @@ Ignore **info/warning** lines (unused imports, lint hints) unless they are new a
 | Forgetting to increment BUILD number | `version: X.Y.Z+BUILD` — both must increment |
 | **Forgetting to update `docs/version.json`** | **Keep in sync for the GitHub Pages website** |
 | **Forgetting to update root `version.json` in VOXTX-Releases** | **The app fetches this URL — 404 = no update detected** |
+| **`version.json` and `docs/version.json` have different versions/builds** | **Keep them identical before release** |
+| **Using `GITHUB_TOKEN` to publish in another repo** | **Use `VOXTX_RELEASES_TOKEN` for `TonyBlanco/VOXTX-Releases`** |
+| **Releasing same `version` with higher `build` but not updating `build` in manifest** | **Always bump and publish both `version` and `build` correctly** |
 | `git push` fails (rejected) | Run `git pull --rebase voxtx master` first |
+
+---
+
+## WebOS Deployment Notes (all agents)
+
+- Full runbook: `docs/webos_agent_runbook.md`
+- Last verified on real LG TV: `2026-02-26`
+- If `ares-install` fails with `isDate is not a function`, you are likely running Node 25.
+- Force Node 20 before `ares-*`:
+
+```bash
+export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
+node -v   # v20.x required
+```
+
+- `ares-package` can fail minifying modern Flutter web JS (`canvaskit`, `skwasm`, `flutter.js`).
+- Temporary JS shims are allowed only to validate package/install/launch pipeline; never treat that as production playback validation.
 
 ---
 

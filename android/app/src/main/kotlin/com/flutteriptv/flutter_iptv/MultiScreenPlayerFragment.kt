@@ -446,7 +446,12 @@ class MultiScreenPlayerFragment : Fragment() {
                                 for (i in (state.currentSourceIndex + 1) until sources.size) {
                                     activity?.runOnUiThread {
                                         // 更新状态显示正在检测的源
-                                        state.channelName = "$originalName (检测 ${i+1}/${sources.size})"
+                                        state.channelName = getString(
+                                            R.string.channel_with_source_checking,
+                                            originalName,
+                                            i + 1,
+                                            sources.size
+                                        )
                                         updateScreenOverlay(index)
                                         Log.d(TAG, "Checking source ${i + 1}/${sources.size} for screen $index")
                                     }
@@ -540,7 +545,12 @@ class MultiScreenPlayerFragment : Fragment() {
                 var foundIndex = -1
                 for (i in sources.indices) {
                     activity?.runOnUiThread {
-                        screenStates[screenIndex].channelName = "$name (检测 ${i+1}/${sources.size})"
+                        screenStates[screenIndex].channelName = getString(
+                            R.string.channel_with_source_checking,
+                            name,
+                            i + 1,
+                            sources.size
+                        )
                         updateScreenOverlay(screenIndex)
                     }
                     
@@ -979,7 +989,7 @@ class MultiScreenPlayerFragment : Fragment() {
         }
         
         if (sources.size <= 1) {
-            Toast.makeText(requireContext(), "当前频道只有一个源", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.current_channel_single_source), Toast.LENGTH_SHORT).show()
             return 
         }
         
@@ -1003,8 +1013,21 @@ class MultiScreenPlayerFragment : Fragment() {
         
         playChannelOnScreen(index, state.channelIndex, newSourceIndex)
         
-        val directionStr = if (direction > 0) "下一个" else "上一个"
-        Toast.makeText(requireContext(), "切换到${directionStr}源 (${newSourceIndex + 1}/${sources.size})", Toast.LENGTH_SHORT).show()
+        val directionLabel = if (direction > 0) {
+            getString(R.string.next_source_label)
+        } else {
+            getString(R.string.previous_source_label)
+        }
+        Toast.makeText(
+            requireContext(),
+            getString(
+                R.string.switched_to_source,
+                directionLabel,
+                newSourceIndex + 1,
+                sources.size
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     // 移动焦点（移动到有频道的屏幕时自动切换声音）
