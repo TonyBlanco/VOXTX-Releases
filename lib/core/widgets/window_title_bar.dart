@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
+import '../platform/web_shims/window_manager_shim.dart';
 import '../theme/app_theme.dart';
-import '../platform/windows_pip_channel.dart';
+import '../platform/web_shims/windows_pip_shim.dart';
 
 /// Windows
 /// 

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import '../../../core/platform/web_shims/media_kit_shim.dart';
+import '../../../core/platform/web_shims/media_kit_video_shim.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
