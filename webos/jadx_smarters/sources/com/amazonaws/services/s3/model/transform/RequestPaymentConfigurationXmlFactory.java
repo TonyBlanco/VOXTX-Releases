@@ -1,0 +1,20 @@
+package com.amazonaws.services.s3.model.transform;
+
+import com.amazonaws.services.s3.internal.XmlWriter;
+import com.amazonaws.services.s3.model.RequestPaymentConfiguration;
+
+/* JADX INFO: loaded from: classes.dex */
+public class RequestPaymentConfigurationXmlFactory {
+    public byte[] convertToXmlByteArray(RequestPaymentConfiguration requestPaymentConfiguration) {
+        XmlWriter xmlWriter = new XmlWriter();
+        xmlWriter.start("RequestPaymentConfiguration", "xmlns", "TryRoom");
+        RequestPaymentConfiguration.Payer payer = requestPaymentConfiguration.getPayer();
+        if (payer != null) {
+            XmlWriter xmlWriterStart = xmlWriter.start("Payer");
+            xmlWriterStart.value(payer.toString());
+            xmlWriterStart.end();
+        }
+        xmlWriter.end();
+        return xmlWriter.getBytes();
+    }
+}

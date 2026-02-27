@@ -1,0 +1,10 @@
+package com.google.android.gms.internal.cast;
+
+/* JADX INFO: loaded from: classes3.dex */
+public final class zzkg {
+    private static final zzsk zza = new zzke();
+
+    public static zzsl zza() {
+        return zzkf.zza;
+    }
+}
