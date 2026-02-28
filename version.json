@@ -1,23 +1,23 @@
 {
-  "version": "1.5.41",
-  "build": 201,
+  "version": "1.5.42",
+  "build": 202,
   "releaseDate": "2026-02-28",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.42/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Nuevo: Traducción de subtítulos en tiempo real (LibreTranslate + MyMemory)\n- 11 idiomas soportados, caché inteligente, menú en el player",
-    "en": "- New: Real-time subtitle translation (LibreTranslate + MyMemory)\n- 11 languages supported, smart cache, in-player menu"
+    "es": "- Auditoría completa Google Play: signing, iconos adaptativos, ProGuard, splash Android 12+\n- Accesibilidad: contentDescription en todas las vistas\n- Traducciones ES/ZH completas, comentarios CN→EN\n- Seguridad de red, reglas de backup, lint habilitado",
+    "en": "- Full Google Play audit: signing, adaptive icons, ProGuard, Android 12+ splash\n- Accessibility: contentDescription on all views\n- Complete ES/ZH translations, CN→EN code comments\n- Network security, backup rules, lint enabled"
   },
   "minVersion": "1.0.0"
 }
