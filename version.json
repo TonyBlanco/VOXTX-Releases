@@ -1,23 +1,23 @@
 {
-  "version": "1.5.38",
-  "build": 198,
+  "version": "1.5.39",
+  "build": 199,
   "releaseDate": "2026-02-28",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.38/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Rebrand: package ID cambiado a tv.vox.app\n- Fix: OOM crash con 213k canales (lazy-loading)\n- Fix: EPG tap-to-play\n- Fix: pantalla negra timeout\n- Fix: overflow en channel cards",
-    "en": "- Rebrand: package ID changed to tv.vox.app\n- Fix: OOM crash with 213k channels (lazy-loading)\n- Fix: EPG tap-to-play\n- Fix: black screen timeout\n- Fix: channel card overflow"
+    "es": "- Fix: detección de Android TV / Xiaomi Box / Fire TV (MethodChannel nativo)\n- Fix: navegación con control remoto (D-pad, sidebar, focus)\n- Fix: app aparece en launcher de Android TV (leanback)",
+    "en": "- Fix: Android TV / Xiaomi Box / Fire TV detection (native MethodChannel)\n- Fix: remote control navigation (D-pad, sidebar, focus)\n- Fix: app shows in Android TV launcher (leanback)"
   },
   "minVersion": "1.0.0"
 }
