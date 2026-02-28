@@ -1,23 +1,23 @@
 {
-  "version": "1.5.39",
-  "build": 199,
+  "version": "1.5.40",
+  "build": 200,
   "releaseDate": "2026-02-28",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.39/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Fix: detección de Android TV / Xiaomi Box / Fire TV (MethodChannel nativo)\n- Fix: navegación con control remoto (D-pad, sidebar, focus)\n- Fix: app aparece en launcher de Android TV (leanback)",
-    "en": "- Fix: Android TV / Xiaomi Box / Fire TV detection (native MethodChannel)\n- Fix: remote control navigation (D-pad, sidebar, focus)\n- Fix: app shows in Android TV launcher (leanback)"
+    "es": "- Fix: EPG fullscreen reutiliza mismo player (sin re-buffering)\n- Fix: icono de app reemplazado (Flutter default → VoXTV)",
+    "en": "- Fix: EPG fullscreen reuses same player (no re-buffering)\n- Fix: app icon replaced (Flutter default → VoXTV)"
   },
   "minVersion": "1.0.0"
 }
