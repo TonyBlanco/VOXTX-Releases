@@ -1,23 +1,23 @@
 {
-  "version": "1.5.40",
-  "build": 200,
+  "version": "1.5.41",
+  "build": 201,
   "releaseDate": "2026-02-28",
   "assets": {
     "windows": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.11/flutteriptv-Windows-x64-Setup.exe",
     "android_mobile": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-x86_64-release.apk"
     },
     "android_tv": {
-      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-arm64-v8a-release.apk",
-      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-armeabi-v7a-release.apk",
-      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.40/app-x86_64-release.apk"
+      "arm64-v8a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-arm64-v8a-release.apk",
+      "armeabi-v7a": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-armeabi-v7a-release.apk",
+      "x86_64": "https://github.com/TonyBlanco/VOXTX-Releases/releases/download/v1.5.41/app-x86_64-release.apk"
     }
   },
   "changelog": {
-    "es": "- Fix: EPG fullscreen reutiliza mismo player (sin re-buffering)\n- Fix: icono de app reemplazado (Flutter default → VoXTV)",
-    "en": "- Fix: EPG fullscreen reuses same player (no re-buffering)\n- Fix: app icon replaced (Flutter default → VoXTV)"
+    "es": "- Nuevo: Traducción de subtítulos en tiempo real (LibreTranslate + MyMemory)\n- 11 idiomas soportados, caché inteligente, menú en el player",
+    "en": "- New: Real-time subtitle translation (LibreTranslate + MyMemory)\n- 11 languages supported, smart cache, in-player menu"
   },
   "minVersion": "1.0.0"
 }
